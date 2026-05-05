@@ -1,0 +1,46 @@
+{
+  "generated_by": "scripts/fetch_hf_source_metadata.py",
+  "repo_count": 4,
+  "results": [
+    {
+      "source_name": "OLMo",
+      "repo_id": "allenai/OLMo-7B-0424",
+      "purpose": "公开训练曲线主数据源",
+      "model_api_ok": false,
+      "refs_api_ok": false,
+      "fetched_at": 1777992894,
+      "model_api_error": "HTTP 400",
+      "refs_api_error": "HTTP 400"
+    },
+    {
+      "source_name": "Pythia",
+      "repo_id": "EleutherAI/pythia-1b-deduped",
+      "purpose": "跨尺度受控实验主数据源",
+      "model_api_ok": false,
+      "refs_api_ok": false,
+      "fetched_at": 1777992898,
+      "model_api_error": "HTTP 400",
+      "refs_api_error": "HTTP 400"
+    },
+    {
+      "source_name": "LLM360",
+      "repo_id": "LLM360/Amber",
+      "purpose": "公开全过程日志补充源",
+      "model_api_ok": false,
+      "refs_api_ok": false,
+      "fetched_at": 1777992902,
+      "model_api_error": "HTTP 400",
+      "refs_api_error": "HTTP 400"
+    },
+    {
+      "source_name": "TinyLlama",
+      "repo_id": "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T",
+      "purpose": "小规模长训练补充",
+      "model_api_ok": false,
+      "refs_api_ok": false,
+      "fetched_at": 1777992907,
+      "model_api_error": "HTTP 400",
+      "refs_api_error": "HTTP 400"
+    }
+  ]
+}

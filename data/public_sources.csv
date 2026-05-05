@@ -1,0 +1,8 @@
+source_name,priority,main_use,has_training_logs,has_dense_checkpoints,has_schedule_info,fit_for_pairing,notes
+OLMo,1,公开训练曲线主数据源,yes,yes,yes,high,"适合直接构造 step/tokens 到 loss 的监督样本"
+LLM360,1,公开全过程日志补充源,yes,yes,yes,high,"适合加入 gradient norm 等附加动态特征"
+Pythia,1,跨尺度受控实验主数据源,partial,yes,yes,high,"控制变量强，适合 small-to-large transfer"
+BLOOM,2,超大模型外部泛化测试,partial,partial,partial,medium,"更适合作为外测而非主训练集"
+TinyLlama,2,小规模长训练补充,partial,yes,partial,medium,"适合补充 checkpoint 轨迹"
+OpenLM,2,稀疏曲线补全测试,partial,partial,yes,low,"日志粒度较稀疏"
+RedPajama,3,图像曲线补充参考,no,no,partial,low,"更偏博客曲线而非结构化训练日志"

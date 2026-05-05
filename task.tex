@@ -1,0 +1,139 @@
+\documentclass[10pt]{article}
+
+\usepackage[a4paper,margin=0.72in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+\setstretch{0.97}
+\pagestyle{empty}
+\raggedbottom
+
+\setlist[itemize]{
+    leftmargin=1.2em,
+    topsep=2pt,
+    itemsep=1pt,
+    parsep=0pt,
+    partopsep=0pt
+}
+
+\titleformat{\section}
+  {\normalsize\bfseries}
+  {}
+  {0pt}
+  {}
+
+\titlespacing*{\section}{0pt}{5pt}{2pt}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Auxiliary-Feature-Enhanced Loss Curve Prediction for LLM Pretraining}}\\[8pt]
+    {\large Research Proposal}\\[4pt]
+    {\normalsize Jiaju Wu}\\[2pt]
+    {\small Student ID: 2400010711 (undergraduate)}
+\end{center}
+
+\section{Motivation}
+Pretraining large language models (LLMs) is expensive, making it valuable to predict loss curves under different learning-rate schedules before committing substantial compute. Prior work shows that language-model loss follows stable scaling behavior with respect to model size, data, and compute \cite{kaplan2020scaling, hoffmann2022training, gadre2024overtraining}, and recent studies further suggest that training trajectories themselves may admit predictable structure over time \cite{xiong2025temporal, bordelon2024dynamical}. At the same time, schedule-aware prediction has only recently emerged as a focused topic \cite{luo2025multipower}, while practical learning-curve prediction has long been studied in hyperparameter optimization \cite{domhan2015speeding, klein2017learning}. However, most existing approaches either depend mainly on the target model's own partial trajectory or analyze schedule variation in relatively fixed settings. In practice, researchers can often obtain cheaper auxiliary observations, such as training curves from smaller models under the same dataset, architecture family, and schedule. This proposal asks whether such auxiliary signals can systematically improve forecasting for larger and more expensive models.
+
+\section{Main Idea}
+The central idea is to use \emph{easily obtainable auxiliary features} to improve loss-curve prediction. In particular, I will study whether small-model training curves can reveal optimization patterns that transfer across scale, including warmup response, decay-phase curvature, convergence speed, and normalized trajectory shape. This hypothesis is motivated by the empirical regularity of loss scaling \cite{kaplan2020scaling, hoffmann2022training}, the practical importance of schedule design in modern pretraining \cite{hu2024minicpm, luo2025multipower}, and recent discussions on which properties of large-model behavior are predictable from loss signals versus seemingly emergent at the capability level \cite{ganguli2022predictability, schaeffer2023mirage, du2024loss}.
+
+\section{Research Questions}
+This project focuses on three questions:
+\begin{itemize}
+    \item Can small-model training curves improve prediction of larger-model loss curves under the same data, architecture family, and learning-rate schedule?
+    \item Which auxiliary features are most informative: full curves, early prefixes, final losses, slope/curvature statistics, or scale metadata?
+    \item Can empirical regularities from such auxiliary signals motivate improved schedule-aware formula forms beyond existing laws?
+\end{itemize}
+
+\section{Method}
+I will start from an existing schedule-aware backbone, such as a multi-power-law style loss predictor \cite{luo2025multipower}, and extend it with auxiliary-feature conditioning. The predictor will combine: (1) target-run metadata, including model size, training progress, and schedule descriptors; and (2) auxiliary observations from smaller models trained on the same data and architecture family. Rather than using a fully black-box model, I will prioritize lightweight and interpretable designs, such as empirical formulas whose coefficients are conditioned on auxiliary features through linear models, tree-based regressors, or shallow MLPs. This design aims to preserve interpretability while testing whether auxiliary signals consistently reduce prediction error.
+
+\section{Experiments}
+The study will combine public training-curve resources with a limited number of controlled small-scale experiments. Public logs from open LLM projects will provide reference curves at larger scales, while affordable experiments on smaller models will provide clean auxiliary observations under controlled schedules. Evaluation will focus on: (1) final-loss prediction, (2) future-trajectory forecasting from partial observations, and (3) cross-schedule generalization. Ablation studies will compare different auxiliary feature types and test when small-model signals help or fail.
+
+\section{Expected Contributions}
+This project aims to contribute: (1) a practical framework for auxiliary-feature-enhanced loss-curve prediction, (2) an empirical study of how small-model curves transfer to larger-model forecasting, and (3) formula-level insights that may improve schedule-aware loss prediction laws. More broadly, the project seeks a compute-efficient path toward better pretraining prediction without relying on large-scale experiments.
+
+\newpage
+
+\begin{thebibliography}{99}\small
+
+\bibitem{kaplan2020scaling}
+Jared Kaplan, Sam McCandlish, Tom Henighan, et al.
+\newblock Scaling Laws for Neural Language Models.
+\newblock \emph{arXiv preprint arXiv:2001.08361}, 2020.
+
+\bibitem{hoffmann2022training}
+Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, et al.
+\newblock Training Compute-Optimal Large Language Models.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem{gadre2024overtraining}
+Samir Yitzhak Gadre, Achal Dave, Quentin Anthony, et al.
+\newblock Language Models Scale Reliably with Over-Training and on Downstream Tasks.
+\newblock \emph{arXiv preprint arXiv:2403.08540}, 2024.
+
+\bibitem{xiong2025temporal}
+Yunyang Xiong, et al.
+\newblock Temporal Scaling Law for Large Language Models.
+\newblock In \emph{EMNLP}, 2025.
+
+\bibitem{bordelon2024dynamical}
+Blake Bordelon, Alexander Atanasov, Cengiz Pehlevan.
+\newblock A Dynamical Model of Neural Scaling Laws.
+\newblock In \emph{ICML}, 2024.
+
+\bibitem{luo2025multipower}
+Kairong Luo, Haodong Wen, Shengding Hu, Zhenbo Sun, Zhiyuan Liu, Maosong Sun, Kaifeng Lyu, and Wenguang Chen.
+\newblock A Multi-Power Law for Loss Curve Prediction Across Learning Rate Schedules.
+\newblock \emph{arXiv preprint arXiv:2503.12811}, 2025.
+
+\bibitem{hu2024minicpm}
+Shengding Hu, et al.
+\newblock MiniCPM: Unveiling the Potential of Small Language Models with Scalable Training Strategies.
+\newblock \emph{COLM / OpenReview}, 2024.
+
+\bibitem{domhan2015speeding}
+Tobias Domhan, Jost Tobias Springenberg, and Frank Hutter.
+\newblock Speeding up Automatic Hyperparameter Optimization of Deep Neural Networks by Extrapolation of Learning Curves.
+\newblock In \emph{IJCAI}, 2015.
+
+\bibitem{klein2017learning}
+Aaron Klein, Fabian Falkner, Jost Tobias Springenberg, and Frank Hutter.
+\newblock Learning Curve Prediction with Bayesian Neural Networks.
+\newblock In \emph{ICLR}, 2017.
+
+\bibitem{ganguli2022predictability}
+Deep Ganguli, Danny Hernandez, Liane Lovitt, et al.
+\newblock Predictability and Surprise in Large Generative Models.
+\newblock \emph{arXiv preprint arXiv:2202.07785}, 2022.
+
+\bibitem{schaeffer2023mirage}
+Rylan Schaeffer, Brando Miranda, and Sanmi Koyejo.
+\newblock Are Emergent Abilities of Large Language Models a Mirage?
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem{du2024loss}
+Xiao Du, Ziru Zeng, Yufang Dong, and Ruiming Tang.
+\newblock Understanding Emergent Abilities of Language Models from the Loss Perspective.
+\newblock \emph{arXiv preprint arXiv:2403.15796}, 2024.
+
+\end{thebibliography}
+
+\end{document}
