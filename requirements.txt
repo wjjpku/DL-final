@@ -1,0 +1,10 @@
+# 运行 repro/ 与 scripts/ 所需的第三方依赖
+# 安装: pip install -r requirements.txt
+numpy
+scipy
+matplotlib
+torch
+tqdm
+scikit-learn
+requests
+certifi

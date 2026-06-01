@@ -1,0 +1,214 @@
+INFO:__main__:Loading data from ./loss_curve_repo/csv_400
+INFO:__main__:Initializing parameters
+INFO:src.fitting:Starting parameter initialization
+INFO:src.fitting:Initialization completed. Best Loss: 0.0003351683103188642, Best Params: [2.51017868e+00 6.69613499e-01 4.08165306e-01 5.41620289e+02]
+INFO:__main__:Starting MPL model fitting
+INFO:src.fitting:Starting MPL fitting with AdamW
+INFO:src.fitting:Initializing with parameters: (np.float64(2.5101786832899715), np.float64(0.6696134993457056), np.float64(0.40816530610057683), np.float64(541.6202885999347), 1.0, 0.5, 0.5)
+INFO:src.fitting:New best loss found: 0.02328440694362867
+INFO:src.utils:Step    0: Loss=0.023284, Best Loss=0.023284, Grad Norm=1.86e-01
+INFO:src.utils:Parameters: L0=2.4589, A=0.6193, alpha=0.4131, B=541.2995, C=0.9495, beta=0.4950, gamma=0.4950
+INFO:src.fitting:New best loss found: 0.010109024319154648
+INFO:src.fitting:New best loss found: 0.003515663495934504
+INFO:src.utils:Step    5: Loss=0.004477, Best Loss=0.003516, Grad Norm=1.61e-01
+INFO:src.utils:Parameters: L0=2.4206, A=0.5902, alpha=0.4190, B=539.9255, C=0.9752, beta=0.4950, gamma=0.4972
+INFO:src.fitting:New best loss found: 0.0030266086956295475
+INFO:src.fitting:New best loss found: 0.002638131701016607
+INFO:src.utils:Step   10: Loss=0.002638, Best Loss=0.002638, Grad Norm=9.98e-02
+INFO:src.utils:Parameters: L0=2.3980, A=0.5946, alpha=0.4271, B=538.5776, C=1.1048, beta=0.5011, gamma=0.5102
+INFO:src.fitting:New best loss found: 0.0024308701031878228
+INFO:src.fitting:New best loss found: 0.0017990472334003477
+INFO:src.utils:Step   15: Loss=0.001843, Best Loss=0.001799, Grad Norm=1.19e-01
+INFO:src.utils:Parameters: L0=2.4056, A=0.6347, alpha=0.4331, B=537.2738, C=1.2605, beta=0.5111, gamma=0.5270
+INFO:src.fitting:New best loss found: 0.0008894134379048638
+INFO:src.utils:Step   20: Loss=0.002185, Best Loss=0.000889, Grad Norm=1.72e-01
+INFO:src.utils:Parameters: L0=2.3783, A=0.6383, alpha=0.4417, B=535.9419, C=1.3888, beta=0.5185, gamma=0.5413
+INFO:src.fitting:New best loss found: 0.000608712807021693
+INFO:src.utils:Step   25: Loss=0.001128, Best Loss=0.000609, Grad Norm=1.30e-01
+INFO:src.utils:Parameters: L0=2.3695, A=0.6526, alpha=0.4468, B=534.6353, C=1.4987, beta=0.5264, gamma=0.5540
+INFO:src.utils:Step   30: Loss=0.000775, Best Loss=0.000609, Grad Norm=6.36e-02
+INFO:src.utils:Parameters: L0=2.3676, A=0.6569, alpha=0.4469, B=533.3465, C=1.5801, beta=0.5335, gamma=0.5640
+INFO:src.fitting:New best loss found: 0.0006015974409145544
+INFO:src.utils:Step   35: Loss=0.000602, Best Loss=0.000602, Grad Norm=2.62e-02
+INFO:src.utils:Parameters: L0=2.3720, A=0.6519, alpha=0.4427, B=532.0747, C=1.6375, beta=0.5397, gamma=0.5715
+INFO:src.fitting:New best loss found: 0.0005293574336042658
+INFO:src.utils:Step   40: Loss=0.000617, Best Loss=0.000529, Grad Norm=8.92e-02
+INFO:src.utils:Parameters: L0=2.3781, A=0.6442, alpha=0.4370, B=530.8175, C=1.6887, beta=0.5462, gamma=0.5788
+INFO:src.fitting:New best loss found: 0.0004805694675359076
+INFO:src.utils:Step   45: Loss=0.000485, Best Loss=0.000481, Grad Norm=2.48e-02
+INFO:src.utils:Parameters: L0=2.3822, A=0.6455, alpha=0.4342, B=529.5708, C=1.7508, beta=0.5542, gamma=0.5882
+INFO:src.fitting:New best loss found: 0.0004339035687914876
+INFO:src.utils:Step   50: Loss=0.000434, Best Loss=0.000434, Grad Norm=6.25e-03
+INFO:src.utils:Parameters: L0=2.3757, A=0.6477, alpha=0.4349, B=528.3229, C=1.8187, beta=0.5629, gamma=0.5990
+INFO:src.utils:Step   55: Loss=0.000446, Best Loss=0.000434, Grad Norm=3.18e-02
+INFO:src.utils:Parameters: L0=2.3756, A=0.6534, alpha=0.4344, B=527.0908, C=1.8824, beta=0.5715, gamma=0.6094
+INFO:src.utils:Step   60: Loss=0.000438, Best Loss=0.000434, Grad Norm=4.40e-02
+INFO:src.utils:Parameters: L0=2.3742, A=0.6503, alpha=0.4321, B=525.8627, C=1.9341, beta=0.5791, gamma=0.6183
+INFO:src.fitting:New best loss found: 0.0004267200186186554
+INFO:src.fitting:New best loss found: 0.00041128529522052257
+INFO:src.utils:Step   65: Loss=0.000467, Best Loss=0.000411, Grad Norm=7.86e-02
+INFO:src.utils:Parameters: L0=2.3734, A=0.6483, alpha=0.4298, B=524.6408, C=1.9805, beta=0.5864, gamma=0.6266
+INFO:src.fitting:New best loss found: 0.00040944452483852043
+INFO:src.fitting:New best loss found: 0.00040780329047521873
+INFO:src.utils:Step   70: Loss=0.000408, Best Loss=0.000408, Grad Norm=1.40e-02
+INFO:src.utils:Parameters: L0=2.3747, A=0.6542, alpha=0.4288, B=523.4250, C=2.0246, beta=0.5935, gamma=0.6347
+INFO:src.utils:Step   75: Loss=0.000483, Best Loss=0.000408, Grad Norm=7.32e-02
+INFO:src.utils:Parameters: L0=2.3687, A=0.6538, alpha=0.4287, B=522.2003, C=2.0607, beta=0.5997, gamma=0.6417
+INFO:src.utils:Step   80: Loss=0.000491, Best Loss=0.000408, Grad Norm=8.52e-02
+INFO:src.utils:Parameters: L0=2.3690, A=0.6556, alpha=0.4270, B=520.9820, C=2.0897, beta=0.6051, gamma=0.6476
+INFO:src.utils:Step   85: Loss=0.000411, Best Loss=0.000408, Grad Norm=8.97e-03
+INFO:src.utils:Parameters: L0=2.3711, A=0.6564, alpha=0.4245, B=519.7714, C=2.1155, beta=0.6103, gamma=0.6530
+INFO:src.fitting:Stopping at step 90: No improvement for 20 steps.
+INFO:src.fitting:Fitting complete. Best Loss: 0.00040780329047521873, Best Params: [2.3747391968008458, 0.6542104812191359, 0.42878569237962144, 523.4249698734038, 2.0246288978404334, 0.5935047023064353, 0.6347246957410744]
+INFO:__main__:Evaluating on training set
+INFO:src.evaluation:cosine_24000.csv
+INFO:src.evaluation:huber_loss: 0.00033711792529272
+INFO:src.evaluation:mse_loss: 7.109847536819373e-05
+INFO:src.evaluation:rmse_loss: 0.00843199118643952
+INFO:src.evaluation:mae_loss: 0.007128557239194432
+INFO:src.evaluation:prede: 0.0024751578928690573
+INFO:src.evaluation:worste: 0.006521762144273827
+INFO:src.evaluation:r2_score: 0.99783682819912
+INFO:src.evaluation:constant_24000.csv
+INFO:src.evaluation:huber_loss: 3.633473696530246e-05
+INFO:src.evaluation:mse_loss: 5.5840085954601246e-06
+INFO:src.evaluation:rmse_loss: 0.002363050696760466
+INFO:src.evaluation:mae_loss: 0.0016748649475793844
+INFO:src.evaluation:prede: 0.0005507360058279914
+INFO:src.evaluation:worste: 0.004357099596698218
+INFO:src.evaluation:r2_score: 0.9997739025007573
+INFO:src.evaluation:wsdcon_9.csv
+INFO:src.evaluation:huber_loss: 0.0002029284112315602
+INFO:src.evaluation:mse_loss: 7.94269644095202e-05
+INFO:src.evaluation:rmse_loss: 0.008912180676440543
+INFO:src.evaluation:mae_loss: 0.006683835526647975
+INFO:src.evaluation:prede: 0.0022830096797488916
+INFO:src.evaluation:worste: 0.011263961473650278
+INFO:src.evaluation:r2_score: 0.9975865109795741
+INFO:src.evaluation:Average Huber_loss: 0.00019212702449652755
+INFO:src.evaluation:Average Mse_loss: 5.203648279105802e-05
+INFO:src.evaluation:Average Rmse_loss: 0.0065690741865468425
+INFO:src.evaluation:Average Mae_loss: 0.005162419237807264
+INFO:src.evaluation:Average Prede: 0.001769634526148647
+INFO:src.evaluation:Average Worste: 0.007380941071540774
+INFO:src.evaluation:Average R2_score: 0.9983990805598172
+INFO:src.evaluation:--------------------------------------------------
+INFO:__main__:Evaluating on test set
+INFO:src.evaluation:constant_72000.csv
+INFO:src.evaluation:huber_loss: 0.0005582549366702588
+INFO:src.evaluation:mse_loss: 2.9318213680834738e-05
+INFO:src.evaluation:rmse_loss: 0.005414629597750407
+INFO:src.evaluation:mae_loss: 0.004119207616763998
+INFO:src.evaluation:prede: 0.001454014403259452
+INFO:src.evaluation:worste: 0.010777258117667122
+INFO:src.evaluation:r2_score: 0.9983070440687142
+INFO:src.evaluation:cosine_72000.csv
+INFO:src.evaluation:huber_loss: 0.0008599745321300567
+INFO:src.evaluation:mse_loss: 4.783521862741073e-05
+INFO:src.evaluation:rmse_loss: 0.006916300935284028
+INFO:src.evaluation:mae_loss: 0.005614369647639921
+INFO:src.evaluation:prede: 0.0020202448487680767
+INFO:src.evaluation:worste: 0.009093294232890327
+INFO:src.evaluation:r2_score: 0.998112443379133
+INFO:src.evaluation:wsd_20000_24000.csv
+INFO:src.evaluation:huber_loss: 0.00021469395474073077
+INFO:src.evaluation:mse_loss: 6.403261209157765e-05
+INFO:src.evaluation:rmse_loss: 0.008002037996134338
+INFO:src.evaluation:mae_loss: 0.004698957923013549
+INFO:src.evaluation:prede: 0.0016495857264974228
+INFO:src.evaluation:worste: 0.007991151377322986
+INFO:src.evaluation:r2_score: 0.9977630820289797
+INFO:src.evaluation:wsdld_20000_24000.csv
+INFO:src.evaluation:huber_loss: 0.0001619800668991739
+INFO:src.evaluation:mse_loss: 4.154003145739708e-05
+INFO:src.evaluation:rmse_loss: 0.006445155658120064
+INFO:src.evaluation:mae_loss: 0.003850449512879239
+INFO:src.evaluation:prede: 0.0013389496724915142
+INFO:src.evaluation:worste: 0.00874811551640459
+INFO:src.evaluation:r2_score: 0.9984927328626004
+INFO:src.evaluation:wsdcon_3.csv
+INFO:src.evaluation:huber_loss: 0.0002585578890084154
+INFO:src.evaluation:mse_loss: 0.00018159310830815278
+INFO:src.evaluation:rmse_loss: 0.01347564871567053
+INFO:src.evaluation:mae_loss: 0.008172974990715572
+INFO:src.evaluation:prede: 0.0027768716926555637
+INFO:src.evaluation:worste: 0.017879661914906485
+INFO:src.evaluation:r2_score: 0.9943324023223271
+INFO:src.evaluation:wsdcon_18.csv
+INFO:src.evaluation:huber_loss: 4.862959755993671e-05
+INFO:src.evaluation:mse_loss: 1.2810416807939672e-05
+INFO:src.evaluation:rmse_loss: 0.0035791642611005814
+INFO:src.evaluation:mae_loss: 0.002554111022217273
+INFO:src.evaluation:prede: 0.0008366569226792584
+INFO:src.evaluation:worste: 0.005200716874172588
+INFO:src.evaluation:r2_score: 0.9995649653791886
+INFO:src.evaluation:Average Huber_loss: 0.00035034849616809527
+INFO:src.evaluation:Average Mse_loss: 6.28549334955521e-05
+INFO:src.evaluation:Average Rmse_loss: 0.0073054895273433245
+INFO:src.evaluation:Average Mae_loss: 0.004835011785538259
+INFO:src.evaluation:Average Prede: 0.0016793872110585477
+INFO:src.evaluation:Average Worste: 0.009948366338894017
+INFO:src.evaluation:Average R2_score: 0.9977621116734906
+INFO:src.evaluation:--------------------------------------------------
+INFO:__main__:Best Loss: 0.00040780329047521873
+INFO:__main__:Best Parameters: [2.3747391968008458, 0.6542104812191359, 0.42878569237962144, 523.4249698734038, 2.0246288978404334, 0.5935047023064353, 0.6347246957410744]
+INFO:__main__:Optimizing learning rate schedule
+INFO:src.optimization:Iteration 0, Loss: 2.6609459373987265
+INFO:src.optimization:First 5 LRs: [0.0003     0.00029999 0.00029999 0.00029998 0.00029998], Last 5 LRs: [0.00019082 0.00019082 0.00019081 0.00019081 0.0001908 ]
+INFO:src.optimization:Last 5-step gradients: tensor([-115.5589,  -97.9880,  -78.2200,  -55.7703,  -29.9920],
+       dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 49220.679000463795
+INFO:src.optimization:Iteration 1000, Loss: 2.5333383648493495
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.40588912e-06 1.38370957e-06 1.36144419e-06 1.33906788e-06
+ 1.31655877e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([ 0.0002, -0.0008, -0.0013, -0.0013, -0.0008], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27486.253284702965
+INFO:src.optimization:Iteration 2000, Loss: 2.5332318533936085
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.40949016e-06 1.38713940e-06 1.36477587e-06 1.34238069e-06
+ 1.31989904e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([ 0.0013,  0.0003, -0.0002, -0.0005, -0.0005], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27483.000418195636
+INFO:src.optimization:Iteration 3000, Loss: 2.5331605809131346
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.48260732e-06 1.48260732e-06 1.48021642e-06 1.47136879e-06
+ 1.45286558e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([ 0.1227, -0.0664, -0.1714, -0.1934, -0.1307], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27474.589104259732
+INFO:src.optimization:Iteration 4000, Loss: 2.533148092482303
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.52347769e-06 1.52347769e-06 1.52347769e-06 1.52347769e-06
+ 1.52347769e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([4.3844, 3.3143, 2.3373, 1.4568, 0.6764], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 28291.199665195254
+INFO:src.optimization:Iteration 5000, Loss: 2.5331468236061747
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.39565083e-06 1.39565083e-06 1.39565083e-06 1.39565083e-06
+ 1.39565083e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([2.2385, 1.5868, 1.0333, 0.5817, 0.2358], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 26721.083213685448
+INFO:src.optimization:Iteration 6000, Loss: 2.5332240860922144
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.41847765e-06 1.39577984e-06 1.37288624e-06 1.34999450e-06
+ 1.32768880e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([-0.0008, -0.0005, -0.0005, -0.0002,  0.0002], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27451.207159272046
+INFO:src.optimization:Iteration 7000, Loss: 2.5332139580584307
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.42205854e-06 1.40018073e-06 1.37616578e-06 1.35246583e-06
+ 1.33116744e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([ 0.0018,  0.0043, -0.0041, -0.0010,  0.0011], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27445.049084073795
+INFO:src.optimization:Iteration 8000, Loss: 2.533164935375475
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.43538731e-06 1.43538731e-06 1.43538731e-06 1.43492816e-06
+ 1.42835897e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([ 0.5477,  0.2487,  0.0439, -0.0647, -0.0830], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27452.986698882432
+INFO:src.optimization:Iteration 9000, Loss: 2.5368027250664102
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [6.86294306e-06 6.84866335e-06 6.83387457e-06 6.81860856e-06
+ 6.80290129e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([-30.4021, -24.9472, -19.2006, -13.1422,  -6.7501], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 21142.045060429176
+INFO:src.optimization:Iteration 9999, Loss: 2.533224665764565
+INFO:src.optimization:First 5 LRs: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5 LRs: [1.41512417e-06 1.39067365e-06 1.36973326e-06 1.34970301e-06
+ 1.32792694e-06]
+INFO:src.optimization:Last 5-step gradients: tensor([-0.0130,  0.0107,  0.0161,  0.0056, -0.0027], dtype=torch.float64)
+INFO:src.optimization:Gradient norm: 27460.21526444105
+INFO:src.optimization:Final Loss: 2.533224665764565
+INFO:__main__:Optimized Learning Rate Schedule:
+INFO:__main__:First 5: [0.0003 0.0003 0.0003 0.0003 0.0003], Last 5: [1.41512417e-06 1.39067365e-06 1.36973326e-06 1.34970301e-06
+ 1.32792694e-06]
