@@ -1,21 +1,33 @@
 # DL-final
 
-本仓库用于推进一项研究型 proposal：利用更便宜的小模型训练曲线作为辅助特征，提升大模型预训练 loss curve prediction，尤其关注对 learning-rate schedule 变化的感知能力。
+**Schedule-aware loss-curve prediction**: reproduce Tissue (2024) and the Multi-Power
+Law (MPL, Luo 2025), then derive / improve / bound MPL from SGD dynamics.
 
-## 研究目标
+论文(可在 Overleaf 或本地用 pdfLaTeX 编译):`paper/main.tex`。
 
-- 预测目标：更准确地预测大模型在预训练中的未来 loss trajectory 与最终 loss。
-- 核心假设：在相同数据、相同架构族、相同 schedule 下，小模型曲线中包含可迁移的优化动力学信息。
-- 方法偏好：以可解释、轻量的经验公式为骨架，再用辅助特征对公式参数进行条件化。
+## 快速开始
 
-## 当前阶段
+```bash
+pip install -r requirements.txt          # numpy scipy matplotlib torch tqdm scikit-learn ...
+# 数据:MPL 官方公开曲线已随仓库提供于 external/MultiPowerLaw/loss_curve_repo/csv_{25,100,400}
+```
 
-当前仓库只包含 proposal 源文件 `task.tex`。基于 proposal，已经完成第一阶段研究启动工作：
+## 复现论文中的每个结果
 
-- 整理了公开训练曲线数据源优先级与采集 schema。
-- 设计了首轮实验矩阵、baseline、评价指标与消融方案。
-- 给出了阶段性研究判断与执行建议。
-- 已完成一次针对 `Tissue et al., 2024` 与 `Multi-Power Law` 的本地复现实验，并输出报告、表格和可视化。
+| 论文 | 命令 | 产物 |
+|---|---|---|
+| 表1 复现 (cosine→WSD) | `python3 repro/reproduce_cosine_to_wsd.py --scales 25 100 400` | `results/tables/cosine_to_wsd_metrics.csv`, `results/figures/` |
+| 图2 / §5.2 universality 塌缩 | `python3 repro/universal_collapse.py` | `results/universal_collapse.png` (R²=0.997) |
+| 表2上 / §6.1 SC-MPL 公平对比 | `python3 repro/validate_theory.py` | `results/validate_theory/validation.json` (E-WIN, E-GAMMA, …) |
+| 表2下 / §6.2 Q-MPL 新渐进 | `python3 repro/qmpl.py` | stdout: MPL vs Q-MPL test MAE |
+| 表3 / §7 γ 与 edge-of-stability | `python3 repro/validate_theory.py`(real)+ `python3 repro/sgd_spectrum_sim.py`(sim) | `results/eos_gamma.json` |
+| §4 完整数学推导 | 见 `docs/core/derivation.md` | — |
+
+理论推导文档:[`docs/core/derivation.md`](docs/core/derivation.md)、[`docs/core/scaling_law_theory.md`](docs/core/scaling_law_theory.md)。
+
+---
+
+> 历史背景(原始 proposal):利用更便宜的小模型曲线作为辅助特征改进大模型 loss 预测。该方向(SC-MPL)经严格评估后未超过拟合良好的 MPL,详见论文 §6 与 `docs/core/sc_mpl_report.md`。`task.tex` 为原始 proposal。
 
 ## 目录说明
 

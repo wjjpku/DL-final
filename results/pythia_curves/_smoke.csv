@@ -1,0 +1,3 @@
+model_family,run_id,scale,params,step,tokens_seen,loss,perplexity,schedule_type,eval_set
+pythia,pythia-70m,70m,70000000.0,1000,2097152000,5.020006,151.4122,cosine,wikitext-2-raw-v1/test
+pythia,pythia-70m,70m,70000000.0,143000,299892736000,3.890267,48.9239,cosine,wikitext-2-raw-v1/test
