@@ -19,6 +19,14 @@ env/
 # build artifacts
 *_submission.zip
 
-# latex build logs
-paper/main.log
-slides/main.log
+# latex build artifacts (keep .tex and .pdf; drop intermediates)
+paper/*.aux
+paper/*.out
+paper/*.log
+slides/*.aux
+slides/*.out
+slides/*.nav
+slides/*.snm
+slides/*.toc
+slides/*.vrb
+slides/*.log

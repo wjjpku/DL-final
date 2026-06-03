@@ -1,0 +1,18 @@
+==============================================================================
+(1) Few-shot per training-seed breakdown (tau=1200, per-fold kappa)
+    train = cosine x2 + <seed>;  test = other 4 WSD;  both refit MPL
+==============================================================================
+  training seed                MPL     +corr   delta%    kappa(25/100/400)
+  wsd_20000_24000.csv      0.00512   0.00414    -19.2 [ 0.01  0.02  0.05]
+  wsdld_20000_24000.csv    0.00569   0.00454    -20.2 [ 0.01  0.02  0.05]
+  wsdcon_3.csv             0.00342   0.00352     +2.8 [ 0.00  0.01  0.00]
+  wsdcon_9.csv             0.00406   0.00403     -0.6 [ 0.00  0.01  0.01]
+  wsdcon_18.csv            0.00622   0.00570     -8.4 [ 0.00  0.01  0.02]
+
+==============================================================================
+(2) Fixed kappa transferred across scales (leave-one-scale-out calibration)
+==============================================================================
+  per-scale calibrated kappa: 25=0.000 100=0.005 400=0.010  (CV=79%)
+
+  Few-shot with TRANSFERRED constant kappa (no target-scale fitting):
+    MPL(refit)=0.00490  +corr=0.00481  delta=-1.8%  wins=43/60  <<WIN (fair, transferred constant)

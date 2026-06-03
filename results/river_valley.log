@@ -1,0 +1,46 @@
+==============================================================================
+RV-EoS (river-valley) vs MPL — honest cosine->WSD transfer
+==============================================================================
+
+[25M]  train huber: RV=0.00034  MPL=0.00110
+  RV params: L0=3.065 A=0.492 alpha=0.534 B(sigma^2)=15.64 u*=1.990 tau=50 H0=6000
+    -> edge check u*<2: OK;  H_peak target=u*/eta_peak=6633
+  curve                     MAE_rv   MAE_mpl    R2_rv   R2_mpl
+  wsd_20000_24000.csv      0.01226   0.00341   0.9825   0.9992
+  wsdld_20000_24000.csv    0.01187   0.00314   0.9847   0.9994
+  wsdcon_3.csv             0.01164   0.00449   0.9828   0.9983
+  wsdcon_9.csv             0.00747   0.00293   0.9876   0.9995
+  wsdcon_18.csv            0.00617   0.00250   0.9871   0.9996
+
+[100M]  train huber: RV=0.00034  MPL=0.00119
+  RV params: L0=2.695 A=0.546 alpha=0.496 B(sigma^2)=18.86 u*=1.990 tau=29 H0=6000
+    -> edge check u*<2: OK;  H_peak target=u*/eta_peak=6633
+  curve                     MAE_rv   MAE_mpl    R2_rv   R2_mpl
+  wsd_20000_24000.csv      0.01187   0.00375   0.9837   0.9987
+  wsdld_20000_24000.csv    0.00992   0.00325   0.9888   0.9990
+  wsdcon_3.csv             0.01175   0.00567   0.9808   0.9973
+  wsdcon_9.csv             0.00694   0.00493   0.9885   0.9986
+  wsdcon_18.csv            0.00405   0.00138   0.9896   0.9999
+
+[400M]  train huber: RV=0.00049  MPL=0.00120
+  RV params: L0=2.421 A=0.587 alpha=0.465 B(sigma^2)=22.2 u*=1.990 tau=1 H0=6004
+    -> edge check u*<2: OK;  H_peak target=u*/eta_peak=6633
+  curve                     MAE_rv   MAE_mpl    R2_rv   R2_mpl
+  wsd_20000_24000.csv      0.00869   0.00470   0.9948   0.9978
+  wsdld_20000_24000.csv    0.00723   0.00385   0.9964   0.9985
+  wsdcon_3.csv             0.02002   0.00817   0.9700   0.9943
+  wsdcon_9.csv             0.00946   0.00669   0.9904   0.9976
+  wsdcon_18.csv            0.00592   0.00256   0.9967   0.9996
+
+==============================================================================
+TEST mean MAE  RV=0.00968   MPL=0.00409   (MPL better by 136.5%)
+RV wins 0/15 curves
+
+Scale-invariance of RV physical params (CV across 25/100/400M):
+  L0           3.07       2.69       2.42   CV=  9.7%
+  A           0.492      0.546      0.587   CV=  7.2%
+  alpha       0.534      0.496      0.465   CV=  5.7%
+  B            15.6       18.9       22.2   CV= 14.2%
+  ustar        1.99       1.99       1.99   CV=  0.0%
+  tau            50       28.5          1   CV= 75.7%
+  H0          6e+03      6e+03      6e+03   CV=  0.0%

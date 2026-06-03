@@ -1,0 +1,6 @@
+ scale |  MPL(gamma) |  EoS-MPL(nu) |    nu* (=1-s) | winner
+   25M |     0.00447 |      0.00447 |  0.010 | EoS-MPL
+  100M |     0.00471 |      0.00471 |  0.010 | MPL
+  400M |     0.00775 |      0.00773 |  0.117 | EoS-MPL
+
+  平均 test MAE:  MPL=0.00564   EoS-MPL=0.00564   EoS-MPL 更优 (+0.1%)

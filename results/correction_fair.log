@@ -1,0 +1,26 @@
+================================================================================
+FAIR leave-one-curve-out: BOTH arms refit MPL on the same train (cosine x2 + 4)
+Arm1 = MPL(refit).  Arm2 = MPL(refit) + kappa*drop_relax.  Eval on held-out curve.
+================================================================================
+
+[tau=600]  MPL(refit)=0.00319  +corr=0.00326  delta=+2.4%  wins=6/15  kappa CV=125%
+  held-out curve               MPL     +corr   delta%
+  wsd_20000_24000.csv      0.00370   0.00371     +0.4
+  wsdld_20000_24000.csv    0.00338   0.00339     +0.3
+  wsdcon_3.csv             0.00321   0.00332     +3.5
+  wsdcon_9.csv             0.00370   0.00387     +4.6
+  wsdcon_18.csv            0.00195   0.00202     +3.7
+
+[tau=1200]  MPL(refit)=0.00319  +corr=0.00325  delta=+2.0%  wins=7/15  kappa CV=81%
+  held-out curve               MPL     +corr   delta%
+  wsd_20000_24000.csv      0.00370   0.00368     -0.5
+  wsdld_20000_24000.csv    0.00338   0.00334     -1.1
+  wsdcon_3.csv             0.00321   0.00314     -2.1
+  wsdcon_9.csv             0.00370   0.00404     +9.2
+  wsdcon_18.csv            0.00195   0.00205     +5.0
+
+================================================================================
+FAIR few-shot: train = cosine x2 + 1 WSD ; test = other 4 WSD (both refit MPL)
+================================================================================
+[tau=600]  MPL(refit)=0.00490  +corr=0.00439  delta=-10.4%  wins=39/60  kappa CV=100%  <<WIN
+[tau=1200]  MPL(refit)=0.00490  +corr=0.00438  delta=-10.6%  wins=42/60  kappa CV=98%  <<WIN

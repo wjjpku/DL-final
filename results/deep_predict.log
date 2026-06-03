@@ -1,0 +1,15 @@
+========================================================================
+Parameter-free cross-scale prediction of the non-adiabatic correction
+  lambda_slow=10 (universal); per-scale c=kappa_fit/kappa_pred: 25=0.43, 100=0.51, 400=0.60
+========================================================================
+  target  c(LOO) curve              MAE_MPL  MAE_pred  delta%
+     25M    0.56 wsd_20000_24000.csv   0.00341   0.00246   -27.9
+     25M    0.56 wsdld_20000_24000.csv   0.00314   0.00219   -30.1
+    100M    0.51 wsd_20000_24000.csv   0.00375   0.00164   -56.2
+    100M    0.51 wsdld_20000_24000.csv   0.00325   0.00161   -50.6
+    400M    0.47 wsd_20000_24000.csv   0.00470   0.00236   -49.8
+    400M    0.47 wsdld_20000_24000.csv   0.00385   0.00212   -45.1
+
+  ------------------------------------------------------------
+  OVERALL (zero-fit, cross-scale-transferred constants):
+    MPL=0.00368  predicted-corr=0.00206  delta=-44.0%  wins=6/6

@@ -1,0 +1,18 @@
+==========================================================================
+Spectral-mixture validation: 1- vs 2-exponential S-time kernel
+==========================================================================
+
+[25M]
+  1-exp:  lambda_slow= 12.6  R^2=0.427
+  2-exp:  lambdas=(  1.0, 14.9)  R^2=0.429   (gain +0.002)
+  self-consistency: dominant lambda_eff=6.3, eta_peak*lambda_eff=1.89e-03  (<<2 => slow modes, approx A valid)
+
+[100M]
+  1-exp:  lambda_slow= 16.8  R^2=0.410
+  2-exp:  lambdas=(  1.0,  8.5)  R^2=0.479   (gain +0.069)
+  self-consistency: dominant lambda_eff=8.4, eta_peak*lambda_eff=2.51e-03  (<<2 => slow modes, approx A valid)
+
+[400M]
+  1-exp:  lambda_slow= 12.6  R^2=0.556
+  2-exp:  lambdas=(  1.0,  6.2)  R^2=0.611   (gain +0.055)
+  self-consistency: dominant lambda_eff=6.3, eta_peak*lambda_eff=1.89e-03  (<<2 => slow modes, approx A valid)

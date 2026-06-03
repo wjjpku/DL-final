@@ -20,10 +20,13 @@ pip install -r requirements.txt          # numpy scipy matplotlib torch tqdm sci
 | 图2 / §5.2 universality 塌缩 | `python3 repro/universal_collapse.py` | `results/universal_collapse.png` (R²=0.997) |
 | 表2上 / §6.1 SC-MPL 公平对比 | `python3 repro/validate_theory.py` | `results/validate_theory/validation.json` (E-WIN, E-GAMMA, …) |
 | 表2下 / §6.2 Q-MPL 新渐进 | `python3 repro/qmpl.py` | stdout: MPL vs Q-MPL test MAE |
-| 表3 / §7 γ 与 edge-of-stability | `python3 repro/validate_theory.py`(real)+ `python3 repro/sgd_spectrum_sim.py`(sim) | `results/eos_gamma.json` |
+| 表3 / §7 γ essential + 模拟 | `python3 repro/validate_theory.py`(real)+ `python3 repro/sgd_spectrum_sim.py`(sim) | `results/eos_gamma.json` |
+| 表4上 / §7 RV-EoS 显式 river-valley 律 | `python3 repro/river_valley.py` | `results/river_valley.log`(RV vs MPL,0/15) |
+| 表4下 / §7 sharpness-lag 修正(冻结 MPL) | `python3 repro/river_floor_lag.py` | `results/river_floor_lag.log`(留出 WSD,7/12) |
 | §4 完整数学推导 | 见 `docs/core/derivation.md` | — |
+| §7 river-valley / Adaptive-EoS 推导 | 见 `docs/core/river_valley_derivation.md` | — |
 
-理论推导文档:[`docs/core/derivation.md`](docs/core/derivation.md)、[`docs/core/scaling_law_theory.md`](docs/core/scaling_law_theory.md)。
+理论推导文档:[`docs/core/derivation.md`](docs/core/derivation.md)、[`docs/core/scaling_law_theory.md`](docs/core/scaling_law_theory.md)、[`docs/core/river_valley_derivation.md`](docs/core/river_valley_derivation.md)(§7 γ 机理:river-valley + Adaptive-EoS,含两个显式律的诚实负结果)。
 
 ---
 

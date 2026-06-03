@@ -1,0 +1,9 @@
+模拟 loss: cosine 4.742->3.925, wsd ->3.801
+MPL拟合模拟cosine, 预测模拟wsd: 整体MAE=0.03849  decay段MAE=0.04676  decay前=0.03659
+模拟wsd残差 L_sim-L_MPL 随 step:
+  step= 10031 eta=3.00e-04 resid=-0.01310
+  step= 19511 eta=3.00e-04 resid=-0.09256
+  step= 20525 eta=2.22e-04 resid=-0.07147
+  step= 21972 eta=9.64e-05 resid=-0.04041
+  step= 23926 eta=3.13e-05 resid=-0.02792
+saved results/edge_sim_residual.png
