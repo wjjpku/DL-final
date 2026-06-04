@@ -1,0 +1,120 @@
+{
+  "experiment": "E2_beta2_ablation",
+  "description": "tau independent of beta2 in noise-dominated regime",
+  "spectrum": {
+    "d": 10,
+    "lambdas": [
+      0.5,
+      0.6457748325074419,
+      0.8340502686000294,
+      1.077217345015942,
+      1.3912797011035622,
+      1.7969068319023138,
+      2.320794416806389,
+      2.9974212515947043,
+      3.871318413405634,
+      5.0
+    ],
+    "sigmas": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "regime": "noise-dominated (sigmas O(1))"
+  },
+  "eta_hi": 0.03,
+  "eta_lo": 0.006,
+  "n_rep": 4000,
+  "n_eq_per_beta2": [
+    4000,
+    4000,
+    4000,
+    4999,
+    50000
+  ],
+  "n_relax": 5000,
+  "fit_len": 1500,
+  "eps": 1e-08,
+  "beta2_list": [
+    0.9,
+    0.95,
+    0.99,
+    0.999,
+    0.9999
+  ],
+  "per_beta2": [
+    {
+      "beta2": 0.9,
+      "tau": 65.91825324628628,
+      "amp": 0.06000607533853176,
+      "floor": 0.01534411043247289,
+      "r2": 0.9930476570241656,
+      "n_eq": 4000,
+      "loss0": 0.07472604838120596,
+      "loss_end": 0.014900066192891127
+    },
+    {
+      "beta2": 0.95,
+      "tau": 66.18288804302735,
+      "amp": 0.05931396681998764,
+      "floor": 0.015231821552903844,
+      "r2": 0.9930081156638983,
+      "n_eq": 4000,
+      "loss0": 0.07402395634847364,
+      "loss_end": 0.014786864633693116
+    },
+    {
+      "beta2": 0.99,
+      "tau": 65.35736971570526,
+      "amp": 0.05953116475939732,
+      "floor": 0.015279969039701238,
+      "r2": 0.993074526243771,
+      "n_eq": 4000,
+      "loss0": 0.0742672631342865,
+      "loss_end": 0.01482511733694672
+    },
+    {
+      "beta2": 0.999,
+      "tau": 64.54578187628908,
+      "amp": 0.05929476794697301,
+      "floor": 0.015283619092499052,
+      "r2": 0.992197771423638,
+      "n_eq": 4999,
+      "loss0": 0.0740660609555457,
+      "loss_end": 0.014868143936908508
+    },
+    {
+      "beta2": 0.9999,
+      "tau": 64.31999153255973,
+      "amp": 0.05967653344911106,
+      "floor": 0.015230997633140519,
+      "r2": 0.9918908870668928,
+      "n_eq": 50000,
+      "loss0": 0.07450775881488683,
+      "loss_end": 0.014799454365501981
+    }
+  ],
+  "taus": [
+    65.91825324628628,
+    66.18288804302735,
+    65.35736971570526,
+    64.54578187628908,
+    64.31999153255973
+  ],
+  "mean_tau": 65.26485688277353,
+  "std_tau": 0.7332265732078967,
+  "cv": 0.011234630829343468,
+  "minmax_spread_over_mean": 0.028543638942067875,
+  "tau_linear_slowmode_crosscheck": 166.4165414788095,
+  "paper_value": "tau flat, CV ~ 2%",
+  "our_value": "CV = 1.12% (mean tau = 65.3 steps over beta2 in [0.9,0.9999])",
+  "matches_paper": true,
+  "why": "At equilibrium the Adam preconditioner v* equals E[g^2] ~ s^2 (the gradient-noise variance) for ANY beta2 in (0,1): beta2 only sets the EMA averaging window, not its converged mean. So eta_eff = eta/sqrt(v*) ~ eta/s and the per-step relaxation rate 2*eta*lam/s are beta2-independent, giving a flat tau. (Smaller beta2 only adds more EMA jitter -> slightly noisier fits.)"
+}

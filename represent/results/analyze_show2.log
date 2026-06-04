@@ -1,0 +1,41 @@
+schedules: ['constant', 'cosine', 'wsd_grad', 'wsd_sharp', 'wsdcon_10', 'wsdcon_20', 'wsdcon_40', 'wsdcon_5', 'wsdcon_80']
+MPL fit on ['constant', 'cosine', 'wsdcon_20']: obj=0.00238
+params L0,A,alpha,B,C,beta,gamma = [6.816000e-01 7.140000e-01 1.842000e-01 3.706831e+02 6.077150e+01
+ 2.250000e-02 2.055000e-01]
+
+--- (1) rate-dependence signature (residual above well-fit MPL) ---
+  cosine    : end-lag=-0.0074  max|r|=0.0143
+  wsd_grad  : end-lag=-0.0003  max|r|=0.0135
+  wsd_sharp : end-lag=+0.0104  max|r|=0.0129
+  >>> sharp/grad end-lag ratio = -39.98  (expect >1: faster sweep, bigger lag)
+
+--- (2) residual = DropRelaxS + fair baseline ---
+  DropRelaxS wsd_sharp: R2=0.749 lam=0.50 kappa=5.008e+00
+  DropRelaxS wsd_grad: R2=0.137 lam=0.71 kappa=5.670e+00
+  fair baseline: finite-lambda R2=0.439 (lam=2.15) vs cumulative-drop R2=0.153 -> advantage +0.285
+
+--- (3) tau ~ 1/eta (wsdcon probes, MPL-residual) ---
+  p=nan (r2=nan, n=0)
+    eta=5.0e-05 tau=0 r2=0.000 used=False
+    eta=1.0e-04 tau=210 r2=-0.000 used=False
+    eta=2.0e-04 tau=0 r2=-0.000 used=False
+    eta=4.0e-04 tau=0 r2=-0.000 used=False
+    eta=8.0e-04 tau=0 r2=-0.000 used=False
+  [model-free cross-check: a+b*t+c*exp(-t/tau)]
+    wsdcon_10: tau_mf=230 amp=+0.0488
+    wsdcon_20: tau_mf=219 amp=+0.0504
+    wsdcon_40: tau_mf=216 amp=+0.0505
+    wsdcon_5: tau_mf=272 amp=+0.0447
+    wsdcon_80: tau_mf=248 amp=+0.0466
+  >>> model-free tau ~ eta^-0.035 (r2=0.163, n=5)
+
+--- (3b) backbone-aware tau (L0+A*(S_drop+eta*t')^-alpha + amp*exp(-t'/tau)) ---
+    wsdcon_10: tau=881 amp=+0.0607 r2=0.962 used=True
+    wsdcon_20: tau=912 amp=+0.0626 r2=0.966 used=True
+    wsdcon_40: tau=833 amp=+0.0587 r2=0.971 used=True
+    wsdcon_5: tau=849 amp=+0.0570 r2=0.967 used=True
+    wsdcon_80: tau=475 amp=+0.0457 r2=0.983 used=True
+  >>> backbone-aware tau ~ eta^-0.176 (r2=0.502, n=5)  [expect ~1]
+
+saved results/SHOWCASE_REPORT.json
+wrote figs/showcase.png

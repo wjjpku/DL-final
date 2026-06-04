@@ -1,0 +1,26 @@
+schedules: ['constant', 'cosine', 'wsd_grad', 'wsd_sharp', 'wsdcon_10', 'wsdcon_5']
+MPL fit on ['constant', 'cosine']: obj=0.00118
+params L0,A,alpha,B,C,beta,gamma = [7.407000e-01 6.566000e-01 2.064000e-01 1.067773e+02 5.000000e-02
+ 2.922000e-01 6.789000e-01]
+
+--- (1) rate-dependence signature (residual above well-fit MPL) ---
+  cosine    : end-lag=-0.0020  max|r|=0.0099
+  wsd_grad  : end-lag=+0.0030  max|r|=0.0143
+  wsd_sharp : end-lag=-0.0136  max|r|=0.0235
+  >>> sharp/grad end-lag ratio = -4.59  (expect >1: faster sweep, bigger lag)
+
+--- (2) residual = DropRelaxS + fair baseline ---
+  DropRelaxS wsd_sharp: R2=0.925 lam=2.94 kappa=-1.401e+01
+  DropRelaxS wsd_grad: R2=0.215 lam=0.50 kappa=3.862e+00
+  fair baseline: finite-lambda R2=0.751 (lam=4.58) vs cumulative-drop R2=0.212 -> advantage +0.540
+
+--- (3) tau ~ 1/eta (wsdcon probes, MPL-residual) ---
+  p=nan (r2=nan, n=0)
+    eta=5.0e-05 tau=0 r2=-0.000 used=False
+    eta=1.0e-04 tau=0 r2=-0.000 used=False
+  [model-free cross-check: a+b*t+c*exp(-t/tau)]
+    wsdcon_10: tau_mf=230 amp=+0.0488
+    wsdcon_5: tau_mf=272 amp=+0.0447
+
+saved results/SHOWCASE_REPORT.json
+wrote figs/showcase.png

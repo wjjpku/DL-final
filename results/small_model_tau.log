@@ -1,0 +1,10 @@
+device=mps; v2 small GPT; eta_peak=0.003; stable until 7000
+    eta_low L@stable_end   L_final  drop?     tau
+   7.50e-04       1.8330    1.5876    yes       0
+   3.75e-04       1.8552    1.6334    yes       0
+   1.88e-04       1.8359    1.6377    yes       0
+   9.38e-05       1.7992    1.6037    yes       0
+--------------------------------------------------
+/Users/jiaju/Documents/github/DL-final/repro/small_model_tau.py:115: RuntimeWarning: divide by zero encountered in log
+  p = -np.polyfit(np.log(etas[ok]), np.log(taus[ok]), 1)[0]
+  log-log slope p = nan  (theory tau∝1/eta => p=1; used 4 pts)

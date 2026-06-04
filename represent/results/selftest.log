@@ -1,0 +1,51 @@
+true lam_slow=220.0, true kappa(s/m/l)=[0.6, 1.0, 1.4]
+scales found: ['l', 'm', 's']
+
+===== scale l: schedules = ['constant', 'cosine', 'wsd', 'wsdcon_10', 'wsdcon_20', 'wsdcon_40', 'wsdcon_5', 'wsdcon_80', 'wsdld'] =====
+  MPL fit on ['cosine', 'constant', 'wsdcon_40']: obj=0.0001
+  params L0,A,alpha,B,C,beta,gamma = [2.34999690e+00 6.50024676e-01 4.29995352e-01 5.19838233e+02
+ 2.03625989e+00 5.92975239e-01 6.25837588e-01]
+  residual signature (max_abs / end): cosine:0.0038/-0.0003, wsd:0.0066/0.0021, wsdld:0.0038/-0.0008
+  DropRelaxS fit wsd: R2=0.004 lam=10.15
+  DropRelaxS fit wsdld: R2=0.006 lam=2.06
+  tau~1/eta: p=-0.601 (r2=0.476, n=5)
+  dLeq/deta (noise-floor slope) = 410.177
+
+===== scale m: schedules = ['constant', 'cosine', 'wsd', 'wsdcon_10', 'wsdcon_20', 'wsdcon_40', 'wsdcon_5', 'wsdcon_80', 'wsdld'] =====
+  MPL fit on ['cosine', 'constant', 'wsdcon_40']: obj=0.0001
+  params L0,A,alpha,B,C,beta,gamma = [2.60011800e+00 6.00086484e-01 4.49980732e-01 4.40536145e+02
+ 1.99999997e+01 5.83238071e-01 3.79969243e-01]
+  residual signature (max_abs / end): cosine:0.0203/-0.0018, wsd:0.0210/-0.0006, wsdld:0.0217/-0.0017
+  DropRelaxS fit wsd: R2=0.122 lam=7.13
+  DropRelaxS fit wsdld: R2=0.124 lam=2.94
+  tau~1/eta: p=-0.754 (r2=0.483, n=5)
+  dLeq/deta (noise-floor slope) = 344.447
+
+===== scale s: schedules = ['constant', 'cosine', 'wsd', 'wsdcon_10', 'wsdcon_20', 'wsdcon_40', 'wsdcon_5', 'wsdcon_80', 'wsdld'] =====
+  MPL fit on ['cosine', 'constant', 'wsdcon_40']: obj=0.0000
+  params L0,A,alpha,B,C,beta,gamma = [  3.00014293   0.55001908   0.49999377 350.71504234  19.99999994
+   0.55818121   0.3571941 ]
+  residual signature (max_abs / end): cosine:0.0162/-0.0005, wsd:0.0168/0.0004, wsdld:0.0151/-0.0017
+  DropRelaxS fit wsd: R2=0.149 lam=5.97
+  DropRelaxS fit wsdld: R2=0.141 lam=2.06
+  tau~1/eta: p=-0.761 (r2=0.660, n=5)
+  dLeq/deta (noise-floor slope) = 260.017
+
+===== CROSS-SCALE (Table 1 analog) =====
+  l wsd: MPL=0.00063 +ours=0.00084 (+33%)
+  l wsdld: MPL=0.00065 +ours=0.00088 (+37%)
+  m wsd: MPL=0.00091 +ours=0.00082 (-9%)
+  m wsdld: MPL=0.00093 +ours=0.00086 (-8%)
+  s wsd: MPL=0.00089 +ours=0.00083 (-7%)
+  s wsdld: MPL=0.00084 +ours=0.00078 (-7%)
+  overall avg delta = +7%  wins 4/6
+
+saved C:\Users\21100\Desktop\represent\results\curves_synth\REAL_CURVE_REPORT.json
+
+=== PIPELINE SELF-TEST CHECKS ===
+  scale s: wsd_maxabs=0.0168 cosine_maxabs=0.0162 droprelaxS_R2(wsd)=0.149 lam_fit=6.0 | sigOK=False R2OK=False
+  scale m: wsd_maxabs=0.0210 cosine_maxabs=0.0203 droprelaxS_R2(wsd)=0.122 lam_fit=7.1 | sigOK=False R2OK=False
+  scale l: wsd_maxabs=0.0066 cosine_maxabs=0.0038 droprelaxS_R2(wsd)=0.004 lam_fit=10.2 | sigOK=False R2OK=False
+  cross-scale avg delta=+7% wins 4/6
+
+PIPELINE SELF-TEST: CHECK FAILED

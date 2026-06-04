@@ -30,3 +30,9 @@ slides/*.snm
 slides/*.toc
 slides/*.vrb
 slides/*.log
+
+# represent/ independent reproduction: keep the evidence (reports, results,
+# figs, scripts) but exclude bulky training data and the nested MPL clone.
+represent/data/
+represent/MultiPowerLaw/
+represent/.DS_Store

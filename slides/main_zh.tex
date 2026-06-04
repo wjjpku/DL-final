@@ -134,8 +134,7 @@ $\lambda_{\rm slow}$ 是\hl{预条件曲率 → 尺度不变}。
 $r(t)\propto e^{-(t-8000)/\tau}$ 得到 $\tau$,对 LR 的标度:
 \begin{itemize}
   \item \hl{合并 100M+400M:$p=1.00\pm0.18$}(各尺度 $-1.06/-0.94/-0.51$);
-  \item \hl{受控 AdamW 模拟也复现 $\tau\propto1/\eta$($p{=}1.01$)};同模拟里 \hl{$\beta_2$ 消融 $\tau$
-  持平(CV 2\%)} $\Rightarrow$ $\beta_2$ 不给 floor 滞后加通道(噪声主导,$v\!\approx\!s^2$ 不变);
+  \item \hl{受控 AdamW 模拟(从零搭)也复现 $\tau\propto1/\eta$($p{=}1.01$)}——机理在受控优化器里也成立;
   \item $p{=}1$ 正是\hl{噪声主导}值 → \emph{自洽地}验证了推导里 $v_i^*\!\approx\!s_i^2$ 那步;
   \item 率常数 $\lambda_{\rm slow}\approx10$ 尺度不变,$\eta_{\rm peak}\lambda_{\rm eff}\!\approx\!2\text{e-}3\!\ll\!2$
   (远低于 edge,与 $\gamma$ 相反)。
@@ -199,9 +198,39 @@ $\lambda_{\rm slow}{=}10$、$c$ 取\emph{其它}尺度留一平均、$dL_{\rm eq
 所以修正的价值在\hl{数据稀缺}场景:有 cosine + 廉价探针、但\emph{没有}完整 WSD 曲线——正是
 "训练前预测"的真实用途。
 \vfill
-\textbf{与 $\gamma$ 的关系。} MPL 的 $\eta_k^{-\gamma}$ 是对这个非绝热滞后的\hl{隐式、低容量近似}:
-这解释了为什么 $\gamma$ 必不可少($3\text{--}4\times$)却无法从绝热谱理论推出,也解释了为什么数据多时
-MPL 能靠 $\gamma$ 吸收残差、few-shot 时不能。
+\textbf{与 $\gamma$ 的关系(互补,非替代)。} MPL 的 $\eta_k^{-\gamma}$ 调的是\emph{绝热}退火核的
+速率依赖;我们的项加的是\emph{非绝热}瞬态。两者\hl{互补}——我们的修正改善的是\emph{带 $\gamma$ 的
+完整 MPL}。两者的精确关系留作 future work。
+\end{frame}
+
+% =====================================================================
+\section{独立复现}
+\begin{frame}{独立复现:真实 transformer + 从零 AdamW(不同硬件)}
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\textbf{真实 $\sim$10M transformer(免拟合,最强)。} 三调度到\emph{同一}末端 LR、扫得快慢不同:
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+调度 & 末端 loss & 累积 LR $S$\\
+\midrule
+cosine(渐进) & 1.0490 & 8.20\\
+wsd(渐进) & 1.0482 & 9.22\\
+wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\hl{陡降那条末端最高、却累积 LR 最多(多 37\%)}——任何对 $S$ 单调的律都做不到,正是速率相关滞后,补上"单一数据集"缺口。
+\end{column}
+\begin{column}{0.5\textwidth}
+\includegraphics[width=0.96\linewidth]{figs/fig_real_transformer.png}\\[2pt]
+\textbf{从零 AdamW 量化确认:} $\tau\propto1/\eta$ \hl{$p=0.971$}、$\beta_2$ 无关 \hl{CV 1.1\%}、
+\hl{幅度恒等 $dL_{\rm eq}/d\eta=3.075$ vs 闭式 $3.0$(<3\%)}。可证伪。
+\end{column}
+\end{columns}
+\vfill
+{\footnotesize\textit{诚实标注:~10M 上 $\tau\propto1/\eta$ 未解析($\tau$ 平,审计确认非窗口伪影);
+单曲线上核与绝热基线简并——与论文"数据稀缺、领头阶"的适用范围一致。}}
 \end{frame}
 
 % =====================================================================

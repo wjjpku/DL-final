@@ -1,0 +1,12 @@
+TRAIN=['constant', 'cosine', 'wsdcon_20']  obj=0.00238
+   cosine     end-lag=-0.00739 max|r|=0.01433 mean=-0.00011
+   wsd_grad   end-lag=-0.00026 max|r|=0.01348 mean=+0.00235
+   wsd_sharp  end-lag=+0.01035 max|r|=0.01294 mean=+0.00470
+TRAIN=['constant', 'cosine', 'wsd_sharp', 'wsd_grad', 'wsdcon_20']  obj=0.00428
+   cosine     end-lag=-0.01228 max|r|=0.01921 mean=-0.00263
+   wsd_grad   end-lag=-0.00570 max|r|=0.01345 mean=-0.00006
+   wsd_sharp  end-lag=+0.00155 max|r|=0.01086 mean=+0.00050
+TRAIN=['constant', 'cosine', 'wsd_sharp']  obj=0.00214
+   cosine     end-lag=-0.00572 max|r|=0.01212 mean=-0.00038
+   wsd_grad   end-lag=+0.00041 max|r|=0.01265 mean=+0.00170
+   wsd_sharp  end-lag=+0.00245 max|r|=0.01039 mean=+0.00030

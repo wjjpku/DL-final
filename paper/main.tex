@@ -10,6 +10,7 @@
 \usepackage{amsfonts,amsmath,amssymb}
 \usepackage{microtype}
 \usepackage{graphicx}
+\usepackage{caption}
 \usepackage{xcolor}
 
 \newcommand{\code}[1]{\texttt{\small #1}}
@@ -45,13 +46,18 @@ exponential kernel, $\Drop$, whose amplitude equals the exactly-identified equil
 sensitivity $dL_{\mathrm{eq}}/d\eta$---and (iii) turn it into a usable predictor. We confirm
 in LLM pretraining that the residual relaxes with the predicted $\tau\propto1/\eta$
 (measured pooled exponent $p=1.00\pm0.18$), which also self-consistently establishes the
-noise-dominated regime the derivation assumes. Because the kernel's rate constant is a
-\emph{scale-invariant preconditioned curvature}, the correction can be \emph{predicted, not
-fitted}, and transferred across model size: with zero fitting on the target curve it improves
-held-out sharp-decay loss prediction by $28\text{--}56\%$ ($44\%$ on average). The correction
-also explains MPL's one unexplained empirical exponent, $\gamma$, as its implicit
-low-capacity surrogate. We are candid about scope: the gain is in the regime where WSD curves
-are unavailable; given them, a refit MPL absorbs the residual.
+noise-dominated regime the derivation assumes. Because the kernel's rate constant is an
+\emph{approximately scale-invariant} preconditioned curvature, the correction can be
+\emph{predicted, not fitted}, and transferred across model size (same architecture): with zero
+fitting on the target curve it improves held-out sharp-decay loss prediction by
+$28\text{--}56\%$ ($44\%$ on average). The correction
+is \emph{complementary} to MPL's empirical exponent $\gamma$ (which tunes the adiabatic
+annealing kernel): it adds the non-adiabatic transient and improves a full-$\gamma$ MPL. An
+independent reproduction on a separately-trained $\sim$10M transformer and a from-scratch
+AdamW simulation confirms the effect (the fast sweep ends higher \emph{despite} $37\%$ more
+cumulative LR) and the amplitude identity (within $3\%$). We are candid about scope: the gain
+is in the regime where WSD curves are unavailable; given them, a refit MPL absorbs the
+residual.
 \end{abstract}
 
 \section{Introduction}
@@ -78,7 +84,8 @@ explicit, modelling the noise penalty as set \emph{instantaneously} by the curre
 call such laws \emph{adiabatic}. Calibrated on slow schedules, $\gamma$ does not extrapolate
 to fast WSD decays, where the loss genuinely lags equilibrium---leaving a structured
 residual (Fig.~\ref{fig:resid}) that no single rate exponent captures across schedules. Our
-correction is the derived transient that $\gamma$ only crudely surrogates.
+correction is a derived transient \emph{complementary} to $\gamma$, which tunes the adiabatic
+kernel.
 
 \paragraph{Contributions.}
 \begin{itemize}\itemsep1pt
@@ -92,12 +99,11 @@ time it uses is the classical $\tau\sim1/(\eta\lambda)$; our point is that it go
 \item We confirm in LLM pretraining that the residual relaxes with $\tau\propto1/\eta$
 ($p=1.00\pm0.18$), self-consistently establishing its noise-dominated regime
 (\S\ref{sec:exp}).
-\item The kernel's rate constant is a scale-invariant preconditioned curvature, enabling a
-\emph{parameter-free, cross-scale} prediction that improves held-out sharp-decay loss by
-$44\%$ with no target-curve fitting (\S\ref{sec:exp}).
-\item The correction explains MPL's empirical $\gamma$ as its implicit surrogate, and we give
-a fair-baseline diagnostic separating a genuine formula gain from an information gap
-(\S\ref{sec:exp},\ref{sec:rel}).
+\item The kernel's rate constant is an approximately scale-invariant preconditioned curvature,
+enabling a \emph{parameter-free, cross-scale} prediction that improves held-out sharp-decay
+loss by $44\%$ with no target-curve fitting (\S\ref{sec:exp}).
+\item We give a fair-baseline diagnostic separating a genuine formula gain from an
+information gap, clarifying exactly when the correction helps (\S\ref{sec:exp},\ref{sec:rel}).
 \end{itemize}
 All experiments use the public MPL loss curves (Llama-2-style $25/100/400$M, $9$ schedules
 each)~\cite{luo2025}; a faithfully reproduced MPL (test MAE $0.0054/0.0050/0.0085$, matching
@@ -172,8 +178,10 @@ $\lambda_{\mathrm{slow}}$, one calibration $c\!\le\!1$):
 (i) \emph{Sign}: $dV_i^*/d\eta>0$, so $\Delta L>0$ (loss \emph{above} MPL).
 (ii) \emph{Rate}: the per-step rate is $2(\eta/s_i)\lambda_i\propto\eta$, hence
 $\tau\propto1/\eta$; a self-consistent treatment of the preconditioner gives
-$\tau\propto\eta^{-p}$ with $p{=}1$ for noise-dominated modes and $p{=}2/3$ if
-signal-dominated. (iii) \emph{Amplitude}: $\sum w_i=dL_{\mathrm{eq}}/d\eta$, measurable from
+$\tau\propto\eta^{-p}$ with $p{=}1$ in the noise-dominated regime, which the data occupy. (A
+putative signal-dominated $p{=}2/3$ does not arise in practice---forcing signal dominance still
+yields $p\!\approx\!1$, \S\ref{sec:repro2}---so we do not rely on it.) (iii) \emph{Amplitude}:
+$\sum w_i=dL_{\mathrm{eq}}/d\eta$, measurable from
 the noise floor. (iv) \emph{Shape}: $\lambda_{\mathrm{slow}}=2(\lambda/s)_{\mathrm{eff}}$ is a
 \emph{preconditioned} curvature---the quantity Adam stabilizes~\cite{cohen2022}---so it is
 roughly scale/architecture invariant. (v) \emph{Spectral mixture}: Eq.~\eqref{eq:mix} is a
@@ -205,21 +213,21 @@ pooled $p=1.00\pm0.18$.}
 
 \paragraph{(i$'$) The same scaling holds in a from-scratch AdamW simulation.}
 To check that $\tau\propto1/\eta$ is the mechanism and not a data artefact, we simulate
-AdamW on a noisy quadratic, equilibrate at a high LR, step it down, and fit the
+AdamW on a noisy quadratic from scratch, equilibrate at a high LR, step it down, and fit the
 loss-relaxation time (\code{repro/beta2\_ablation.py}). Sweeping the post-step LR reproduces
-$\tau\propto1/\eta$ with log-log slope $p=1.01$. The same simulation also \emph{rules out} a
-$\beta_2$ relaxation channel: sweeping $\beta_2\in[0.9,0.9999]$ leaves $\tau$ flat
-(CV $2\%$), because the lag lives on noise-dominated modes where the Adam preconditioner
-$v\!\approx\!s^2$ is constant. (The $\beta_2$ sensitivity of cooldown reported by
-Dremov~et~al.~\cite{dremov2025} is an \emph{outcome}/bias--variance effect, distinct from the
-relaxation time.) The two-exponential improvement in (ii) is therefore the curvature-spectral
-spread, not $\beta_2$.
+$\tau\propto1/\eta$ with log-log slope $p=1.01$ -- the mechanism holds in a controlled
+optimiser, independent of the public curves.
 
 \paragraph{(ii) The residual is the derived term.}
 Regressing the well-fit MPL residual on $\Drop_{10}$ (through the origin) gives
 $R^2{=}0.40/0.80/0.87$ at $25/100/400$M (Fig.~\ref{fig:resid}); a 2-exponential kernel
 improves $R^2$ by $0.06\text{--}0.07$, confirming the predicted spectral mixture
-(Eq.~\ref{eq:mix}).
+(Eq.~\ref{eq:mix}). The form is not arbitrary: in a fair few-shot comparison the derived
+S-time exponential of decrements beats a step-time kernel ($-21\%$ vs.\ $-11\%$ held-out MAE)
+and a memoryless floor ($-3\%$), confirming that the cumulative-LR ``time'' and the decaying
+memory both matter (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
+the finite-$\lambda_{\mathrm{slow}}$ kernel is numerically close to the $\lambda_{\mathrm{slow}}{\to}0$
+adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S\ref{sec:repro2}.)
 
 \paragraph{(iii) The amplitude is predictable from the noise floor.}
 Estimating $dL_{\mathrm{eq}}/d\eta$ \emph{independently} from the two-stage final losses
@@ -229,9 +237,9 @@ $14\%$, i.e.\ $c\!\approx\!0.5$ is universal (the $<\!1$ is the spectral spread 
 Eq.~\ref{eq:mix}).
 
 \paragraph{(iv) Parameter-free, cross-scale prediction (Table~\ref{tab:xscale}).}
-Because $\lambda_{\mathrm{slow}}$ and $c$ are scale-invariant and $dL_{\mathrm{eq}}/d\eta$ is
-read off the (cheap) noise floor, the whole correction can be \emph{predicted with zero
-fitting on the target curve}: take $\lambda_{\mathrm{slow}}{=}10$, $c$ from a
+Because $\lambda_{\mathrm{slow}}$ and $c$ are approximately scale-invariant across these (same-architecture)
+scales and $dL_{\mathrm{eq}}/d\eta$ is read off the (cheap) noise floor, the whole correction can
+be \emph{predicted with zero fitting on the target curve}: take $\lambda_{\mathrm{slow}}{=}10$, $c$ from a
 leave-one-scale-out average of the \emph{other} scales, and $dL_{\mathrm{eq}}/d\eta$ from the
 target's own two-stage probes (distinct curves from the test). Applied to the held-out
 \code{wsd}/\code{wsdld} decays it cuts MAE by $28\text{--}56\%$ ($44\%$ average, wins
@@ -264,29 +272,85 @@ for a data-\emph{rich} MPL, an \emph{information} gap, not a formula gap: the va
 correction is precisely the data-\emph{poor} regime---cosine plus cheap probes, but no full
 WSD curves---which is the actual ``predict before training'' use case.
 
-\paragraph{(vi) Relation to $\gamma$.}
-MPL's empirical factor $\eta_k^{-\gamma}$ gives its kernel a weak dependence on the LR at a
-decrement---an \emph{implicit, low-capacity} handle on exactly this non-adiabatic lag. This
-explains both why $\gamma$ is essential ($3\text{--}4\times$ worse without it) yet underivable
-from the (adiabatic) spectral theory, and why a data-rich MPL can absorb the residual through
-$\gamma$ while a few-shot one cannot.
+\paragraph{(vi) Relation to $\gamma$: complementary, not a substitute.}
+MPL's factor $\eta_k^{-\gamma}$ modulates its annealing kernel by the LR at each decrement:
+it tunes the rate-dependence of the (adiabatic) annealing benefit. Our term is the separate
+(non-adiabatic) transient, and improves a \emph{full}-$\gamma$ MPL (Table~\ref{tab:xscale}) ---
+the two are complementary. Characterising their precise relationship is left to future work
+(\S\ref{sec:disc}).
+
+\section{Independent reproduction}\label{sec:repro2}
+An independent reproduction on different hardware (\code{represent/}; the authors' public
+curves are no longer hosted, so it \emph{retrains} models) corroborates the mechanism along
+two routes the public curves do not cover.
+
+\paragraph{A real, independently-trained transformer (no fitting).}
+A $\sim$10M-parameter Llama-2-style byte-level transformer was trained on WikiText with AdamW
+under three schedules reaching the \emph{same} final LR ($2.5{\times}10^{-3}{\to}2.5{\times}10^{-4}$)
+at different speeds (Table~\ref{tab:real}). The fast (\code{wsd\_sharp}) sweep ends
+\emph{higher} than the gradual ones \emph{despite spending $37\%$ more cumulative LR}---yet any
+law monotone in $S$ predicts the opposite (more LR $\Rightarrow$ lower loss). With no fitting,
+this is the rate-dependent non-adiabatic lag, on a model and data we never used; the residual
+against a well-fit MPL is positive only for the sharp sweep and is captured by $\Drop$
+(Fig.~\ref{fig:real}). Across schedules a finite-$\lambda_{\mathrm{slow}}$ kernel beats the
+adiabatic ($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.11$ held out.
+
+\begin{table}[t]\centering\small
+\begin{minipage}[t]{0.46\linewidth}\centering
+\caption{Real $\sim$10M transformer: three schedules to the \emph{same} final LR. The fast
+sweep ends highest despite the most cumulative LR.}
+\label{tab:real}
+\begin{tabular}{lcc}
+\toprule
+schedule & final loss & cumulative LR $S$ \\
+\midrule
+cosine (gradual)   & 1.0490 & 8.20\\
+wsd (gradual)      & 1.0482 & 9.22\\
+wsd (\textbf{sharp}) & \textbf{1.0593} & \textbf{12.59}\\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.5\linewidth}\centering
+\includegraphics[width=\linewidth]{figs/fig_real_transformer.png}
+\captionof{figure}{Residual vs.\ MPL on the real transformer: positive (lag) only for the
+sharp sweep, captured by $\Drop$.}
+\label{fig:real}
+\end{minipage}
+\end{table}
+
+\paragraph{From-scratch AdamW confirms the mechanism quantitatively.}
+Simulating AdamW on a noisy quadratic (Monte-Carlo ground truth; closed-form theory used only
+as an independent baseline), the reproduction recovers $\tau\propto1/\eta$ with $p=0.971$
+(log-log $R^2{=}0.9996$, robust to leave-one-out and seeds), $\tau$ independent of $\beta_2$
+(CV $1.1\%$), the \textbf{amplitude identity} $dL_{\mathrm{eq}}/d\eta=3.075$ versus the closed
+form $\tfrac14\sum_i s_i=3.0$ (within $3\%$), and a two-exponential kernel that recovers the
+injected preconditioned rates $2\lambda/s$. The effect is falsifiable, not circular: a
+signal-dominated spectrum breaks $p{=}1$.
+
+\paragraph{What does not transfer (consistent with our scope).}
+At $\sim$10M the $\tau\propto1/\eta$ relation itself is \emph{not} resolved (the measured
+post-step relaxation is roughly flat over a $16\times$ LR range, audited as real and not a
+window artefact), and on a \emph{single} decay curve the kernel is numerically degenerate with
+the adiabatic baseline, so the rate-dependence is identifiable only \emph{across} schedules.
+This matches our stated scope: the effect is clean and present, while the quantitative law is a
+leading-order, data-scale-limited approximation whose constants ($\lambda_{\mathrm{slow}}$, $c$,
+and the $\eta_{\mathrm{peak}}$ normalisation) remain measured rather than derived.
 
 \section{Related work}\label{sec:rel}
 \paragraph{Loss-curve laws.}
 Tissue~et~al.~\cite{tissue2024}, MPL~\cite{luo2025}, and FSL~\cite{li2025fsl} predict the
 trajectory from integrated-LR statistics (cumulative LR / intrinsic time / convolutional
 functionals). FSL and its follow-ups also derive optimal schedules~\cite{li2025fsl}. All are
-adiabatic in our sense---functions of integrals of $\{\eta_t\}$---and our rate-dependent term
-is the leading correction they omit; it also gives MPL's empirical $\gamma$ a mechanism.
+adiabatic in our sense, and our rate-dependent term is the leading correction they omit; it
+is complementary to MPL's exponent $\gamma$ (which tunes the adiabatic kernel), not a
+replacement for it.
 
 \paragraph{Cooldown dynamics and schedule geometry.}
 The river-valley picture~\cite{wen2024} explains qualitatively why decay ``reveals
 progress'', and explicitly models the noise penalty as \emph{instantaneous} in the current
 LR---the adiabatic assumption we refine. Dremov~et~al.~\cite{dremov2025} study the cooldown
-empirically and, notably, find that raising AdamW's $\beta_2$ during cooldown helps and that
-the second-moment timescale interacts with the decay; this is consistent with the second,
-$\beta_2$-dependent relaxation channel our theory predicts (\S\ref{sec:disc}), though they
-frame it as a bias--variance trade-off rather than a non-adiabatic lag. Late-decay
+empirically (including the role of AdamW's $\beta_2$ and the decay shape), framing it through a
+bias--variance trade-off rather than a rate-dependent lag. Late-decay
 analyses~\cite{kaplan2020} and schedule-shape searches~\cite{naganuma2026} study related
 questions (why a long high-LR phase helps; what optimal shapes look like) but do not model the
 loss's rate dependence.
@@ -303,11 +367,14 @@ amplitude, and building a parameter-free cross-scale predictor from it.
 \section{Limitations}\label{sec:disc}
 The gain is regime-specific (data-poor sharp decays); $\lambda_{\mathrm{slow}}$ and $c$ are
 \emph{measured}, not computed from first principles (this needs the noise spectrum $\{s_i\}$,
-which we do not have); and the derivation assumes a locally quadratic landscape with a static
-spectrum and diagonal, uncorrelated noise---the same model-level assumptions MPL itself rests
-on. All real-data experiments are on one public dataset at three scales (the simulation of
-\S\ref{sec:exp}(i$'$) is a controlled cross-check, not a substitute); broader scales and
-architectures are the natural next steps.
+which we do not have), and $\lambda_{\mathrm{slow}}$ is only \emph{approximately} scale-invariant
+---it tracks the slowest preconditioned mode and drifts when the spectral \emph{shape} changes
+(\S\ref{sec:repro2}), so the cross-scale transfer is a leading-order, same-architecture
+approximation. The derivation also assumes a locally quadratic landscape with a static spectrum
+and diagonal, uncorrelated noise---the model-level assumptions MPL itself rests on. Finally, the
+quantitative $\tau\propto1/\eta$ relation, clean in the controlled simulation, is \emph{not}
+resolved on the $\sim$10M transformer (\S\ref{sec:repro2}); confirming it on larger real models,
+and characterising the precise relationship to $\gamma$, are the main open items.
 
 \section{Conclusion}
 Existing loss-curve laws are adiabatic approximations. We identified, derived from AdamW's
