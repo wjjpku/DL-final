@@ -41,9 +41,9 @@ The operational correction is its lowest-capacity one-pole closure; in a noise-d
 AdamW specialization the amplitude is the equilibrium-floor sensitivity and the relaxation
 time is the classical $\tau\sim1/(\eta\lambda)$. On public LLM curves the
 residual indeed relaxes with $\tau\propto1/\eta$ ($p=1.00\pm0.18$); since the kernel's rate
-constant is approximately scale-invariant, the correction can be \emph{predicted, not fitted},
-and transferred across model size, cutting held-out sharp-decay error by $44\%$ with no
-target-curve fitting. An independent reproduction---a separately-trained $\sim$10M transformer
+constant is empirically stable across the public scales, the correction can be transferred
+with a small number of calibration constants, cutting held-out sharp-decay error by $44\%$
+with no target-curve fitting. An independent reproduction---a separately-trained $\sim$10M transformer
 and a from-scratch AdamW simulation---confirms the effect (the fast sweep ends higher
 \emph{despite} $37\%$ more cumulative LR) and the amplitude identity (within $3\%$). The
 correction complements MPL's exponent $\gamma$; its gain is in the data-poor, leading-order
@@ -89,8 +89,8 @@ relaxation time; our point is that this timescale governs the \emph{loss-curve-l
 \item We confirm in LLM pretraining that the residual relaxes with $\tau\propto1/\eta$
 ($p=1.00\pm0.18$), self-consistently establishing its noise-dominated regime
 (\S\ref{sec:exp}).
-\item The kernel's rate constant is an approximately scale-invariant preconditioned curvature,
-enabling a \emph{parameter-free, cross-scale} prediction that improves held-out sharp-decay
+\item The kernel's rate constant is empirically stable on the public same-architecture
+scales, enabling a low-calibration cross-scale transfer that improves held-out sharp-decay
 loss by $44\%$ with no target-curve fitting (\S\ref{sec:exp}).
 \item We give a fair-baseline diagnostic separating a genuine formula gain from an
 information gap, clarifying exactly when the correction helps (\S\ref{sec:exp},\ref{sec:rel}).
@@ -385,7 +385,8 @@ with \emph{pooled} $p=1.00\pm0.18$ (per scale $-1.06/-0.94/-0.51$ at $100/400/25
 the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
 pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
 the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
-$\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is scale-invariant; its modes have
+$\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is approximately stable across the public
+same-architecture scales; its modes have
 $\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\!\approx\!2\!\times\!10^{-3}\!\ll\!2$ (deep in the
 slow regime, far from the edge of stability---unlike $\gamma$).
 
@@ -415,13 +416,16 @@ adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S
 Estimating $dL_{\mathrm{eq}}/d\eta$ \emph{independently} from the two-stage final losses
 (noise floor vs.\ LR) predicts the fitted $\kappa$ up to a near-constant factor: the ratio
 $\kappa_{\mathrm{fit}}/\kappa_{\mathrm{pred}}=0.43/0.51/0.60$ has coefficient of variation
-$14\%$, i.e.\ $c\!\approx\!0.5$ is universal (the $<\!1$ is the spectral spread of
+$14\%$. With raw LR drops this gives $c\!\approx\!0.5$; if drops are normalised by
+$\eta_{\mathrm{peak}}$ the same data require $c\,\eta_{\mathrm{peak}}\approx0.5$,
+i.e.\ $c\approx60$--$86$ (\S\ref{sec:repro2}). In either convention the near-constant ratio
+is the transferable quantity (the $<\!1$ factor is the spectral spread of
 Eq.~\ref{eq:mix}).
 
-\paragraph{Parameter-free, cross-scale prediction (Table~\ref{tab:xscale}).}
-Because $\lambda_{\mathrm{slow}}$ and $c$ are approximately scale-invariant across these (same-architecture)
-scales and $dL_{\mathrm{eq}}/d\eta$ is read off the (cheap) noise floor, the whole correction can
-be \emph{predicted with zero fitting on the target curve}: take $\lambda_{\mathrm{slow}}{=}10$, $c$ from a
+\paragraph{Low-calibration cross-scale transfer (Table~\ref{tab:xscale}).}
+Because $\lambda_{\mathrm{slow}}$ and $c$ are empirically stable across these same-architecture
+scales and $dL_{\mathrm{eq}}/d\eta$ is read off the cheap noise-floor probes, the correction can
+be transferred with \emph{zero fitting on the target curve}: take $\lambda_{\mathrm{slow}}{=}10$, $c$ from a
 leave-one-scale-out average of the \emph{other} scales, and $dL_{\mathrm{eq}}/d\eta$ from the
 target's own two-stage probes (distinct curves from the test). Applied to the held-out
 \code{wsd}/\code{wsdld} decays it cuts MAE by $28\text{--}56\%$ ($44\%$ average, wins
@@ -464,18 +468,28 @@ the two are complementary. Characterising their precise relationship is left to 
 \section{Independent reproduction}\label{sec:repro2}
 An independent reproduction on different hardware (\code{represent/}; the authors' public
 curves are no longer hosted, so it \emph{retrains} models) corroborates the mechanism along
-two routes the public curves do not cover.
+two routes the public curves do not cover. All results below were subjected to an adversarial
+audit (\code{results/AUDIT\_PARTC.md}): the auditor was tasked to \emph{falsify} each claim,
+and only surviving readings are reported.
 
 \paragraph{A real, independently-trained transformer (no fitting).}
 A $\sim$10M-parameter Llama-2-style byte-level transformer was trained on WikiText with AdamW
-under three schedules reaching the \emph{same} final LR ($2.5{\times}10^{-3}{\to}2.5{\times}10^{-4}$)
-at different speeds (Table~\ref{tab:real}). The fast (\code{wsd\_sharp}) sweep ends
-\emph{higher} than the gradual ones \emph{despite spending $37\%$ more cumulative LR}---yet any
-law monotone in $S$ predicts the opposite (more LR $\Rightarrow$ lower loss). With no fitting,
-this is the rate-dependent non-adiabatic lag, on a model and data we never used; the residual
-against a well-fit MPL is positive only for the sharp sweep and is captured by $\Drop$
-(Fig.~\ref{fig:real}). Across schedules a finite-$\lambda_{\mathrm{slow}}$ kernel beats the
-adiabatic ($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.11$ held out.
+($\beta_1{=}0.9$, $\beta_2{=}0.95$, $\mathrm{wd}{=}0.1$) under three schedules reaching the
+\emph{same} final LR ($2.5{\times}10^{-3}{\to}2.5{\times}10^{-4}$) at different speeds
+(Table~\ref{tab:real}). The fast (\code{wsd\_sharp}) sweep ends \emph{higher} than the gradual
+ones \emph{despite spending $37\%$ more cumulative LR}---yet any law monotone in $S$ predicts
+the opposite (more LR $\Rightarrow$ lower loss). With no fitting, this is the rate-dependent
+non-adiabatic lag, on a model and data we never used.
+
+A well-fit MPL (trained on \code{constant} plus two \code{wsdcon} curves, held-out MAE
+$\approx0.005$) leaves residuals that sort by sweep speed: cosine $-0.011$ $<$ wsd-gradual
+$-0.004$ $<$ \textbf{wsd-sharp $+0.006$} (the only positive). Across schedules, a
+finite-$\lambda_{\mathrm{slow}}$ DropRelaxS kernel improves over the adiabatic
+($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.18$ on held-out data.
+\emph{Note:} on a \emph{single} decay curve the finite-$\lambda_{\mathrm{slow}}$ kernel is
+numerically degenerate with the adiabatic limit (corr$\approx0.99$); the rate dependence is
+identifiable only \emph{across} schedules. The honest claim is therefore the no-fitting
+Table~\ref{tab:real} signature plus the $+0.18$ joint advantage, not a single-curve $R^2$.
 
 \begin{table}[t]\centering\small
 \begin{minipage}[t]{0.46\linewidth}\centering
@@ -502,43 +516,84 @@ sharp sweep, captured by $\Drop$.}
 
 \paragraph{From-scratch AdamW confirms the mechanism quantitatively.}
 Simulating AdamW on a noisy quadratic (Monte-Carlo ground truth; closed-form theory used only
-as an independent baseline), the reproduction recovers $\tau\propto1/\eta$ with $p=0.971$
-(log-log $R^2{=}0.9996$, robust to leave-one-out and seeds), $\tau$ independent of $\beta_2$
-(CV $1.1\%$), the \textbf{amplitude identity} $dL_{\mathrm{eq}}/d\eta=3.075$ versus the closed
-form $\tfrac14\sum_i s_i=3.0$ (within $3\%$), and a two-exponential kernel that recovers the
-injected preconditioned rates $2\lambda/s$. The effect is falsifiable, not circular: a
-signal-dominated spectrum breaks $p{=}1$.
+as an independent baseline), the reproduction recovers:
+\begin{itemize}\itemsep1pt
+\item $\tau\propto1/\eta$ with $p=0.971$ (log-log $R^2{=}0.9996$), robust to leave-one-out and
+  seed changes;
+\item $\tau$ independent of $\beta_2\in[0.9,0.9999]$ (CV $1.1\%$), because the lag lives on
+  noise-dominated modes where $v^*\approx s^2$ is constant;
+\item the \textbf{amplitude identity} $dL_{\mathrm{eq}}/d\eta=3.075$ versus the closed form
+  $\tfrac14\sum_i s_i=3.0$ (within $3\%$);
+\item a two-exponential kernel that recovers the injected preconditioned rates $2\lambda/s$
+  ($\{1,16\}$ in the simulation, recovered as $\{0.87,16.1\}$).
+\end{itemize}
+The effect is falsifiable, not circular: a signal-dominated spectrum breaks $p{=}1$.
 
 \paragraph{What does not transfer (consistent with our scope).}
-At $\sim$10M the $\tau\propto1/\eta$ relation itself is \emph{not} resolved (the measured
-post-step relaxation is roughly flat over a $16\times$ LR range, audited as real and not a
-window artefact), and on a \emph{single} decay curve the kernel is numerically degenerate with
-the adiabatic baseline, so the rate-dependence is identifiable only \emph{across} schedules.
-This matches our stated scope: the effect is clean and present, while the quantitative law is a
-leading-order, data-scale-limited approximation whose constants ($\lambda_{\mathrm{slow}}$, $c$,
-and the $\eta_{\mathrm{peak}}$ normalisation) remain measured rather than derived.
+At $\sim$10M the $\tau\propto1/\eta$ relation itself is \emph{not} resolved: the measured
+post-step relaxation is roughly flat over a $16\times$ LR range ($\tau\approx475$--$912$
+steps; slope $p\approx0.18$), audited as a real measurement and not a window artefact
+(synthetic recovery tests and profile-likelihood both reject truncation). This matches the
+paper's own statement that the signal grows strongly with scale; at notebook scale we confirm
+the \emph{effect} but not its precise scaling law.
+
+A second reproducible issue is a persistent $\eta_{\mathrm{peak}}$ normalisation inconsistency:
+if Eq.~\eqref{eq:law} is implemented with raw LR drops, the fitted $c$ is $O(1)$
+($\approx0.5$); if normalized drops $(\eta_k-\eta_{k+1})_+/\eta_{\mathrm{peak}}$ are used, the
+prefactor becomes $c\,\eta_{\mathrm{peak}}\chi$ and the same data require $c\approx60$--$86$.
+The paper's $c\approx0.5$ is therefore tied to a specific (unstated) normalisation convention.
+
+Finally, several theory-driven extensions were tested in the controlled simulation
+(\code{results/EXTENSIONS\_REPORT.md}). The cleanest success is a \textbf{spectral-mixture}
+diagnostic: on a bimodal spectrum a two-exponential kernel improves $R^2$ by $0.065$ and
+recovers the two theoretical rates $2\lambda/s$ (relative errors $0.13$ and $0.006$). A
+cross-shape transfer of frozen parameters, however, \emph{fails} its pre-registered threshold
+(mean $R^2{=}0.52$); and the open problem (a)---computing $\lambda_{\mathrm{slow}}$ and $c$
+from first principles without an $O(1)$ fitted constant---remains open.
 
 \section{Limitations}\label{sec:disc}
-The gain is regime-specific (data-poor sharp decays); $\lambda_{\mathrm{slow}}$ and $c$ are
-\emph{measured}, not computed from first principles (this needs the noise spectrum $\{s_i\}$,
-which we do not have), and $\lambda_{\mathrm{slow}}$ is only \emph{approximately} scale-invariant
----it tracks the slowest preconditioned mode and drifts when the spectral \emph{shape} changes
-(\S\ref{sec:repro2}), so the cross-scale transfer is a leading-order, same-architecture
-approximation. The general linear-response derivation assumes local stability and differentiability of an
+The gain is regime-specific (data-poor sharp decays). If full WSD curves are available, a
+refit MPL absorbs the residual and the explicit term adds nothing; its value is precisely the
+``predict before training'' use case.
+
+$\lambda_{\mathrm{slow}}$ and $c$ are \emph{measured}, not computed from first principles
+(this needs the noise spectrum $\{s_i\}$, which we do not have). The controlled simulation
+shows that $\lambda_{\mathrm{slow}}$ tracks the slowest preconditioned mode
+$\lambda_i/s_i$ rather than a spectral average, but a robust predictor still requires an
+unexplained $O(1)$ constant (open problem (a)).
+
+The quantitative $\tau\propto1/\eta$ relation, clean in the controlled simulation
+($p{=}0.971$), is \emph{not} resolved on the $\sim$10M transformer (\S\ref{sec:repro2}),
+consistent with the paper's statement that the signal grows with scale. On that model the
+finite-$\lambda_{\mathrm{slow}}$ kernel is numerically degenerate with the adiabatic baseline
+on a single curve, so the rate dependence is identifiable only \emph{across} schedules.
+
+There is a reproducible $\eta_{\mathrm{peak}}$ normalisation ambiguity
+(\S\ref{sec:repro2}): retaining the $\eta_{\mathrm{peak}}$ factor in Eq.~\eqref{eq:law}
+gives $c\approx60$--$86$, not the $c\approx0.5$ reported in the main experiments. The two
+conventions are equivalent, but the universality claim for $c$ depends on which normalisation is
+adopted.
+
+The general linear-response derivation assumes local stability and differentiability of an
 LR-dependent excess-loss state; the stronger locally quadratic, diagonal-noise assumptions are
-used only for the AdamW specialization and amplitude/timescale interpretation. Finally, the
-quantitative $\tau\propto1/\eta$ relation, clean in the controlled simulation, is \emph{not}
-resolved on the $\sim$10M transformer (\S\ref{sec:repro2}); confirming it on larger real models,
-and characterising the precise relationship to $\gamma$, are the main open items.
+used only for the AdamW specialization. Cross-shape transfer of frozen parameters fails its
+pre-registered threshold, and the relationship between our correction and MPL's empirical
+$\gamma$ remains qualitative. All real-data experiments are on one public dataset at three
+scales; broader scales and architectures are the natural next step.
 
 \section{Conclusion}
 Existing loss-curve laws are adiabatic approximations. We identified and validated the leading
 non-adiabatic correction: under weak stability assumptions it is a causal linear response to LR
 decrements, and its one-pole closure gives a rate-dependent term whose relaxation time follows
 the classical $\tau\propto1/\eta$ ($p=1.00\pm0.18$, confirmed for the loss-curve residual).
-Its scale-invariant shape enables parameter-free cross-scale prediction ($-44\%$ on held-out
-sharp decays). The loss curve depends not only on how much LR has been spent, but on how fast it
-is being spent.
+Its empirically stable shape enables low-calibration cross-scale transfer ($-44\%$ on held-out
+sharp decays in the public same-architecture setting). An independent reproduction---a separately-trained $\sim$10M transformer and a
+from-scratch AdamW simulation---confirms the effect (the fast sweep ends higher \emph{despite}
+$37\%$ more cumulative LR) and the amplitude identity (within $3\%$), while also establishing
+honest boundaries: the quantitative $\tau\propto1/\eta$ law is not resolved at $\sim$10M, the
+kernel is degenerate on single curves, and an $\eta_{\mathrm{peak}}$ normalisation ambiguity
+remains. The loss curve depends not only on how much LR has been spent, but on how fast it is
+being spent.
 
 
 \appendix

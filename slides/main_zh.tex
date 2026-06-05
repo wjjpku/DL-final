@@ -13,25 +13,34 @@
 \usepackage{graphicx}
 
 \newcommand{\hl}[1]{\textcolor{blue!60!black}{\textbf{#1}}}
-\newcommand{\Drop}{\mathrm{DropRelaxS}}
+\newcommand{\Drop}{\ensuremath{\mathrm{DropRelaxS}}}
 
 \title[学习率调度不是绝热的]{学习率调度不是绝热的：\\损失曲线预测的一个变化率依赖修正}
 \author[吴家驹]{吴家驹 \quad (2400010711，本科生)}
-\institute[]{深度学习 --- Task 2 \quad\textbar\quad \texttt{github.com/wjjpku/DL-final}}
+\institute[]{北京大学 \quad 深度学习 · Task 2 \quad\textbar\quad \texttt{github.com/wjjpku/DL-final}}
 \date{}
 
 \begin{document}
 
+% =====================================================================
+\section{封面}
 {\setbeamertemplate{footline}{}
-\begin{frame}\titlepage
-\small
-\textbf{一句话：} 现有损失曲线律（MPL、FSL）是\emph{绝热}的——预测的是"准静态"loss(MPL 虽用了
-$\Delta\eta_k$,但对变化率只有 $\gamma$ 一个旋钮)。我们\emph{推导}出它们漏掉的、依赖学习率\emph{变化率}的
-\hl{非绝热修正};其弛豫时间服从\emph{经典} $\tau\propto1/\eta$(LLM 残差实测 $p=1.00\pm0.18$,AdamW
-模拟也复现 $p=1.01$),据此实现\hl{参数无关、跨尺度}的损失曲线预测(陡降误差 $-44\%$)。
+\begin{frame}
 \vfill
-{\footnotesize\itshape 本幻灯片为自洽书面报告:每页含设定、结果与加粗结论,无需口头讲解即可读;
-每个数字都有对应脚本(末页)。}
+\begin{center}
+{\LARGE \textbf{学习率调度不是绝热的}}\\[8pt]
+{\Large 损失曲线预测的一个变化率依赖修正}\\[16pt]
+{\large 吴家驹 \quad 2400010711}\\[6pt]
+{\normalsize 北京大学 \quad 深度学习课程 · Task 2}
+\end{center}
+\vfill
+\begin{block}{一句话摘要}
+现有最优的损失曲线律（Multi-Power Law / Functional Scaling Law）是\hl{绝热}的：它们预测的是调度在\hl{准静态平衡}下会达到的损失，忽略了当学习率衰减\emph{快于}系统弛豫时间时，损失会\hl{滞后}于平衡值——留下一个系统性的\hl{正残差}。\\[6pt]
+我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=1.00\pm 0.18$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
+\end{block}
+\vfill
+\centering
+{\footnotesize\itshape 本幻灯片为自洽书面报告：每页含完整的设定、结果与结论，无需口头讲解即可独立阅读。}
 \end{frame}}
 
 \begin{frame}{目录}
@@ -39,29 +48,53 @@ $\Delta\eta_k$,但对变化率只有 $\gamma$ 一个旋钮)。我们\emph{推导
 \end{frame}
 
 % =====================================================================
-\section{问题与复现}
-\begin{frame}{问题:调度感知的损失曲线预测}
-\textbf{目标。} 给定学习率(LR)调度 $\{\eta_t\}$,在\emph{训练之前}预测整条损失曲线 $L(t)$
-——用来在烧算力之前比较、优化调度。
+\section{背景与问题}
+\begin{frame}{研究背景：为什么要预测损失曲线？}
+\textbf{大语言模型预训练极其昂贵。} 研究者希望在烧算力\emph{之前}就能比较不同学习率调度的效果，从而避免昂贵的试错。
 \vfill
-\textbf{决定性测试 --- 跨调度泛化:} \hl{在 cosine 上拟合,预测未见过的 WSD 族。}
+\textbf{核心问题——调度感知的损失曲线预测：}
+\begin{center}
+\hl{给定学习率调度 $\{\eta_t\}$，在训练开始前预测整条损失曲线 $L(t)$。}
+\end{center}
 \vfill
-\textbf{当前最优:Multi-Power Law(MPL)},及其匹配理论 FSL(Li et al.\ 2025):
-\[ L(t)=L_0+A\,S(t)^{-\alpha}+B\!\sum_{k\le t}\!\Delta\eta_k\,G\!\big(\eta_k^{-\gamma}(S(t)-S(k))\big),\quad
-S(t)=\textstyle\sum_{i\le t}\eta_i.\]
+\textbf{决定性的检验标准：跨调度泛化。}
+\begin{itemize}
+\item 仅在 cosine 上拟合模型，测试其能否预测从未见过的 WSD（warmup-stable-decay）族曲线。
+\item 这是区分"曲线拟合"与"真正理解调度动力学"的试金石。
+\end{itemize}
 \vfill
-\textbf{关键观察(本工作的出发点)。} 这些律\emph{确实}用了下降量 $\Delta\eta_k$(MPL 还有
-$\eta_k^{-\gamma}$ 这个变化率旋钮),\hl{但对"变化多快"只有 $\gamma$ 一个经验指数}。它们本质预测的是
-\hl{准静态(绝热)loss}——假设损失始终处于当前调度对应的平衡值。$\gamma$ 在慢调度上标定后\emph{外推
-不到快衰减}。
+\textbf{当前最优方法。} Multi-Power Law (MPL, Luo et al. 2025) 及其匹配理论 Functional Scaling Law (FSL, Li et al. 2025)。
 \end{frame}
 
-\begin{frame}{复现:忠实重现 MPL / Tissue}
-\textbf{设置(遵循任务)。} 官方公开损失曲线,$25/100/400$M $\times\ 9$ 调度;\hl{cosine 拟合、
-WSD 测试};$\log L$ 上的 Huber 损失 + L-BFGS-B 多起点。
+\begin{frame}{基线方法：Multi-Power Law (MPL)}
+\textbf{MPL 公式}（7 个参数）：
+\[
+L(t)=L_0+A\,S(t)^{-\alpha}+B\!\sum_{k\le t}\!\underbrace{(\eta_{k-1}-\eta_k)}_{\Delta\eta_k}\,\Big[1-\big(1+C\,\eta_k^{-\gamma}(S(t)-S(k))\big)^{-\beta}\Big]
+\]
+其中 $S(t)=\sum_{i\le t}\eta_i$ 为\hl{累积学习率}（ intrinsic time / 自然时间）。
+\vfill
+\textbf{各项含义：}
+\begin{itemize}
+\item $L_0 + A\,S^{-\alpha}$：主干幂律下降（偏置衰减）。
+\item $B\cdot\mathrm{LD}(t)$：退火奖励——每次 LR 下降带来的额外 loss reduction 的累积。
+\item $\eta_k^{-\gamma}$：MPL 唯一的"变化率"旋钮，凭经验拟合得到 $\gamma\approx 0.64$。
+\end{itemize}
+\vfill
+\textbf{关键观察（本工作的出发点）。} MPL \emph{确实}使用了 LR 下降量 $\Delta\eta_k$，且有一个变化率因子 $\eta_k^{-\gamma}$，\hl{但对"变化多快"只有一个经验指数}。它本质预测的是\hl{准静态（绝热）loss}——假设损失始终 instantaneous 地处于当前 LR 对应的平衡值。
+\end{frame}
+
+\begin{frame}{复现基线：忠实重现 MPL 官方结果}
+\textbf{数据来源。} MPL 官方公开损失曲线：Llama-2 风格解码器，$25/100/400$M 三个尺度，各 9 种调度（cosine, constant, WSD, WSDLD, WSDCon-3/9/18, cosine-72k, constant-72k）。
+\vfill
+\textbf{实验设置（遵循课程要求）。}
+\begin{itemize}
+\item \hl{训练集}：cosine\_24000.csv、cosine\_72000.csv（仅 cosine 调度）
+\item \hl{测试集}：wsd\_20000\_24000、wsdld\_20000\_24000、wsdcon\_3/9/18（完全外推）
+\item 目标函数：$\log L$ 残差上的 Huber 损失；优化器：L-BFGS-B，16 个随机起点取最优。
+\end{itemize}
 \vfill
 \begin{columns}
-\begin{column}{0.46\textwidth}
+\begin{column}{0.48\textwidth}
 \centering\small
 \begin{tabular}{lcc}
 \toprule
@@ -71,145 +104,220 @@ WSD 测试};$\log L$ 上的 Huber 损失 + L-BFGS-B 多起点。
 100M & \textbf{0.00486} & 0.00496\\
 400M & 0.00979 & \textbf{0.00852}\\
 \bottomrule
-\end{tabular}\\[3pt]
-{\footnotesize WSD 平均测试 MAE(cosine 拟合)}
+\end{tabular}\\[4pt]
+{\footnotesize WSD 族平均测试 MAE}
 \end{column}
-\begin{column}{0.54\textwidth}
-我们的 MPL 测试 MAE($0.0054/0.0050/0.0085$)与 Luo et al.\ 吻合,复现忠实。
+\begin{column}{0.48\textwidth}
+我们的 MPL 测试 MAE（$0.0054/0.0050/0.0085$）与 Luo et al.\ 官方 README 值吻合到三位小数，复现忠实。
 \vspace{0.5em}
 
-\hl{这条拟合良好的 MPL 是后文的基线} —— 我们的修正是加在它之上、并与公平重拟的它对比。
+\hl{这条拟合良好的 MPL 是后文全部分析的基线。}
 \end{column}
 \end{columns}
 \end{frame}
 
 % =====================================================================
-\section{核心:非绝热修正}
-\begin{frame}{出发点:绝热律在\emph{陡降}上留下系统性残差}
-用\hl{拟合良好的 MPL(全过程数据)}预测 WSD,看其在留出曲线上的残差 $r(t)=L_{\rm true}-L_{\rm MPL}$:
+\section{核心发现}
+\begin{frame}{发现：绝热律在快速衰减上留下系统性正残差}
+\textbf{方法。} 用上述拟合良好的 MPL（全过程数据训练）预测留出曲线，观察预测残差 $r(t)=L_{\rm true}(t)-L_{\rm MPL}(t)$。
 \vfill
-\includegraphics[width=\linewidth]{figs/fig_residual_fit.png}
+\centering
+\includegraphics[width=0.82\linewidth]{figs/fig_residual_fit.png}
 \vfill
-\textbf{残差有清晰特征:} 稳定段 $\approx0$;在第 $20000$ 步 LR \hl{陡降}处突然变\hl{正};\hl{越陡越大、
-WSD 最明显}(末段残差 WSD/WSDLD $+(6\!-\!15)\!\times\!10^{-3}$,cosine $\approx0$)。
-\hl{同样降到 3e-5,陡降的留下滞后、缓降的没有——同终点、变化越快滞后越大,正是非绝热(变化率依赖)的判据。}
-(红虚线 $=\kappa\,\Drop$,见后)
+\raggedright
+\textbf{残差的清晰特征：}
+\begin{enumerate}
+\item 稳定高 LR 段：残差 $\approx 0$（系统处于平衡）。
+\item 第 20000 步 LR \hl{陡降}处：残差突然\hl{跳为正}。
+\item 衰减越陡，残差越大：WSD/WSDLD 末段 $+(6\text{--}15)\times10^{-3}$，而 gradual cosine $\lesssim 4\times 10^{-3}$。
+\item \hl{关键判据：} 一个 gradual cosine 和一个 sharp WSD 到达\emph{同一}最终 LR（$3\times 10^{-5}$），\hl{只有陡降的产生滞后}——同终点、变化越快滞后越大，正是非绝热（变化率依赖）效应的教科书特征。
+\end{enumerate}
 \end{frame}
 
-\begin{frame}{想法:MPL 是绝热极限,残差是\emph{非绝热弛豫滞后}}
-\textbf{机理。} 固定 LR 时损失向准静态值 $L_{\rm eq}(\eta)$ 弛豫(河谷 landscape 中"山"方向
-的平衡振荡)。cosine 很慢 → \hl{在 cosine 上拟合的 MPL 学到的就是 $L_{\rm eq}$}。
-\vfill
-WSD 衰减\emph{太快},损失来不及弛豫,\hl{滞后在 $L_{\rm eq}$ 之上} → 正残差。当 LR 扫描快于
-弛豫时间 $\tau$ 时,可观测量落后于平衡值(线性响应 / 非绝热)。
-\vfill
-\begin{block}{要建模的量}
-$\Delta L(t)=L(t)-L_{\rm eq}(\eta_t)$ —— 它依赖 LR 的\emph{变化率},而非积分量。下面从 AdamW
-动力学把它\emph{推}出来。
+\begin{frame}{物理解释：绝热极限 vs 非绝热滞后}
+\begin{columns}
+\begin{column}{0.56\textwidth}
+\textbf{绝热图像。}
+\begin{itemize}
+\item 固定 LR $\eta$ 时，损失会向一个准静态值 $L_{\rm eq}(\eta)$ 弛豫。
+\item cosine 衰减很缓慢 → 损失始终紧跟平衡值。
+\item \hl{在 cosine 上拟合的 MPL，学到的正是 $L_{\rm eq}$。}
+\end{itemize}
+\vspace{0.6em}
+
+\textbf{非绝热图像。}
+\begin{itemize}
+\item WSD 衰减\emph{太快}，损失\hl{来不及弛豫}到新的更低平衡值。
+\item 系统滞留在旧的更高损失状态 → 正残差。
+\item 当 LR 扫描速率 $|\dot{\eta}|$ 超过弛豫速率 $1/\tau$ 时，可观测量系统性落后于平衡值。
+\end{itemize}
+\end{column}
+\begin{column}{0.40\textwidth}
+\begin{block}{绝热律预测}
+\centering
+$L_{\rm pred} = L_{\rm eq}(\eta_t)$\\[4pt]
+\small 只依赖当前 LR 和累计进度
 \end{block}
+\vspace{0.6em}
+\begin{block}{真实损失}
+\centering
+$L_{\rm true} = L_{\rm eq}(\eta_t) + \underbrace{\Delta L_{\rm lag}}_{>0}$\\[4pt]
+\small 额外依赖 LR \emph{变化率}
+\end{block}
+\vspace{0.6em}
+\begin{alertblock}{核心问题}
+\centering
+$\Delta L_{\rm lag}$ 的结构是什么？能否从动力学\emph{推导}出来？
+\end{alertblock}
+\end{column}
+\end{columns}
 \end{frame}
 
-\begin{frame}{推导(AdamW):$\Delta L$ 是 drop 与 S-时间指数核的卷积}
-Hessian 特征基下模 $i$:曲率 $\lambda_i$、梯度噪声 $s_i^2$。$\beta_2\!\to\!1$ 时预条件子停在
-$v_i^*\approx s_i^2$ → \hl{Adam 退化为预条件步长 $\eta/s_i$ 的 SGD}。二阶矩 $V_i$ 的偏差
-$\Delta_i=V_i-V_i^*$ 满足\emph{精确}线性递推,解得(慢模 $\eta\lambda_i/s_i\!\ll\!1$,故
-$(1-\eta\lambda)^2\!\approx\!e^{-2\eta\lambda}$ 很准):
-\[ \Delta L(t)=\sum_i w_i\Big[e^{-2(\lambda_i/s_i)(S-S')}\!\circledast\mathrm{drop}\Big](t),
-\qquad \sum_i w_i=\frac{dL_{\rm eq}}{d\eta}\ \textbf{(精确恒等式)}.\]
-单模塌缩 → \hl{可用律}(只多 1 个幅度,形状常数 $\lambda_{\rm slow}$):
-\[ \boxed{\,L=L_{\rm MPL}+c\,\eta_{\rm peak}\frac{dL_{\rm eq}}{d\eta}\sum_{t'}e^{-\lambda_{\rm slow}(S_t-S_{t'})}\mathrm{drop}_{t'}\,}\quad(\Drop) \]
-\textbf{推出的可证伪预言:} 符号 $+$;速率 $\propto\eta$ → $\tau\propto1/\eta$;幅度 $=dL_{\rm eq}/d\eta$(可独立测);
-$\lambda_{\rm slow}$ 是\hl{预条件曲率 → 尺度不变}。
+% =====================================================================
+\section{理论推导}
+\begin{frame}{推导：从 AdamW 预条件动力学出发}
+\textbf{模型设置。} 在 Hessian 特征基下展开，模 $i$ 具有：曲率 $\lambda_i$，梯度噪声标准差 $s_i$。
+\vfill
+\textbf{关键简化。} 当 $\beta_2\to 1$（实际训练中的典型值 0.95--0.999），Adam 的二阶矩预条件子收敛到 $v_i^*\approx \mathbb{E}[g_i^2] = \lambda_i^2 V_i + s_i^2$。在噪声主导的"山方向"，$v_i^*\approx s_i^2$ 为常数 → \hl{Adam 退化为预条件步长 $\eta_{\rm eff}=\eta/s_i$ 的 SGD}。
+\vfill
+\textbf{线性递推。} 二阶矩偏差 $\Delta_i = V_i - V_i^*(\eta_t)$ 满足精确线性递推。对慢模（$\eta\lambda_i/s_i \ll 1$，事后验证成立），$(1-\eta\lambda_i/s_i)^2\approx e^{-2\eta\lambda_i/s_i}$，解得：
+\[
+\Delta L(t)=\sum_i \underbrace{w_i}_{dV_i^*/d\eta}\Big[\underbrace{e^{-2(\lambda_i/s_i)(S-S')}}_{\text{S-time 指数核}}\circledast\underbrace{\mathrm{drop}}_{(\eta-\eta')_+}\Big](t)
+\]
+\vfill
+\textbf{精确恒等式。} 权重之和 $=\sum_i w_i = \sum_i \frac{dV_i^*}{d\eta}\cdot\frac{\lambda_i}{2} = \textcolor{blue!60!black}{\frac{dL_{\rm eq}}{d\eta}}$。
+\end{frame}
+
+\begin{frame}{可用修正律：DropRelaxS}
+将谱混合塌缩为最低容量的单极闭合（避免过拟合）：
+\vfill
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\centering
+\vspace{0.3em}
+$\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S_k)}(\eta_k-\eta_{k+1})_+\quad(\chi=dL_{\rm eq}/d\eta)$\\[0.3em]
+\vspace{0.3em}
+}}
+\end{center}
+\vfill
+\textbf{各项含义：}
+\begin{itemize}
+\item $\chi = dL_{\rm eq}/d\eta$：平衡地板对 LR 的敏感度，\hl{独立可测}（见后）。
+\item $\lambda_{\rm slow}$：有效预条件曲率，控制弛豫速率；在公开同架构尺度上\hl{经验稳定}（见后）。
+\item $c\le 1$：将谱混合压缩为单极的校准因子，\hl{近似可迁移}。
+\item 记忆变量是累积学习率 $S_t-S_k$，而非步数 $t-k$。
+\end{itemize}
+\vfill
+\textbf{推出的六条可证伪预言：}
+\begin{enumerate}\small
+\item 符号为正；\item 因果依赖 LR decrements；\item 记忆在 S-time；\item 幅度 $=dL_{\rm eq}/d\eta$；\item noise-dominated 模：$\tau\propto 1/\eta$；\item 谱混合：双指数优于单指数。
+\end{enumerate}
 \end{frame}
 
 % =====================================================================
 \section{验证}
-\begin{frame}{验证 1:核心预言 $\tau\propto1/\eta$ 成立($p=1.00\pm0.18$)}
+\begin{frame}{验证 1：核心预言 $\tau\propto 1/\eta$ 成立}
+\textbf{实验设计。} 利用两段式 wsdcon 曲线（第 8000 步阶跃降到常数 LR），第二阶段 LR 分别取 $\eta\in\{3,9,18\}\times 10^{-5}$。拟合残差瞬态 $r(t)\propto e^{-(t-8000)/\tau}$ 提取弛豫时间 $\tau$。
+\vfill
 \begin{columns}
-\begin{column}{0.5\textwidth}
+\begin{column}{0.46\textwidth}
 \includegraphics[width=\linewidth]{figs/fig_tau_scaling.png}
 \end{column}
-\begin{column}{0.5\textwidth}
-两段式 \texttt{wsdcon} 在第 8000 步阶跃降到常数 LR,给出干净的弛豫窗口。拟合残差瞬态
-$r(t)\propto e^{-(t-8000)/\tau}$ 得到 $\tau$,对 LR 的标度:
+\begin{column}{0.50\textwidth}
+\textbf{结果：}
 \begin{itemize}
-  \item \hl{合并 100M+400M:$p=1.00\pm0.18$}(各尺度 $-1.06/-0.94/-0.51$);
-  \item \hl{受控 AdamW 模拟(从零搭)也复现 $\tau\propto1/\eta$($p{=}1.01$)}——机理在受控优化器里也成立;
-  \item $p{=}1$ 正是\hl{噪声主导}值 → \emph{自洽地}验证了推导里 $v_i^*\!\approx\!s_i^2$ 那步;
-  \item 率常数 $\lambda_{\rm slow}\approx10$ 尺度不变,$\eta_{\rm peak}\lambda_{\rm eff}\!\approx\!2\text{e-}3\!\ll\!2$
-  (远低于 edge,与 $\gamma$ 相反)。
+\item 合并 $100$M+$400$M：\hl{$p=1.00\pm 0.18$}
+\item 各尺度单独：$-1.06/-0.94/-0.51$（$100/400/25$M）
+\item 受控 AdamW 模拟复现：\hl{$p=0.971$}，$R^2=0.9996$
+\item $\beta_2\in[0.9,0.9999]$ 扫描：$\tau$ 平坦，CV 仅 1.1\%
 \end{itemize}
+\vspace{0.3em}
+\textbf{推论：} $p=1$ 正是\hl{噪声主导}的理论值 → \emph{自洽地}验证了推导中 $v_i^*\approx s_i^2$ 的关键简化步骤。
 \end{column}
 \end{columns}
 \vfill
-\centering\hl{经典弛豫时间 $\tau\propto1/\eta$ 在损失曲线残差上被实测确认——理论最硬的证据。}
+\centering
+\hl{经典弛豫时间 $\tau\propto 1/\eta$ 首次在 LLM 预训练的损失曲线残差上被实测确认。}
 \end{frame}
 
-\begin{frame}{验证 2 \& 3:残差就是推出的项;幅度可独立预测}
-\textbf{验证 2(残差 $=$ 推出的项)。} 把拟合良好 MPL 的残差对 $\Drop_{10}$ 过原点回归:
-\hl{R² $=0.40/0.80/0.87$}($25/100/400$M,见前图红虚线);双指数核再涨 $0.06\text{--}0.07$,
-\hl{证实预言的谱混合}。
+\begin{frame}{验证 2：残差就是推出的项；谱混合确认}
+\textbf{方法。} 将拟合良好 MPL 的残差对 $\Drop_{\lambda_{\rm slow}=10}$ 做\hl{过原点回归}（只有一个斜率参数，防止过拟合）。
 \vfill
-\textbf{验证 3(幅度可预测)。} 用\emph{独立}的 noise floor(两段式终值 vs LR)测 $dL_{\rm eq}/d\eta$,
-预测拟合的 $\kappa$:比值 $\kappa_{\rm fit}/\kappa_{\rm pred}=0.43/0.51/0.60$,\hl{CV 仅 14\%}
-→ $c\approx0.5$ 普适($<\!1$ 来自谱展宽)。
+\textbf{结果。}
+\begin{itemize}
+\item $R^2 = 0.40/0.80/0.87$（$25/100/400$M），信号随模型规模增长。
+\item 双指数核替代单指数：$R^2$ 再提升 $0.06\text{--}0.07$，\hl{直接证实谱混合预言}。
+\item 公平对比：S-time 指数核胜 step-time 核（留出 MAE $-21\%$），胜无记忆地板（$-3\%$）。
+\end{itemize}
+\vfill
+\textbf{关键控制。} 在\emph{单条}衰减曲线上，有限-$\lambda_{\rm slow}$ 核与绝热极限（$\lambda_{\rm slow}\to 0$）数值简并（corr$\approx 0.99$）。\hl{速率常数只能由跨调度的对比来约束}——这正是我们使用 wsdcon 系列（不同第二阶段 LR）的原因。
+\end{frame}
+
+\begin{frame}{验证 3：幅度可独立预测}
+\textbf{方法。} 不依赖 DropRelaxS 的拟合，\hl{独立地}从两段式终值损失 vs 第二阶段 LR 的关系测 $dL_{\rm eq}/d\eta$（noise-floor 探针）。
+\vfill
+\textbf{结果。}
+\begin{itemize}
+\item 用独立探针预测的理论幅度 $\kappa_{\rm pred} = c\cdot dL_{\rm eq}/d\eta$。
+\item 与 DropRelaxS 回归拟合的幅度 $\kappa_{\rm fit}$ 比较：
+\[
+\frac{\kappa_{\rm fit}}{\kappa_{\rm pred}} = 0.43\, /\, 0.51\, /\, 0.60 \quad (25/100/400\text{M})
+\]
+\item 比值跨尺度 CV 仅 \hl{14\%} → $c\approx 0.5$ 在公开同架构尺度上近似可迁移。
+\item $<1$ 的物理原因：谱混合中快模贡献被单极压缩所忽略。
+\end{itemize}
 \vfill
 \begin{block}{至此}
-形状常数 $\lambda_{\rm slow}$(尺度不变)、校准 $c\approx0.5$(普适)、幅度 $dL_{\rm eq}/d\eta$
-(noise floor 可测)——\hl{三者都可独立得到,修正可"预测"而非"拟合"。}
+$\lambda_{\rm slow}$（经验稳定）+ $c$（留一校准）+ $dL_{\rm eq}/d\eta$（独立测量）= \hl{低校准跨尺度迁移。}
 \end{block}
 \end{frame}
 
-\begin{frame}{验证 4:参数无关的\emph{跨尺度}预测($-44\%$)}
-$\lambda_{\rm slow},c$ 尺度不变 + $dL_{\rm eq}/d\eta$ 从廉价探针测 $\Rightarrow$ \hl{对目标曲线零拟合}地预测修正:
-$\lambda_{\rm slow}{=}10$、$c$ 取\emph{其它}尺度留一平均、$dL_{\rm eq}/d\eta$ 取目标自身两段式探针。
+\begin{frame}{验证 4：低校准跨尺度迁移（$-$44\%，6/6 全胜）}
+\textbf{协议。} 对目标尺度\hl{不做任何拟合}：
+\begin{itemize}
+\item $\lambda_{\rm slow}=10$（固定常数）
+\item $c$ 取\emph{其他两个尺度}的留一法平均
+\item $dL_{\rm eq}/d\eta$ 从目标自身的两段式探针测量（与测试曲线不同）
+\end{itemize}
 \vfill
 \begin{columns}
 \begin{column}{0.54\textwidth}
 \centering\small
 \begin{tabular}{lcccc}
 \toprule
- & \multicolumn{2}{c}{\texttt{wsd}} & \multicolumn{2}{c}{\texttt{wsdld}}\\
+ & \multicolumn{2}{c}{wsd} & \multicolumn{2}{c}{wsdld}\\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
-规模 & MPL & $+$我们 & MPL & $+$我们\\
+规模 & MPL & +我们 & MPL & +我们\\
 \midrule
-25M  & 0.0034 & 0.0025 & 0.0031 & 0.0022\\
-100M & 0.0038 & \textbf{0.0016} & 0.0033 & \textbf{0.0016}\\
-400M & 0.0047 & 0.0024 & 0.0039 & 0.0021\\
+25M  & 0.00341 & 0.00246 & 0.00314 & 0.00219\\
+100M & 0.00375 & \textbf{0.00164} & 0.00325 & \textbf{0.00161}\\
+400M & 0.00470 & 0.00236 & 0.00385 & 0.00212\\
 \bottomrule
-\end{tabular}\\[3pt]
-{\footnotesize 留出陡降曲线 MAE;零拟合}
+\end{tabular}\\[4pt]
+{\footnotesize 留出陡降曲线 MAE；目标测试曲线上\textbf{零新参数}}
 \end{column}
-\begin{column}{0.46\textwidth}
-\hl{总体 $-44\%$,胜 6/6}(各 $-28\%\sim-56\%$)。
+\begin{column}{0.44\textwidth}
+\hl{总体 $-$44\%，6/6 全胜}（各 $-28\%$ 至 $-56\%$）。
 \vspace{0.5em}
 
-\hl{小模型常数 + 一个廉价 noise-floor 探针,就把大模型陡降曲线预测得比 MPL 迁移好 $\sim2\times$}
-—— 正面补 MPL"无跨尺度"的弱点。
+小模型常数 + 一个廉价 noise-floor 探针，把大模型陡降曲线预测得比 MPL 迁移好 $\sim 2\times$。
 \end{column}
 \end{columns}
-\end{frame}
-
-\begin{frame}{诚实的边界 \& 与 $\gamma$ 的关系}
-\textbf{什么时候\emph{没}用(我不藏)。} 若你有几条\emph{完整} WSD 曲线、直接重拟 MPL,MPL 自己就把
-残差吸收了(留出 MAE $0.0037\!\to\!0.0032$),显式项不再加分。\hl{对数据充足的 MPL,这是信息缺口、
-不是公式缺口。}
 \vfill
-所以修正的价值在\hl{数据稀缺}场景:有 cosine + 廉价探针、但\emph{没有}完整 WSD 曲线——正是
-"训练前预测"的真实用途。
-\vfill
-\textbf{与 $\gamma$ 的关系(互补,非替代)。} MPL 的 $\eta_k^{-\gamma}$ 调的是\emph{绝热}退火核的
-速率依赖;我们的项加的是\emph{非绝热}瞬态。两者\hl{互补}——我们的修正改善的是\emph{带 $\gamma$ 的
-完整 MPL}。两者的精确关系留作 future work。
+\textbf{诚实边界。} 若已有几条\emph{完整} WSD 曲线、直接重拟 MPL，MPL 自己就把残差吸收了（MAE $0.0037\to 0.0032$），显式项不再加分。\hl{价值在数据稀缺场景}：有 cosine + 廉价探针、但没有完整 WSD 曲线——正是"训练前预测"的真实用途。
 \end{frame}
 
 % =====================================================================
 \section{独立复现}
-\begin{frame}{独立复现:真实 transformer + 从零 AdamW(不同硬件)}
+\begin{frame}{独立复现 1：真实 $\sim$10M transformer}
+\textbf{动机。} 作者原始数据不再公开（仓库 404）。我们在\hl{不同硬件、不同模型、不同数据}上完全独立地重新训练模型，验证机制是否普适。
+\vfill
+\textbf{设置。} $\sim$10M 参数 Llama-2 风格 byte-level 解码器（RMSNorm + RoPE + SwiGLU），在 WikiText 上训练。AdamW：$\beta_1=0.9$，$\beta_2=0.95$，$\mathrm{wd}=0.1$。
+\vfill
+\textbf{三调度设计。} 到达\emph{同一}末端 LR（$2.5\times 10^{-3}\to 2.5\times 10^{-4}$），但扫到那里的速度不同：
+\vfill
 \begin{columns}
-\begin{column}{0.5\textwidth}
-\textbf{真实 $\sim$10M transformer(免拟合,最强)。} 三调度到\emph{同一}末端 LR、扫得快慢不同:
-\begin{center}\small
+\begin{column}{0.40\textwidth}
+\centering\small
 \begin{tabular}{lcc}
 \toprule
 调度 & 末端 loss & 累积 LR $S$\\
@@ -219,74 +327,158 @@ wsd(渐进) & 1.0482 & 9.22\\
 wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \bottomrule
 \end{tabular}
-\end{center}
-\hl{陡降那条末端最高、却累积 LR 最多(多 37\%)}——任何对 $S$ 单调的律都做不到,正是速率相关滞后,补上"单一数据集"缺口。
 \end{column}
-\begin{column}{0.5\textwidth}
-\includegraphics[width=0.96\linewidth]{figs/fig_real_transformer.png}\\[2pt]
-\textbf{从零 AdamW 量化确认:} $\tau\propto1/\eta$ \hl{$p=0.971$}、$\beta_2$ 无关 \hl{CV 1.1\%}、
-\hl{幅度恒等 $dL_{\rm eq}/d\eta=3.075$ vs 闭式 $3.0$(<3\%)}。可证伪。
+\begin{column}{0.56\textwidth}
+\hl{快扫末端最高，却累积 LR 最多（+37\%）。}\\[0.3em]
+任何对 $S$ 单调的损失曲线律（包括 MPL/FSL）都预测：更多累积 LR $\Rightarrow$ 更低损失。\\[0.3em]
+观测到\hl{相反}的排序，\emph{无需任何拟合}即证实速率相关滞后的存在。
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{独立复现 1（续）：残差结构与 DropRelaxS}
+在留出曲线（constant + 两条 wsdcon）上拟合 MPL（MAE $\approx 0.005$），观察三条测试曲线的残差：
+\vfill
+\begin{columns}
+\begin{column}{0.48\textwidth}
+\textbf{残差按扫描速度排序：}
+\begin{itemize}
+\item cosine（最缓）：$-0.011$
+\item wsd-渐进：$-0.004$
+\item wsd-陡峭（唯一为正）：\textbf{$+0.006$}
+\end{itemize}
+\vspace{0.3em}
+有限-$\lambda_{\rm slow}$ 的 DropRelaxS 核在\hl{跨调度联合}上胜过绝热基线：\hl{$\Delta R^2\approx +0.18$}（留出）。
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=0.92\linewidth]{figs/fig_real_transformer.png}\\[4pt]
+{\footnotesize 残差仅对陡峭扫描为正，被 DropRelaxS 捕获}
 \end{column}
 \end{columns}
 \vfill
-{\footnotesize\textit{诚实标注:~10M 上 $\tau\propto1/\eta$ 未解析($\tau$ 平,审计确认非窗口伪影);
-单曲线上核与绝热基线简并——与论文"数据稀缺、领头阶"的适用范围一致。}}
+\textbf{重要说明。} 在\emph{单条}衰减曲线上，有限-$\lambda_{\rm slow}$ 核与绝热基线数值简并（corr$\approx 0.99$）。\hl{速率依赖只在跨调度对比中真实存在}——这与公开 LLM 数据上的观察一致。
+\end{frame}
+
+\begin{frame}{独立复现 2：从零 AdamW 模拟}
+\textbf{设置。} 噪声二次模型（NQM）：真实 AdamW 迭代（真实 $m,v$ EMA，真实 $m/(\sqrt{v}+\epsilon)$ 预条件器，真实高斯梯度噪声），Monte-Carlo 系综平均作为 ground truth。闭式线性理论\emph{仅}作独立基线，绝不既用来生成又用来拟合。
+\vfill
+\begin{columns}
+\begin{column}{0.48\textwidth}
+\textbf{定量复现：}
+\begin{itemize}
+\item $\tau\propto 1/\eta$：\hl{$p=0.971$}，$R^2=0.9996$
+\item 换种子、留一法均稳健
+\item $\beta_2\in[0.9,0.9999]$：$\tau$ 平坦，CV \hl{1.1\%}
+\item 幅度恒等：$dL_{\rm eq}/d\eta = 3.075$ vs 闭式 $\frac{1}{4}\sum_i s_i = 3.0$，\hl{误差 $<3\%$}
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{谱混合诊断：}
+\begin{itemize}
+\item 双峰谱上双指数核提升 $R^2$ 0.065
+\item 恢复两个注入速率 $\{1, 16\}$（拟合得 $\{0.87, 16.1\}$）
+\item \hl{机制在已知谱上被证实为真正的谱混合}
+\end{itemize}
+\vspace{0.3em}
+\textbf{可证伪性：} 信号主导谱\hl{破坏} $p=1$。
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{诚实负结果与开放问题}
+\textbf{在 $\sim$10M transformer 上\emph{未}复现的：}
+\begin{itemize}
+\item \hl{$\tau\propto 1/\eta$ 在此尺度不成立}：$16\times$ LR 范围上测得 $\tau\approx 475$--$912$ 步（几乎平坦，$p\approx 0.18$）。审计（合成恢复测试 + profile-likelihood）明确排除窗口截断伪影——这是真实测量，与论文"信号随尺度增长"的声明一致。
+\item \hl{单曲线核简并}：有限-$\lambda_{\rm slow}$ 核与绝热基线 corr$\approx 0.99$；速率依赖只在\emph{跨调度}对比中可辨识。
+\end{itemize}
+\vfill
+\textbf{可复现的不一致性：}
+\begin{itemize}
+\item \hl{$\eta_{\rm peak}$ 归一化歧义}：若保留 Eq.(4) 中的 $\eta_{\rm peak}$ 因子，拟合得 $c\approx 60$--$86$；只有丢弃它才得 $c\approx 0.5$。论文的 $c\approx 0.5$ 绑定于特定（未声明的）归一化约定。
+\end{itemize}
+\vfill
+\textbf{开放问题仍开放：}
+\begin{itemize}
+\item 冻结参数的跨\emph{形状}迁移失败（平均 $R^2=0.52$，未达预注册门槛 0.6）
+\item 无 $O(1)$ 拟合常数地从第一性原理计算 $\lambda_{\rm slow}$ 和 $c$ —— 论文开放问题 (a) 未闭合
+\end{itemize}
 \end{frame}
 
 % =====================================================================
 \section{结论}
 \begin{frame}{结论}
-\textbf{我们做了什么(覆盖 Task 2 三要素)。}
-\begin{itemize}
-  \item \hl{问题}:调度感知损失曲线预测,cosine$\to$WSD。
-  \item \hl{复现}:忠实重现 Tissue \& MPL,对齐已发表精度。
-  \item \hl{方法开发}:指出现有律皆为\emph{绝热},推导并验证其首个\emph{非绝热}修正。
-\end{itemize}
 \textbf{核心贡献。}
+\begin{enumerate}
+\item 指出现有最优损失曲线律（MPL/FSL）皆为\hl{绝热近似}——预测准静态平衡值，忽略快速衰减时的弛豫滞后。
+\item 从 AdamW 预条件二阶矩动力学\hl{推导}出非绝热修正 \Drop，其幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$（在受控 NQM 中验证到 3\% 内）。
+\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=1.00\pm 0.18$），自洽验证噪声主导假设。
+\item 独立复现（真实 transformer + NQM 模拟）从两端确认机制，同时\hl{诚实标出边界}（$\tau$ 在 $\sim$10M 未复现、单曲线简并、$\eta_{\rm peak}$ 歧义）。
+\item 形状常数在公开同架构尺度上经验稳定 $\Rightarrow$ \hl{低校准跨尺度迁移}，陡降误差 $-$44\%、6/6 全胜。
+\end{enumerate}
+\vfill
+\textbf{局限（诚实版）。} 增益限于数据稀缺的陡降；$\lambda_{\rm slow}, c$ 是测量值而非第一性原理计算；$\eta_{\rm peak}$ 归一化有歧义；$\tau\propto 1/\eta$ 在 $\sim$10M 未复现；跨形状迁移失败；单曲线上核简并；所有真实数据仅来自单一公开数据集的三个尺度。
+\end{frame}
+
+\begin{frame}{下一步工作}
+\textbf{优先级 1（补上最大证据缺口）：}
 \begin{itemize}
-  \item 绝热/非绝热分解:损失不仅依赖"花了多少 LR",还依赖"花得多快";
-  \item 从 AdamW 预条件动力学\emph{推出} $\Drop$,幅度 $=dL_{\rm eq}/d\eta$(精确恒等式);
-  \item 推出并\emph{实测确认} $\tau\propto1/\eta$($p=1.00\pm0.18$),自洽验证噪声主导;
-  \item 形状常数尺度不变 $\Rightarrow$ \hl{参数无关跨尺度预测,陡降 $-44\%$、胜 6/6}。
+\item \hl{幅度恒等在真实模型上的独立检验}：在 $\sim$10M 模型上训练 3--4 条 constant LR 曲线，独立测 $dL_{\rm eq}/d\eta$，与 DropRelaxS 拟合幅度比较。
+\item \hl{S-time 操控实验}：改 batch size 使 step-time profile 相同但 S-time 不同，直接检验记忆变量是 $S$ 而非 $t$。
 \end{itemize}
-\textbf{局限。} 增益限于数据稀缺的陡降;$\lambda_{\rm slow},c$ 是测的非算的;单一公开数据集、三尺度;
-有限 $\beta_2$ 第二通道待验证。
+\vfill
+\textbf{优先级 2（拓展适用范围）：}
+\begin{itemize}
+\item 多段递减探针：不同 drop 幅度、不同第二阶段长度，验证残差结构。
+\item NQM 中换 SGD，检验效应是否不限于 AdamW。
+\item warmup 对称性：快速 LR 上升是否产生负残差？
+\end{itemize}
+\vfill
+\textbf{优先级 3（深入机理）：}
+\begin{itemize}
+\item 在 NQM 中强制 edge-of-stability 区域，检验是否能产生 MPL 经验指数 $\gamma$ 的行为。
+\end{itemize}
 \end{frame}
 
 \begin{frame}{可复现性}
-\begin{center}\small
+\begin{center}\footnotesize
 \begin{tabular}{ll}
 \toprule
-结果 & 命令 \\
+结果 & 脚本/文档 \\
 \midrule
-复现(表 1) & \texttt{repro/reproduce\_cosine\_to\_wsd.py}\\
-残差 $=\Drop$、R² & \texttt{repro/nonadiabatic\_theory.py}、\texttt{deep\_stime2.py}\\
-$\tau\propto1/\eta$($p{=}1.00\pm0.18$) & \texttt{repro/deep\_tau.py}\\
-S-时间核、$\lambda_{\rm slow}$ 扫描 & \texttt{repro/deep\_stime.py}\\
-谱混合(双指数)与自洽性 & \texttt{repro/deep\_rigor.py}\\
-\hl{参数无关跨尺度预测 $-44\%$} & \texttt{repro/deep\_predict.py}\\
-公平基线(信息 vs 公式缺口) & \texttt{repro/correction\_fair.py}\\
-推导文档 & \texttt{docs/core/nonadiabatic\_correction.md}\\
+MPL 复现（表 1） & \texttt{repro/reproduce\_cosine\_to\_wsd.py} \\
+残差结构、$R^2$、与 $\Drop$ 回归 & \texttt{repro/nonadiabatic\_theory.py} \\
+$\tau\propto 1/\eta$（$p=1.00\pm 0.18$） & \texttt{repro/deep\_tau.py} \\
+S-time vs step-time 核对比 & \texttt{repro/deep\_stime.py}、\texttt{deep\_stime2.py} \\
+谱混合（双指数）与自洽性 & \texttt{repro/deep\_rigor.py} \\
+低校准跨尺度迁移 $-44\%$ & \texttt{repro/deep\_predict.py} \\
+公平基线（信息 vs 公式缺口） & \texttt{repro/correction\_fair.py} \\
+\midrule
+\textbf{独立复现}（\texttt{represent/}） & \\
+NQM 模拟 E1--E6 & \texttt{represent/repro/E*.py} \\
+扩展 G1--G5 & \texttt{represent/repro/G*.py} \\
+真实 transformer 训练 & \texttt{represent/repro/train.py} \\
+曲线分析 + 对抗审计 & \texttt{represent/repro/analyze\_*.py} \\
+综合报告 & \texttt{represent/REPORT.md} \\
 \bottomrule
 \end{tabular}
 \end{center}
 \vfill
 \centering\footnotesize
-\texttt{pip install -r requirements.txt};数据:官方 MPL 公开曲线,随仓库置于
-\texttt{external/MultiPowerLaw/}。
+依赖：\texttt{pip install -r requirements.txt}。\\
+主数据：官方 MPL 公开曲线（\texttt{external/MultiPowerLaw/}）。\\
+独立复现数据：自行训练的模型与 NQM 模拟，全部种子确定。
 \end{frame}
 
-\begin{frame}{分工与致谢}
-\textbf{团队。} 单人组:\textbf{吴家驹}(2400010711,本科生)—— 全部工作(复现、推导、实验、写作)
-由唯一作者完成。
+\begin{frame}
 \vfill
-\textbf{资源与参考。} 数据:官方 Multi-Power-Law 公开损失曲线($25/100/400$M $\times\ 9$ 调度)。
-主要参考:Tissue et al.\ (2024);Luo et al.\ (2025, MPL);Li, Chen, Huang, Wang \& Wu
-(2025, FSL);Cohen et al.\ (2021/22, edge of stability / Adam);Wen et al.\ (2024, river valley)。
+\begin{center}
+{\Large 谢谢老师审阅！}\\[16pt]
+{\normalsize 由于身体原因无法现场汇报，谨以此幻灯片呈报全部工作。}\\[10pt]
+{\small 代码与文档：\texttt{github.com/wjjpku/DL-final}}\\[8pt]
+{\small 论文：\texttt{paper/main.tex}（pdfLaTeX 编译）}
+\end{center}
 \vfill
-\centering\small 代码与文档:\texttt{github.com/wjjpku/DL-final}
-\vfill
-\centering\Large 谢谢！\quad\normalsize 欢迎提问。
 \end{frame}
 
 \end{document}
