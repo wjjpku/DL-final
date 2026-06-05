@@ -1,0 +1,814 @@
+\documentclass{article}
+
+\usepackage[final,nonatbib]{neurips_2022}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts,amsmath,amssymb}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{xcolor}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\Drop}{\mathrm{DropRelaxS}}
+
+\title{Learning-Rate Schedules Are Not Adiabatic:\\
+A Rate-Dependent Correction for Loss-Curve Prediction}
+
+\author{%
+  Jiaju Wu \\
+  Peking University \\
+  \texttt{https://github.com/wjjpku/DL-final} \\
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+State-of-the-art laws for predicting the LLM pretraining loss curve under a learning-rate
+(LR) schedule---the Multi-Power Law (MPL) and the Functional Scaling Law (FSL)---are
+\emph{adiabatic}: they predict the quasi-static loss a schedule would reach at equilibrium,
+depending on the schedule only through its integrated history. We show this leaves a
+systematic \emph{positive} residual on \emph{fast} (warmup-stable-decay) decays---a
+non-adiabatic relaxation lag, the loss falling behind its equilibrium when the LR is annealed
+faster than it can relax. From AdamW's preconditioned second-moment dynamics we derive the
+leading correction in closed form: the per-step LR decrements convolved with a cumulative-LR
+exponential kernel, whose amplitude is tied by linear response to an equilibrium-floor sensitivity
+and whose relaxation time is the classical $\tau\sim1/(\eta\lambda)$. On public LLM curves the
+residual indeed relaxes with $\tau\propto1/\eta$ ($p=1.00\pm0.18$); since the kernel's rate
+constant is approximately scale-invariant, the correction can be \emph{predicted, not fitted},
+and transferred across model size, cutting held-out sharp-decay error by $44\%$ with no
+target-curve fitting. An independent reproduction---a separately-trained $\sim$10M transformer
+and a from-scratch AdamW simulation---confirms the effect (the fast sweep ends higher
+\emph{despite} $37\%$ more cumulative LR) and the amplitude identity (within $3\%$). The
+correction complements MPL's exponent $\gamma$; its gain is in the data-poor, leading-order
+regime.
+\end{abstract}
+
+\section{Introduction}
+The learning-rate schedule shapes the \emph{entire} loss trajectory of LLM
+pretraining~\cite{kaplan2020,hoffmann2022,hu2024minicpm}. \emph{Schedule-aware loss-curve
+prediction} asks: given $\{\eta_t\}$, predict $L(t)$, so that schedules can be compared and
+optimized \emph{before} spending compute. The defining test is cross-schedule
+generalization---fit on cosine schedules, predict the unseen WSD family. The state of the art
+is the \textbf{Multi-Power Law} (MPL)~\cite{luo2025}, with a matching kernel-regression
+theory, the \textbf{Functional Scaling Law} (FSL)~\cite{li2025fsl}:
+\begin{equation}\label{eq:mpl}
+L(t)=L_0+A\,S(t)^{-\alpha}+B\!\sum_{k\le t}\!\Delta\eta_k\,
+G\!\big(\eta_k^{-\gamma}(S(t)-S(k))\big),\quad G(x)=1-(1+Cx)^{-\beta},
+\end{equation}
+where $S(t)=\sum_{i\le t}\eta_i$ and $\Delta\eta_k=\eta_{k-1}-\eta_k$.
+
+\paragraph{The gap: existing laws are adiabatic.}
+These laws \emph{do} use the LR decrements: MPL convolves $\Delta\eta_k$ with a saturating
+kernel $G$, and its factor $\eta_k^{-\gamma}$ is a rate-of-decay knob. But this single
+empirical exponent is their \emph{only} handle on how \emph{fast} the LR changes.
+Structurally they predict the \emph{quasi-static} loss---the value the schedule would reach
+if the loss stayed at equilibrium; the river-valley analysis~\cite{wen2024} makes this
+explicit, modelling the noise penalty as set \emph{instantaneously} by the current LR. We
+call such laws \emph{adiabatic}. Calibrated on slow schedules, $\gamma$ does not extrapolate
+to fast WSD decays, where the loss genuinely lags equilibrium---leaving a structured
+residual (Fig.~\ref{fig:resid}) that no single rate exponent captures across schedules. Our
+correction is a derived transient \emph{complementary} to $\gamma$, which tunes the adiabatic
+kernel.
+
+\paragraph{Contributions.}
+\begin{itemize}\itemsep1pt
+\item We show that adiabatic loss-curve laws leave a systematic \emph{positive} residual on
+fast decays, and identify it as a non-adiabatic relaxation lag (\S\ref{sec:resid}).
+\item From AdamW's preconditioned second-moment dynamics we \emph{derive} the leading
+non-adiabatic correction in closed form, the rate-dependent term $\Drop$, with amplitude
+equal, to leading order, to $dL_{\mathrm{eq}}/d\eta$ (\S\ref{sec:theory}). The relaxation
+time it uses is the classical $\tau\sim1/(\eta\lambda)$; our point is that it governs the
+\emph{loss-curve-law residual}, not that the timescale is new.
+\item We confirm in LLM pretraining that the residual relaxes with $\tau\propto1/\eta$
+($p=1.00\pm0.18$), self-consistently establishing its noise-dominated regime
+(\S\ref{sec:exp}).
+\item The kernel's rate constant is an approximately scale-invariant preconditioned curvature,
+enabling a \emph{parameter-free, cross-scale} prediction that improves held-out sharp-decay
+loss by $44\%$ with no target-curve fitting (\S\ref{sec:exp}).
+\item We give a fair-baseline diagnostic separating a genuine formula gain from an
+information gap, clarifying exactly when the correction helps (\S\ref{sec:exp},\ref{sec:rel}).
+\end{itemize}
+All experiments use the public MPL loss curves (Llama-2-style $25/100/400$M, $9$ schedules
+each)~\cite{luo2025}; a faithfully reproduced MPL (test MAE $0.0054/0.0050/0.0085$, matching
+\cite{luo2025}) is the baseline throughout.
+
+\section{The non-adiabatic residual}\label{sec:resid}
+We take a \emph{well-fit} MPL (the published parameters~\cite{luo2025}) and examine its
+prediction residual $r(t)=L_{\mathrm{true}}(t)-L_{\mathrm{MPL}}(t)$ on held-out schedules.
+(Isolating the non-adiabatic term requires a well-fit MPL: a baseline that already captures
+the \emph{adiabatic} part cleanly, so the remainder is the lag and not a backbone mis-fit; a
+cosine-only fit conflates the two and gives a far noisier residual.) The residual has a sharp
+signature (Fig.~\ref{fig:resid}): it is $\approx 0$ throughout the long stable phase and on
+gradual cosine decay, but jumps \emph{positive} exactly when the LR decays steeply, and is
+largest---and \emph{undamped at the curve's end}---for the sharpest decays (\code{wsd},
+\code{wsdld}). The end-of-curve lag is $+(6\text{--}15)\times10^{-3}$ on WSD/WSDLD versus
+$\lesssim\!4\times10^{-3}$ on cosine. Crucially, a gradual cosine and a sharp WSD decay reach
+the \emph{same} final LR, yet only the fast one lags: same destination, faster sweep, bigger
+lag---the textbook signature of a rate-dependent (non-adiabatic) effect, and exactly the
+dependence an adiabatic law cannot represent.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.98\linewidth]{figs/fig_residual_fit.png}
+\caption{The well-fit MPL prediction residual on the held-out \code{wsd} curve (solid) is $\approx0$
+during the stable phase and jumps up at the step-$20000$ decay. The derived rate-dependent
+term $\kappa\,\Drop$ (dashed) captures it ($R^2{=}0.40/0.80/0.87$ at $25/100/400$M; the
+signal, and the fit, grow with model size).}
+\label{fig:resid}
+\end{figure}
+
+
+\section{Theory: the leading non-adiabatic correction}\label{sec:theory}
+
+The residual in \S\ref{sec:resid} has two empirical features that a useful theory must
+explain: it is triggered by LR decrements, and it is positive after a sharp decay. We derive
+these features from a weak moving-equilibrium assumption. The main statement is not that the
+optimizer is exactly a noisy quadratic system. Rather, if the LR-dependent excess-loss state
+has a stable quasi-static fixed point, then a changing LR necessarily produces a causal
+linear response to LR decrements. The exponential cumulative-LR kernel used in our predictor
+is the lowest-capacity, one-pole closure of this general response. AdamW's noisy-quadratic
+calculation is used only afterward as a mechanistic specialization that explains the observed
+amplitude and relaxation-time scalings.
+
+\paragraph{Definitions.}
+Let
+\[
+S_t=\sum_{u\le t}\eta_u
+\]
+denote cumulative LR. We decompose the loss into a quasi-static schedule-aware component and
+a non-adiabatic residual,
+\begin{equation}\label{eq:loss_decomp_tight}
+L_t=L_{\mathrm{ad}}(S_t,\eta_t)+r_t.
+\end{equation}
+In experiments, a well-fit MPL is used as an empirical surrogate for
+$L_{\mathrm{ad}}$, so $L_t-L_{\mathrm{MPL},t}$ estimates $r_t$ up to the remaining MPL
+approximation error.
+
+We model the LR-dependent excess-loss state by a hidden variable $z_t$ in a finite-dimensional
+active subspace $\mathcal Z$ with norm $\|\cdot\|$:
+\begin{equation}\label{eq:hidden_dyn_tight}
+z_{t+1}=\Phi_{S_t,\eta_t}(z_t).
+\end{equation}
+The state $z_t$ may be interpreted as a covariance/noise-floor state, but the derivation below
+only uses stability and differentiability. For fixed $(S,\eta)$, let $z^\star(S,\eta)$ be the
+quasi-static state and
+\[
+F_{\mathrm{eq}}(S,\eta)=\ell\big(z^\star(S,\eta)\big)
+\]
+be the corresponding excess-loss floor. The derivative
+\begin{equation}\label{eq:chi_def_tight}
+\chi(S,\eta)
+:=
+\left.\partial_\eta F_{\mathrm{eq}}(S,\eta)\right|_S
+=
+D\ell_{z^\star(S,\eta)}\big[\partial_\eta z^\star(S,\eta)\big]
+\end{equation}
+is always taken at fixed cumulative progress $S$. This is the quantity estimated from
+independent equilibrium-floor probes.
+
+Define the tracking error around the moving fixed point by
+\begin{equation}\label{eq:delta_def_tight}
+\delta_t=z_t-z^\star(S_t,\eta_t),
+\end{equation}
+and define the positive LR decrement by
+\[
+\Delta\eta_t^+=(\eta_t-\eta_{t+1})_+.
+\]
+
+\paragraph{Assumptions.}
+The linear-response statement uses the following assumptions over the decay window.
+
+\emph{A1. Local fixed point and smoothness.} For each $(S,\eta)$ in the window,
+$z^\star(S,\eta)$ satisfies
+\[
+z^\star(S,\eta)=\Phi_{S,\eta}\big(z^\star(S,\eta)\big),
+\]
+and $\Phi$, $z^\star$, and $\ell$ are twice continuously differentiable in a neighborhood of
+this trajectory. Their first and second derivatives are uniformly bounded in the window.
+
+\emph{A2. Linear stability.} Let
+\[
+T_t=D_z\Phi_{S_t,\eta_t}\big(z^\star(S_t,\eta_t)\big).
+\]
+The products of the linearized dynamics are uniformly stable and summable: there exist
+constants $M<\infty$ and a nonnegative summable envelope $q_{k,t}$ such that
+\begin{equation}\label{eq:A2_weak_stability}
+\|T_{t-1}T_{t-2}\cdots T_{k+1}\|\le M q_{k,t},
+\qquad
+\sup_t\sum_{k<t}q_{k,t}<\infty.
+\end{equation}
+This assumption only says that old perturbations are forgotten. It does not yet impose
+cumulative-LR time; that will be derived below from an additional first-order optimizer
+structure.
+
+\emph{A3. Decay-specific forcing.} The total moving-target forcing has two components:
+one from progress in $S$ and one from changes in $\eta$. We do not model the $S$-drift with
+the cooldown correction. Instead, define
+\[
+\epsilon_t^S
+:=
+-\partial_S z^\star(S_t,\eta_t)(S_{t+1}-S_t)
++\epsilon_{t,\mathrm{slow}},
+\]
+where $\epsilon_{t,\mathrm{slow}}$ includes the associated slow-drift approximation and
+Taylor-remainder terms. This $S$-drift response is present for both slow and fast schedules
+and is therefore part of the background adiabatic/backbone approximation error rather than
+the decay-localized residual we seek to model. We therefore analyze the component of the
+linear response forced by LR changes. For schedules with LR increments, the omitted increment
+component enters with the opposite sign; the predictor below is the cooldown-specific
+projection onto LR decrements.
+
+\emph{A4. Small perturbations.} The LR changes and local tracking error are small enough that
+second-order Taylor remainders are controlled. We write
+\[
+\Delta_t=|\eta_t-\eta_{t+1}|,
+\qquad
+\eta_{\max}=\max_t\eta_t,
+\]
+and retain terms of order $\Delta_t^2$, $\|\delta_t\|^2$, and the slow drift error as
+remainders.
+
+\emph{A5. Positive response cone.} For the sign conclusion, assume there exists a cone
+$\mathcal C\subset\mathcal Z$ such that
+\[
+\partial_\eta z^\star(S_t,\eta_t)\in\mathcal C,
+\qquad
+T_t\mathcal C\subseteq\mathcal C,
+\qquad
+D\ell_{z^\star(S_t,\eta_t)}[v]\ge0\quad\text{for all }v\in\mathcal C.
+\]
+This is not needed for the convolution form; it is only used to conclude that a monotone LR
+decay produces a positive residual.
+
+\paragraph{Proposition 1: linear response to LR decrements.}
+Under A1--A4, the cooldown-specific excess-loss residual admits the expansion
+\begin{equation}\label{eq:prop1_statement_tight}
+r_t
+=
+I_t
++
+\sum_{k<t}K_{k,t}\Delta\eta_k^+
++
+\mathcal E_t,
+\end{equation}
+where the initial-transient term is
+\begin{equation}\label{eq:initial_transient_tight}
+I_t
+=
+D\ell_{z^\star(S_t,\eta_t)}
+\big[T_{t-1}T_{t-2}\cdots T_{0}\delta_0\big],
+\end{equation}
+and the linear-response kernel is
+\begin{equation}\label{eq:kernel_general_tight}
+K_{k,t}
+=
+D\ell_{z^\star(S_t,\eta_t)}
+\left[
+T_{t-1}T_{t-2}\cdots T_{k+1}
+\partial_\eta z^\star(S_k,\eta_k)
+\right].
+\end{equation}
+Moreover, for constants depending only on the derivative bounds and the stability envelope,
+\begin{equation}\label{eq:error_bound_tight}
+|\mathcal E_t|
+\le
+C\sum_{k<t}q_{k,t}
+\Big(\Delta_k^2+\|\delta_k\|^2+\|\epsilon_k^{S}\|\Big)
++
+\epsilon_{\mathrm{MPL}}(t).
+\end{equation}
+Here $\epsilon_{\mathrm{MPL}}(t)=L_{\mathrm{ad}}(S_t,\eta_t)-L_{\mathrm{MPL},t}$ is zero for
+the ideal adiabatic predictor and is the remaining backbone approximation error when MPL is
+used in practice. If the decay starts near the quasi-static state, then $\delta_0$ is small
+and the initial transient $I_t$ is negligible after the stability envelope has decayed. In the
+perturbative regime, stability implies
+\[
+\sup_k\|\delta_k\|
+=
+O\!\left(\sup_k \Delta_k+\sup_k\|\epsilon_k^S\|\right),
+\]
+so the $\|\delta_k\|^2$ contribution in \eqref{eq:error_bound_tight} is second order in the
+forcing size.
+
+\emph{Proof.}
+By definition,
+\[
+\delta_{t+1}=z_{t+1}-z^\star(S_{t+1},\eta_{t+1}).
+\]
+Using \eqref{eq:hidden_dyn_tight} and Taylor expanding around
+$z^\star(S_t,\eta_t)$ gives
+\begin{align}
+ z_{t+1}
+ &=\Phi_{S_t,\eta_t}\big(z^\star(S_t,\eta_t)+\delta_t\big)\nonumber\\
+ &=\Phi_{S_t,\eta_t}\big(z^\star(S_t,\eta_t)\big)
+   +T_t\delta_t+R_t^{z}\nonumber\\
+ &=z^\star(S_t,\eta_t)+T_t\delta_t+R_t^{z},
+\end{align}
+where $\|R_t^{z}\|\le C\|\delta_t\|^2$ by A1. Therefore
+\begin{equation}\label{eq:delta_pre_tight}
+\delta_{t+1}
+=
+T_t\delta_t
++\big[z^\star(S_t,\eta_t)-z^\star(S_{t+1},\eta_{t+1})\big]
++R_t^{z}.
+\end{equation}
+Now expand the moving fixed point:
+\begin{align}
+ z^\star(S_{t+1},\eta_{t+1})
+ &=z^\star(S_t,\eta_t)
+ +\partial_S z^\star(S_t,\eta_t)(S_{t+1}-S_t)
+ +\partial_\eta z^\star(S_t,\eta_t)(\eta_{t+1}-\eta_t)
+ +R_t^{\star},
+\end{align}
+with
+\[
+\|R_t^{\star}\|\le C\big((S_{t+1}-S_t)^2+\Delta_t^2\big).
+\]
+The $S$-drift contribution and its local Taylor remainder are placed in $\epsilon_t^{S}$.
+Projecting the LR-change forcing onto cooldown decrements gives
+\begin{equation}\label{eq:delta_rec_tight}
+\delta_{t+1}
+=
+T_t\delta_t
++\partial_\eta z^\star(S_t,\eta_t)\Delta\eta_t^+
++\xi_t,
+\end{equation}
+where
+\[
+\|\xi_t\|\le C\big(\Delta_t^2+\|\delta_t\|^2+\|\epsilon_t^{S}\|\big).
+\]
+Iterating \eqref{eq:delta_rec_tight} yields
+\begin{equation}\label{eq:duhamel_tight}
+\delta_t
+=
+T_{t-1}\cdots T_0\delta_0
++
+\sum_{k<t}T_{t-1}\cdots T_{k+1}
+\partial_\eta z^\star(S_k,\eta_k)\Delta\eta_k^+
++
+\sum_{k<t}T_{t-1}\cdots T_{k+1}\xi_k.
+\end{equation}
+Finally,
+\begin{align}
+F_t-F_{\mathrm{eq}}(S_t,\eta_t)
+&=\ell\big(z^\star(S_t,\eta_t)+\delta_t\big)-\ell\big(z^\star(S_t,\eta_t)\big)\nonumber\\
+&=D\ell_{z^\star(S_t,\eta_t)}[\delta_t]+O(\|\delta_t\|^2).
+\end{align}
+Substituting \eqref{eq:duhamel_tight} gives
+\eqref{eq:prop1_statement_tight}--\eqref{eq:kernel_general_tight}; applying the stability
+envelope \eqref{eq:A2_weak_stability} to the remainder terms gives
+\eqref{eq:error_bound_tight}. \hfill$\square$
+
+\paragraph{Corollary 1: sign of the cooldown residual.}
+Under A5, if the equilibrium floor increases with LR, namely
+\[
+\chi(S,\eta)=\left.\partial_\eta F_{\mathrm{eq}}(S,\eta)\right|_S>0,
+\]
+then $K_{k,t}\ge0$. Hence, for a monotone LR decay and negligible initial transient,
+\[
+r_t\ge0
+\]
+to leading order. This is the sign observed in \S\ref{sec:resid}: after a fast LR drop, the
+quasi-static floor has moved downward, while the optimizer's excess-loss state relaxes only
+gradually, leaving the true loss above the adiabatic predictor.
+
+\paragraph{Proposition 2: cumulative-LR time from first-order contraction.}
+Proposition~1 gives a causal kernel but not its time coordinate. Suppose, in addition to
+A1--A4, that over the active finite-dimensional subspace
+\begin{equation}\label{eq:first_order_contraction_tight}
+T_t=I-\eta_t A+R_t^{A},
+\qquad
+\|R_t^{A}\|\le C\eta_t^2+C\epsilon_{\mathrm{drift}},
+\end{equation}
+where $A$ is a bounded stable operator and $\epsilon_{\mathrm{drift}}$ bounds the variation of
+the local geometry during the decay window. Then, by a standard product-perturbation
+bound for the stable product $\prod_u(I-\eta_u A)$,
+\begin{equation}\label{eq:product_exp_tight}
+T_{t-1}\cdots T_{k+1}
+=
+\exp\!\left[-A(S_t-S_k)\right]
++
+O\!\left(\sum_{u=k+1}^{t-1}\eta_u^2+(S_t-S_k)\epsilon_{\mathrm{drift}}
++\eta_t\right).
+\end{equation}
+Consequently the leading kernel depends on $k,t$ through cumulative LR distance, up to the
+endpoint convention in the definition of $S_t$:
+\begin{equation}\label{eq:S_kernel_operator_tight}
+K_{k,t}
+\approx
+D\ell_{z^\star(S_t,\eta_t)}
+\left[
+\exp\!\left[-A(S_t-S_k)\right]
+\partial_\eta z^\star(S_k,\eta_k)
+\right].
+\end{equation}
+If, for the scalar observable $D\ell[\cdot]$, the active response of $A$ admits a positive
+Laplace representation,
+\begin{equation}\label{eq:laplace_assumption_tight}
+D\ell\big[e^{-Ax}\partial_\eta z^\star\big]
+=
+\int e^{-ax}\,d\rho(a),
+\qquad x\ge0,
+\end{equation}
+then Proposition~1 becomes the spectral response law
+\begin{equation}\label{eq:spectral_response_tight}
+r_t
+\approx
+I_t+
+\sum_{k<t}
+\underbrace{\int e^{-a(S_t-S_k)}\,d\rho(a)}_{K(S_t-S_k)}
+\Delta\eta_k^+
++
+\mathcal E_t.
+\end{equation}
+The instantaneous amplitude of this kernel is fixed by the floor sensitivity:
+\begin{equation}\label{eq:K0_chi_tight}
+K(0)
+=
+D\ell_{z^\star}\big[\partial_\eta z^\star\big]
+=
+\left.\partial_\eta F_{\mathrm{eq}}(S,\eta)\right|_S
+=\chi(S,\eta).
+\end{equation}
+
+\emph{Proof.}
+For the unperturbed product, $A$ is fixed and bounded on the active subspace, so
+\[
+\log(I-\eta_uA)=-\eta_uA+O(\eta_u^2)
+\]
+uniformly for small $\eta_u\|A\|$. Since the factors $I-\eta_uA$ commute,
+\[
+\prod_{u=k+1}^{t-1}(I-\eta_uA)
+=
+\exp\!\left[-A\sum_{u=k+1}^{t-1}\eta_u\right]
++
+O\!\left(\sum_{u=k+1}^{t-1}\eta_u^2\right).
+\]
+The perturbations $R_u^A$ are handled by the variation-of-constants identity for products:
+replacing one factor at a time and using stability gives an additional
+$O((S_t-S_k)\epsilon_{\mathrm{drift}}+\sum_u\eta_u^2)$ contribution. Finally,
+\[
+\sum_{u=k+1}^{t-1}\eta_u=S_t-S_k-\eta_t
+\]
+under the convention $S_t=\sum_{u\le t}\eta_u$, giving \eqref{eq:product_exp_tight} up to
+the endpoint term $O(\eta_t)$. The Laplace-mixture form \eqref{eq:laplace_assumption_tight}
+is an additional scalar-response assumption, not a consequence of stability alone. Evaluating
+it at $x=0$ gives \eqref{eq:K0_chi_tight} by the chain rule. \hfill$\square$
+
+\paragraph{One-pole closure: the predictor used in experiments.}
+The spectral kernel in \eqref{eq:spectral_response_tight} is the primitive theoretical
+object. Learning an unrestricted $K$ would add many degrees of freedom and risk fitting
+residual curves rather than testing the mechanism. We therefore use the lowest-order stable
+closure of a causal relaxation kernel: a single pole in cumulative-LR time. Over the decay
+window we also approximate the fixed-$S$ sensitivity by a constant
+$\chi\approx\chi(S_{\mathrm{decay}},\eta)$ estimated from independent floor probes. Thus
+\begin{equation}\label{eq:one_pole_tight}
+K(x)\approx c\,\chi\,e^{-\lambda_{\mathrm{slow}}x},
+\qquad x\ge0,
+\end{equation}
+where $c=O(1)$ is a global projection factor; empirically $c<1$ in our fits, consistent with
+fitting the persistent tail of a spectral mixture rather than matching $K(0)$ exactly.
+Substituting \eqref{eq:one_pole_tight} into \eqref{eq:spectral_response_tight}, neglecting
+the initial transient after equilibration, gives the operational correction
+\begin{equation}\label{eq:law}
+\boxed{\;
+L(t)=L_{\mathrm{MPL}}(t)
++
+c\,\chi\,
+\underbrace{
+\sum_{k<t}
+e^{-\lambda_{\mathrm{slow}}(S_t-S_k)}
+(\eta_k-\eta_{k+1})_+
+}_{\Drop_{\lambda_{\mathrm{slow}}}(t)}
+\;}
+\end{equation}
+with
+\[
+\chi=
+\left.\partial_\eta F_{\mathrm{eq}}(S,\eta)\right|_{S=S_{\mathrm{decay}}}.
+\]
+If $\Drop$ is instead defined using normalized drops
+$(\eta_k-\eta_{k+1})_+/\eta_{\mathrm{peak}}$, then the prefactor becomes
+$c\eta_{\mathrm{peak}}\chi$. This is only a normalization convention; with raw LR drops, the
+amplitude has the units and interpretation of a fixed-$S$ equilibrium-floor sensitivity.
+
+\paragraph{AdamW specialization.}
+The previous propositions do not require a quadratic loss or diagonal dynamics. We now show
+that, in the standard noise-dominated AdamW quadratic reduction, the same kernel has the
+amplitude and relaxation scaling used above. This calculation ignores momentum transients,
+bias correction, decoupled weight decay, the $\epsilon$ term, and the finite-time dynamics of
+$v_t$; it should be read as a local effective-mode calculation, not as an exact model of the
+full optimizer.
+
+Consider a Hessian eigenmode with curvature $h_i$ and gradient-noise standard deviation
+$s_i$:
+\[
+g_{i,t}=h_i x_{i,t}+\xi_{i,t},
+\qquad
+\mathbb E[\xi_{i,t}]=0,
+\qquad
+\mathbb E[\xi_{i,t}^2]=s_i^2.
+\]
+In a noise-dominated mountain direction, AdamW's second-moment preconditioner satisfies
+$v_i^\star\approx s_i^2$, so the effective scalar update is
+\begin{equation}\label{eq:adamw_scalar_update_tight}
+x_{i,t+1}
+=
+\left(1-\eta_t\frac{h_i}{s_i}\right)x_{i,t}
+-
+\eta_t\frac{1}{s_i}\xi_{i,t}.
+\end{equation}
+Let $V_{i,t}=\mathbb E[x_{i,t}^2]$. At fixed LR $\eta$,
+\begin{equation}\label{eq:Vi_rec_tight}
+V_{i,t+1}
+=
+\left(1-\eta\frac{h_i}{s_i}\right)^2V_{i,t}
++\eta^2.
+\end{equation}
+Solving for the fixed point,
+\begin{equation}\label{eq:Vi_star_tight}
+V_i^\star(\eta)
+=
+\frac{\eta^2}{1-\left(1-\eta h_i/s_i\right)^2}
+=
+\frac{\eta s_i}{2h_i}+O(\eta^2).
+\end{equation}
+The corresponding excess-loss floor is
+\begin{equation}\label{eq:Fi_star_tight}
+F_i^\star(\eta)
+=
+\frac12h_iV_i^\star(\eta)
+=
+\frac{\eta s_i}{4}+O(\eta^2),
+\end{equation}
+and therefore
+\begin{equation}\label{eq:amp_identity_tight}
+\left.\frac{dF_i^\star}{d\eta}\right|_S
+=
+\frac{s_i}{4}+O(\eta).
+\end{equation}
+Perturbations around $V_i^\star$ decay by
+\[
+\left(1-\eta\frac{h_i}{s_i}\right)^2
+=
+\exp\!\left[-2\eta\frac{h_i}{s_i}+O(\eta^2)\right],
+\]
+so the S-time relaxation rate of this mode is
+\[
+a_i=2\frac{h_i}{s_i}.
+\]
+Thus the mode contributes
+\begin{equation}\label{eq:adamw_mode_response_tight}
+\Delta L_i(t)
+\approx
+\frac{s_i}{4}
+\sum_{k<t}
+e^{-2(h_i/s_i)(S_t-S_k)}
+\Delta\eta_k^+.
+\end{equation}
+Summing over modes gives
+\begin{equation}\label{eq:mix}
+\Delta L(t)
+\approx
+\sum_i\frac{s_i}{4}
+\sum_{k<t}
+e^{-2(h_i/s_i)(S_t-S_k)}
+\Delta\eta_k^+,
+\qquad
+\sum_i\frac{s_i}{4}
+=
+\left.\frac{\partial F_{\mathrm{eq}}}{\partial\eta}\right|_S+O(\eta).
+\end{equation}
+This is the AdamW noisy-quadratic specialization of the spectral-response form
+\eqref{eq:spectral_response_tight}. In constant LR step time, the same mode has relaxation
+rate
+\[
+\tau_i^{-1}=2\eta\frac{h_i}{s_i},
+\qquad
+\tau_i\propto \eta^{-1}.
+\]
+The classical $\tau\sim1/(\eta h)$ scaling is therefore not new; the point is that this
+relaxation time governs the residual left by adiabatic loss-curve laws after a fast LR decay.
+The single-rate correction \eqref{eq:law} is the one-pole projection of the spectral mixture
+\eqref{eq:mix}, chosen to add the minimum capacity while preserving the sign, trigger,
+amplitude, and intrinsic-time structure predicted by linear response.
+
+
+\section{Experiments}\label{sec:exp}
+We freeze the published MPL and compare it to MPL$+$Eq.~\eqref{eq:law}; the only addition is
+the rate-dependent term. Unless noted $\lambda_{\mathrm{slow}}{=}10$.
+
+\paragraph{The rate prediction $\tau\propto1/\eta$ holds (Fig.~\ref{fig:tau}).}
+The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
+$\eta\!\in\!\{3,9,18\}\!\times\!10^{-5}$, giving a clean relaxation window. Fitting the
+residual transient $r(t)\propto e^{-(t-8000)/\tau}$ yields $\tau$ that scales as $\eta^{-p}$
+with \emph{pooled} $p=1.00\pm0.18$ (per scale $-1.06/-0.94/-0.51$ at $100/400/25$M). This is
+the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
+pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
+the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
+$\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is scale-invariant; its modes have
+$\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\!\approx\!2\!\times\!10^{-3}\!\ll\!2$ (deep in the
+slow regime, far from the edge of stability---unlike $\gamma$).
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.5\linewidth]{figs/fig_tau_scaling.png}
+\caption{Loss-relaxation time $\tau$ measured from \code{wsdcon} decay transients vs.\
+stage-2 LR. The $100/400$M curves track the predicted slope $-1$ ($\tau\propto1/\eta$);
+pooled $p=1.00\pm0.18$.}
+\label{fig:tau}
+\end{figure}
+
+(A from-scratch AdamW simulation reproduces the same scaling, $p{=}0.97$; we defer it to the
+independent reproduction in \S\ref{sec:repro2}, which covers it in more detail.)
+
+\paragraph{The residual is the derived term.}
+Regressing the well-fit MPL residual on $\Drop_{10}$ (through the origin) gives
+$R^2{=}0.40/0.80/0.87$ at $25/100/400$M (Fig.~\ref{fig:resid}); a 2-exponential kernel
+improves $R^2$ by $0.06\text{--}0.07$, confirming the predicted spectral mixture
+(Eq.~\ref{eq:mix}). The form is not arbitrary: in a fair few-shot comparison the derived
+S-time exponential of decrements beats a step-time kernel ($-21\%$ vs.\ $-11\%$ held-out MAE)
+and a memoryless floor ($-3\%$), confirming that the cumulative-LR ``time'' and the decaying
+memory both matter (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
+the finite-$\lambda_{\mathrm{slow}}$ kernel is numerically close to the $\lambda_{\mathrm{slow}}{\to}0$
+adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S\ref{sec:repro2}.)
+
+\paragraph{The amplitude is predictable from the noise floor.}
+Estimating $dL_{\mathrm{eq}}/d\eta$ \emph{independently} from the two-stage final losses
+(noise floor vs.\ LR) predicts the fitted $\kappa$ up to a near-constant factor: the ratio
+$\kappa_{\mathrm{fit}}/\kappa_{\mathrm{pred}}=0.43/0.51/0.60$ has coefficient of variation
+$14\%$, i.e.\ $c\!\approx\!0.5$ is universal (the $<\!1$ is the spectral spread of
+Eq.~\ref{eq:mix}).
+
+\paragraph{Parameter-free, cross-scale prediction (Table~\ref{tab:xscale}).}
+Because $\lambda_{\mathrm{slow}}$ and $c$ are approximately scale-invariant across these (same-architecture)
+scales and $dL_{\mathrm{eq}}/d\eta$ is read off the (cheap) noise floor, the whole correction can
+be \emph{predicted with zero fitting on the target curve}: take $\lambda_{\mathrm{slow}}{=}10$, $c$ from a
+leave-one-scale-out average of the \emph{other} scales, and $dL_{\mathrm{eq}}/d\eta$ from the
+target's own two-stage probes (distinct curves from the test). Applied to the held-out
+\code{wsd}/\code{wsdld} decays it cuts MAE by $28\text{--}56\%$ ($44\%$ average, wins
+$6/6$)---small-model constants plus a cheap probe predict the large-model sharp-decay curve
+$\sim\!2\times$ better than MPL transfer.
+
+\begin{table}[t]\centering\small
+\caption{Parameter-free cross-scale prediction: well-fit MPL vs.\ MPL$+$Eq.~\eqref{eq:law}
+with \emph{no} fitting on the target curve. MAE on held-out sharp decays.}
+\label{tab:xscale}
+\begin{tabular}{lccccc}
+\toprule
+ & \multicolumn{2}{c}{\code{wsd}} & \multicolumn{2}{c}{\code{wsdld}} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Scale & MPL & $+$ours & MPL & $+$ours & avg.\ $\Delta$\\
+\midrule
+25M  & 0.00341 & 0.00246 & 0.00314 & 0.00219 & $-29\%$\\
+100M & 0.00375 & 0.00164 & 0.00325 & 0.00161 & $-53\%$\\
+400M & 0.00470 & 0.00236 & 0.00385 & 0.00212 & $-47\%$\\
+\midrule
+\multicolumn{5}{r}{overall} & $\mathbf{-44\%}$ (6/6)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Honest scope: when it does \emph{not} help.}
+If instead one refits MPL on a few \emph{full} WSD curves, MPL itself absorbs the residual
+(held-out MAE $0.0037\!\to\!0.0032$) and the explicit term adds nothing. So the residual is,
+for a data-\emph{rich} MPL, an \emph{information} gap, not a formula gap: the value of the
+correction is precisely the data-\emph{poor} regime---cosine plus cheap probes, but no full
+WSD curves---which is the actual ``predict before training'' use case.
+
+\paragraph{Relation to $\gamma$: complementary, not a substitute.}
+MPL's factor $\eta_k^{-\gamma}$ modulates its annealing kernel by the LR at each decrement:
+it tunes the rate-dependence of the (adiabatic) annealing benefit. Our term is the separate
+(non-adiabatic) transient, and improves a \emph{full}-$\gamma$ MPL (Table~\ref{tab:xscale}) ---
+the two are complementary. Characterising their precise relationship is left to future work
+(\S\ref{sec:disc}).
+
+\section{Independent reproduction}\label{sec:repro2}
+An independent reproduction on different hardware (\code{represent/}; the authors' public
+curves are no longer hosted, so it \emph{retrains} models) corroborates the mechanism along
+two routes the public curves do not cover.
+
+\paragraph{A real, independently-trained transformer (no fitting).}
+A $\sim$10M-parameter Llama-2-style byte-level transformer was trained on WikiText with AdamW
+under three schedules reaching the \emph{same} final LR ($2.5{\times}10^{-3}{\to}2.5{\times}10^{-4}$)
+at different speeds (Table~\ref{tab:real}). The fast (\code{wsd\_sharp}) sweep ends
+\emph{higher} than the gradual ones \emph{despite spending $37\%$ more cumulative LR}---yet any
+law monotone in $S$ predicts the opposite (more LR $\Rightarrow$ lower loss). With no fitting,
+this is the rate-dependent non-adiabatic lag, on a model and data we never used; the residual
+against a well-fit MPL is positive only for the sharp sweep and is captured by $\Drop$
+(Fig.~\ref{fig:real}). Across schedules a finite-$\lambda_{\mathrm{slow}}$ kernel beats the
+adiabatic ($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.11$ held out.
+
+\begin{table}[t]\centering\small
+\begin{minipage}[t]{0.46\linewidth}\centering
+\caption{Real $\sim$10M transformer: three schedules to the \emph{same} final LR. The fast
+sweep ends highest despite the most cumulative LR.}
+\label{tab:real}
+\begin{tabular}{lcc}
+\toprule
+schedule & final loss & cumulative LR $S$ \\
+\midrule
+cosine (gradual)   & 1.0490 & 8.20\\
+wsd (gradual)      & 1.0482 & 9.22\\
+wsd (\textbf{sharp}) & \textbf{1.0593} & \textbf{12.59}\\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.5\linewidth}\centering
+\includegraphics[width=\linewidth]{figs/fig_real_transformer.png}
+\captionof{figure}{Residual vs.\ MPL on the real transformer: positive (lag) only for the
+sharp sweep, captured by $\Drop$.}
+\label{fig:real}
+\end{minipage}
+\end{table}
+
+\paragraph{From-scratch AdamW confirms the mechanism quantitatively.}
+Simulating AdamW on a noisy quadratic (Monte-Carlo ground truth; closed-form theory used only
+as an independent baseline), the reproduction recovers $\tau\propto1/\eta$ with $p=0.971$
+(log-log $R^2{=}0.9996$, robust to leave-one-out and seeds), $\tau$ independent of $\beta_2$
+(CV $1.1\%$), the \textbf{amplitude identity} $dL_{\mathrm{eq}}/d\eta=3.075$ versus the closed
+form $\tfrac14\sum_i s_i=3.0$ (within $3\%$), and a two-exponential kernel that recovers the
+injected preconditioned rates $2\lambda/s$. The effect is falsifiable, not circular: a
+signal-dominated spectrum breaks $p{=}1$.
+
+\paragraph{What does not transfer (consistent with our scope).}
+At $\sim$10M the $\tau\propto1/\eta$ relation itself is \emph{not} resolved (the measured
+post-step relaxation is roughly flat over a $16\times$ LR range, audited as real and not a
+window artefact), and on a \emph{single} decay curve the kernel is numerically degenerate with
+the adiabatic baseline, so the rate-dependence is identifiable only \emph{across} schedules.
+This matches our stated scope: the effect is clean and present, while the quantitative law is a
+leading-order, data-scale-limited approximation whose constants ($\lambda_{\mathrm{slow}}$, $c$,
+and the $\eta_{\mathrm{peak}}$ normalisation) remain measured rather than derived.
+
+\section{Related work}\label{sec:rel}
+\paragraph{Loss-curve laws.}
+Tissue~et~al.~\cite{tissue2024}, MPL~\cite{luo2025}, and FSL~\cite{li2025fsl} predict the
+trajectory from integrated-LR statistics (cumulative LR / intrinsic time / convolutional
+functionals). FSL and its follow-ups also derive optimal schedules~\cite{li2025fsl}. All are
+adiabatic in our sense, and our rate-dependent term is the leading correction they omit; it
+is complementary to MPL's exponent $\gamma$ (which tunes the adiabatic kernel), not a
+replacement for it.
+
+\paragraph{Cooldown dynamics and schedule geometry.}
+The river-valley picture~\cite{wen2024} explains qualitatively why decay ``reveals
+progress'', and explicitly models the noise penalty as \emph{instantaneous} in the current
+LR---the adiabatic assumption we refine. Dremov~et~al.~\cite{dremov2025} study the cooldown
+empirically (including the role of AdamW's $\beta_2$ and the decay shape), framing it through a
+bias--variance trade-off rather than a rate-dependent lag. Late-decay
+analyses~\cite{kaplan2020} and schedule-shape searches~\cite{naganuma2026} study related
+questions (why a long high-LR phase helps; what optimal shapes look like) but do not model the
+loss's rate dependence.
+
+\paragraph{SGD relaxation physics.}
+That a quadratic mode relaxes with $\tau\sim1/(\eta\lambda)$ and that the SGD noise floor
+scales with $\eta$ are classical, from noisy-quadratic and Langevin analyses of
+SGD~\cite{zhang2019nqm}; adaptive methods inherit a preconditioned version~\cite{malladi2022},
+operating at an adaptive edge of stability~\cite{cohen2021,cohen2022}. We do not claim these
+ingredients as new. Our contribution is the synthesis: identifying that adiabatic loss-curve
+laws miss exactly this relaxation lag, deriving the correction with a leading-order
+amplitude identity, and building a parameter-free cross-scale predictor from it.
+
+\section{Limitations}\label{sec:disc}
+The gain is regime-specific (data-poor sharp decays); $\lambda_{\mathrm{slow}}$ and $c$ are
+\emph{measured}, not computed from first principles (this needs the noise spectrum $\{s_i\}$,
+which we do not have), and $\lambda_{\mathrm{slow}}$ is only \emph{approximately} scale-invariant
+---it tracks the slowest preconditioned mode and drifts when the spectral \emph{shape} changes
+(\S\ref{sec:repro2}), so the cross-scale transfer is a leading-order, same-architecture
+approximation. The derivation also assumes a locally quadratic landscape with a static spectrum
+and diagonal, uncorrelated noise---the model-level assumptions MPL itself rests on. Finally, the
+quantitative $\tau\propto1/\eta$ relation, clean in the controlled simulation, is \emph{not}
+resolved on the $\sim$10M transformer (\S\ref{sec:repro2}); confirming it on larger real models,
+and characterising the precise relationship to $\gamma$, are the main open items.
+
+\section{Conclusion}
+Existing loss-curve laws are adiabatic approximations. We identified, derived from AdamW's
+preconditioned dynamics, and validated the leading non-adiabatic correction: a rate-dependent
+term whose relaxation time follows the classical $\tau\propto1/\eta$ ($p=1.00\pm0.18$,
+confirmed for the loss-curve residual) and whose scale-invariant shape enables parameter-free
+cross-scale prediction ($-44\%$ on held-out sharp decays). The loss curve depends not only on
+how much LR has been spent, but on how fast it is being spent.
+
+{\small
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+\bibitem{tissue2024} H.~Tissue, V.~Wang, and L.~Wang. Scaling law with learning rate annealing. \emph{arXiv:2408.11029}, 2024.
+\bibitem{luo2025} K.~Luo, H.~Wen, S.~Hu, et al. A multi-power law for loss curve prediction across learning rate schedules. \emph{ICLR}; \emph{arXiv:2503.12811}, 2025.
+\bibitem{li2025fsl} B.~Li, F.~Chen, Z.~Huang, L.~Wang, and L.~Wu. Functional scaling laws in kernel regression: loss dynamics and learning rate schedules. \emph{NeurIPS}; \emph{arXiv:2509.19189}, 2025.
+\bibitem{wen2024} K.~Wen, Z.~Li, T.~Ma, et al. Understanding warmup-stable-decay learning rates: a river valley loss landscape perspective. \emph{arXiv:2410.05192}, 2024.
+\bibitem{dremov2025} A.~Dremov, A.~H\"agele, A.~Kosson, and M.~Jaggi. Training dynamics of the cooldown stage in warmup-stable-decay learning rate scheduler. \emph{TMLR}; \emph{arXiv:2508.01483}, 2025.
+\bibitem{zhang2019nqm} G.~Zhang, L.~Li, Z.~Nado, et al. Which algorithmic choices matter at which batch sizes? Insights from a noisy quadratic model. \emph{NeurIPS}, 2019.
+\bibitem{malladi2022} S.~Malladi, K.~Lyu, A.~Panigrahi, and S.~Arora. On the SDEs and scaling rules for adaptive gradient algorithms. \emph{NeurIPS}; \emph{arXiv:2205.10287}, 2022.
+\bibitem{cohen2021} J.~Cohen, S.~Kaur, Y.~Li, J.~Z.~Kolter, and A.~Talwalkar. Gradient descent on neural networks typically occurs at the edge of stability. \emph{ICLR}, 2021.
+\bibitem{cohen2022} J.~Cohen, B.~Ghorbani, S.~Krishnan, et al. Adaptive gradient methods at the edge of stability. \emph{arXiv:2207.14484}, 2022.
+\bibitem{naganuma2026} H.~Naganuma et al. What do near-optimal learning rate schedules look like? \emph{arXiv:2603.10301}, 2026.
+\bibitem{kaplan2020} J.~Kaplan, S.~McCandlish, T.~Henighan, et al. Scaling laws for neural language models. \emph{arXiv:2001.08361}, 2020.
+\bibitem{hoffmann2022} J.~Hoffmann, S.~Borgeaud, A.~Mensch, et al. Training compute-optimal large language models. \emph{NeurIPS}, 2022.
+\bibitem{hu2024minicpm} S.~Hu, Y.~Tu, X.~Han, et al. MiniCPM: unveiling the potential of small language models. \emph{COLM}, 2024.
+\end{thebibliography}
+}
+
+\end{document}
