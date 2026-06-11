@@ -66,9 +66,12 @@ def train_one(name, etas, trd, vad, fine_after=None, fine_every=3):
     print(f"  [done] {name} ({time.time()-t0:.0f}s)", flush=True)
 
 
+DATA_DIR = r"C:\Users\21100\Desktop\represent\data"
+
+
 def main():
     print("device", T.DEV, flush=True)
-    trd, vad = T.get_data()
+    trd, vad = T.get_data(DATA_DIR)
     S = build()
     json.dump({k: v.tolist() for k, v in S.items()}, open(os.path.join(CDIR, "schedules.json"), "w"))
     for name, etas in S.items():

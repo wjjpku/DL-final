@@ -482,6 +482,46 @@ Scale & MPL & MPL+\Drop & MPL & MPL+\Drop & avg. change\\
 noise-floor probes, but no full WSD curves.
 \end{frame}
 
+\begin{frame}{Upgrade 1: the B-identity --- the amplitude was inside MPL all along}
+\textbf{Proposition.} Compare holding $\eta$ vs dropping to $\eta-d\eta$ and equilibrating at
+matched $S$: MPL's annealing term changes by $-B\,d\eta\,G(\cdot)\to-B\,d\eta$ as $G\to1$, so
+\[
+\left.\partial_\eta L^{\mathrm{MPL}}_{\mathrm{eq}}\right|_{S}=B .
+\]
+\vfill
+\textbf{Falsifiable check.} $B=363.8/437.9/523.4$ vs independently measured
+$dL_{\mathrm{eq}}/d\eta=381.7/499.3/561.5$ ($5$--$15\%$ at all scales).
+\vfill
+\begin{block}{Zero-extra-measurement transfer}
+$\kappa=c''\eta_{\mathrm{peak}}B$ ($c''$ leave-one-scale-out, CV $14.7\%$) gives
+$\mathbf{-43\%}$ ($6/6$) on the Table-1 protocol --- matching the probe chain at zero
+additional training runs. Smooth-only MPL refits ($B$ drifts $\le30\%$) retain
+$-36$ to $-40\%$.
+\end{block}
+\end{frame}
+
+\begin{frame}{Upgrade 2: second-order amplitude closure $\chi(\eta)\propto\eta^{\delta}$}
+\textbf{Measurement.} Settled floors are superlinear: $F_{\mathrm{eq}}\propto\eta^{1+\delta}$,
+$1{+}\delta=1.06/1.49/1.25$ ($25/100/400$M). The first-order closure froze $\chi$; the
+derivation's forcing $\partial_\eta z^\star(S_k,\eta_k)$ already depends on $\eta_k$.
+\[
+L(t)=L_{\mathrm{MPL}}(t)+\kappa\sum_{k<t}\Big(\tfrac{\eta_k}{\eta_{\mathrm{peak}}}\Big)^{\!\delta}
+e^{-\lambda_{\mathrm{slow}}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\mathrm{peak}}}
+\]
+\vfill
+\begin{itemize}\itemsep2pt
+\item Public curves, $\delta{=}1/4$ (Pareto-selected, never target-fit): audited
+$6{\times}6$ matrix improves on \emph{every} aggregate; probes-only calibration
+$-17\%\to-23$ to $-29\%$.
+\item Real $10.7$M model, never-scanned out-of-family beds: \texttt{sharp600}
+$-18\%\to-71\%$ ($\delta{=}3/4$); showcase \texttt{wsd\_sharp} $-14\%\to-52\%$.
+\item Honest split: part of the cheap-probe gain is amplitude recalibration; at matched
+amplitude the unweighted shape stays best in-family. Naive NQM route falsified at
+magnitude; bulk$+$edge spectrum (tracking cutoff $a_{\max}\!\propto\!1/\eta$) is the
+consistent mechanism (conjecture flagged).
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Fair-baseline diagnostic: formula gap vs information gap}
 \textbf{Key question.} Is \Drop{} a better formula, or does it just supply information missing
 from a few-shot MPL fit?

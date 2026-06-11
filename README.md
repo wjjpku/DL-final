@@ -27,8 +27,15 @@ pip install -r requirements.txt          # numpy scipy matplotlib torch tqdm sci
 | 表3 / §7 γ essential + 模拟 | `python3 repro/validate_theory.py`(real)+ `python3 repro/sgd_spectrum_sim.py`(sim) | `results/eos_gamma.json` |
 | 表4上 / §7 RV-EoS 显式 river-valley 律 | `python3 repro/river_valley.py` | `results/river_valley.log`(RV vs MPL,0/15) |
 | 表4下 / §7 sharpness-lag 修正(冻结 MPL) | `python3 repro/river_floor_lag.py` | `results/river_floor_lag.log`(留出 WSD,7/12) |
+| 表1 B-恒等式零探针幅度链 (+B 列) | `python3 repro/formula_lab/probes_only.py` + `repro/formula_lab/b_stability.py` | stdout: T1-B −43.1% (6/6)，光滑-only −35.6~−40.0% |
+| 表5 / 二阶幅度闭合全协议对比 | `python3 repro/formula_lab/affine_sweep.py` (+`run_candidates.py`, `matrix_protocol.py`) | `results/formula_lab/DECISION_TABLE.md` |
+| floor 幂律 p 测量 | `python3 repro/formula_lab/floor_powerlaw.py` | stdout: p=1.06/1.49/1.25 |
+| 核形状负结果（Lomax/2-exp 坍缩） | `python3 repro/formula_lab/explore_kernels.py` + `probe_grid.py` | `results/formula_lab/explore_kernels.json` |
+| 真实模型界外泛化套件（双降/循环/逆平方根/急降） | `represent/repro/train_gen.py` + `analyze_gen.py` | `represent/results/GEN_REPORT.json` |
+| 真实模型等-S floor 阶梯 | `represent/repro/train_floor.py` + `analyze_floor.py` | `represent/results/curves_floor/` |
 | §3 完整数学推导 | 见 `docs/core/derivation.md` | — |
 | §7 river-valley / Adaptive-EoS 推导 | 见 `docs/core/river_valley_derivation.md` | — |
+| 二阶幅度结构推导（B-恒等式/bulk+edge 谱机制） | 见 `docs/core/second_order_amplitude.md` | — |
 
 理论推导文档:[`docs/core/derivation.md`](docs/core/derivation.md)、[`docs/core/scaling_law_theory.md`](docs/core/scaling_law_theory.md)、[`docs/core/river_valley_derivation.md`](docs/core/river_valley_derivation.md)。
 
@@ -106,8 +113,11 @@ python3 main.py --folder_path 400
 1. **问题定义**：MPL/FSL 等现有定律是绝热的，无法表示快速衰减时的非绝热弛豫滞后。
 2. **理论推导**：在弱稳定性假设下，推导出线性响应修正项 DropRelaxS；AdamW 特化给出经典 τ∝1/η 与幅度恒等 dL_eq/dη。
 3. **实证验证**：在公开 LLM 曲线上确认 τ∝1/η（p=1.00±0.18），用低校准的跨尺度迁移将陡降误差削减 44%。
-4. **独立复现**：受控 NQM 模拟（p=0.97，幅度误差 <3%）与真实 ~10M transformer（免拟合验证效应存在）双重确认。
-5. **诚实范围**：在数据丰富的 MPL 上修正无益；价值在数据稀缺、领头阶 regime。
+4. **B-恒等式（新）**：证明 MPL 自身的退火系数 B 即修正所需的平衡地板敏感度 dL_eq/dη（5–15% 内验证），幅度可零额外测量迁移（T1-B −43.1%，6/6；光滑-only 重拟合下仍 −35.6~−40.0%）。
+5. **二阶幅度闭合（新）**：实测平衡地板超线性（F_eq∝η^p, p≈1.06/1.49/1.25），χ(η)∝η^δ 闭合（δ=1/4 预注册默认）在审计迁移矩阵上全指标 Pareto 占优，并把廉价探针校准从 −17.1% 提至 −23~−29%；oracle 审计诚实拆分"幅度再校准 vs 形状"两种成分。NQM 仿射机制在量级上被证伪（差 3 个量级）；bulk+edge 谱重适应机制与全部观测一致（标注为 conjecture）。
+6. **结构性负结果（新）**：多极点/Lomax/拉伸指数核形状在加权前后都坍缩回单指数；λ 跨家族不统一（探针 ~15–19 vs 陡降 ~2–5）；谱压缩因子 c 具有浓度依赖（瞬时降 c≈0.15–0.25 vs 渐进降 ≈0.5，开放问题精化）。
+7. **独立复现**：受控 NQM 模拟（p=0.97，幅度误差 <3%）与真实 ~10M transformer（免拟合验证效应存在）双重确认；新增界外调度套件（sharp600 上加权闭合 −18%→−71%；invsqrt 暴露过矫边界；twodrop 沉积比在该尺度不可判，已诚实报告）与等-S floor 阶梯（地板严格单调，p_real=0.73 [0.62,0.86] **亚线性**——地板指数随尺度涌现：0.73→1.06→1.49→1.25，排除 δ 的跨尺度普适值）。
+8. **诚实范围**：在数据丰富的 MPL 上修正无益；价值在数据稀缺、领头阶 regime。
 
 ### 已知局限与开放问题（论文已诚实声明）
 
@@ -118,8 +128,10 @@ python3 main.py --folder_path 400
 
 ## 下一步工作（短期）
 
-1. **统一交付口径**：检查 `paper/`、`slides/`、`README.md` 与 `represent/REPORT.md`，确保 `λ_slow`、`c` 被表述为经验测量/低校准常数，而非第一性原理已预测常数。
-2. **固定 DropRelaxS 归一化约定**：论文已区分 raw LR drops 与 `/η_peak` 归一化 drops；下一步需要同步检查脚本、图注和报告，避免 `c≈0.5` 与 `c≈60–86` 混用。
-3. **真实模型幅度恒等检验**：在 ~10M 模型上训练 3–4 条 constant LR 曲线，独立测量 `dL_eq/dη`，再与 DropRelaxS 拟合幅度比较。
-4. **S-time 操控实验**：改变 batch size 或等效 LR 积分，使 step-time profile 与 S-time profile 解耦，直接检验记忆变量是 `S` 而非步数 `t`。
-5. **更大真实模型或谱诊断**：若算力允许，在 ≥25M 尺度验证 `τ ∝ 1/η`；若能记录 Hessian/梯度噪声谱，则直接检验 `λ_slow ≈ 2(λ/s)_eff` 的慢模解释。
+本轮（2026-06）已完成原列表中的第 1、2、3 项：口径统一与归一化约定已写入论文 §6/§7；真实模型幅度测量升级为**等-S floor 阶梯**（`represent/repro/train_floor.py`，6 条等累计-LR 恒定段直接测 `F_eq(η)` 幂律）。仍开放：
+
+1. **S-time 操控实验**：改变 batch size 或等效 LR 积分，使 step-time profile 与 S-time profile 解耦，直接检验记忆变量是 `S` 而非步数 `t`。
+2. **更大真实模型或谱诊断**：若算力允许，在 ≥25M 尺度验证 `τ ∝ 1/η`；若能记录 Hessian/梯度噪声谱，则直接检验 `λ_slow ≈ 2(λ/s)_eff` 的慢模解释，并检验 bulk+edge 谱机制中的边缘重适应 conjecture。
+3. **c 的浓度依赖**：瞬时降 c≈0.10–0.26 vs 渐进降 0.43–0.60（本轮新测量）；需要第一性原理解释或显式建模。
+4. **识别性门槛的跨套件可移植性**：invsqrt 过矫案例显示绝对阈值不可直接迁移；需要无量纲化的 abstention 规则。
+5. **deposit 比值 A₂/A₁ 的干净测量**：10.7M + 单种子上不可判（评估噪声主导）；需要多种子平均或更大模型。
