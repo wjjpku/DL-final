@@ -1,0 +1,91 @@
+candidate,delta_pct,kappa,scale,test_curve,test_label,train_curve,train_label,win
+train_size_rho0p5,-12.526656751606913,0.013703333359633963,25,wsd_20000_24000.csv,WSD sharp,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-9.79679304829898,0.013703333359633963,25,wsdld_20000_24000.csv,WSD linear,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-36.63872643444116,0.013703333359633963,25,wsdcon_3.csv,WSD-con 3e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-23.074229002262214,0.013703333359633963,25,wsdcon_9.csv,WSD-con 9e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-11.193577775363151,0.013703333359633963,25,wsdcon_18.csv,WSD-con 18e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-1.664825965113248,0.010909916582745333,25,cosine_72000.csv,Cosine,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-7.799722310646828,0.010909916582745333,25,wsdld_20000_24000.csv,WSD linear,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-32.56822640743409,0.010909916582745333,25,wsdcon_3.csv,WSD-con 3e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-19.25782798906538,0.010909916582745333,25,wsdcon_9.csv,WSD-con 9e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-8.911773258864086,0.010909916582745333,25,wsdcon_18.csv,WSD-con 18e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-1.950514631796274,0.012782087961293407,25,cosine_72000.csv,Cosine,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-11.68451677105271,0.012782087961293407,25,wsd_20000_24000.csv,WSD sharp,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-35.544717975012944,0.012782087961293407,25,wsdcon_3.csv,WSD-con 3e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-22.112358113793096,0.012782087961293407,25,wsdcon_9.csv,WSD-con 9e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-10.441057804792154,0.012782087961293407,25,wsdcon_18.csv,WSD-con 18e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-1.0263101049168721,0.006725602475758705,25,cosine_72000.csv,Cosine,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-6.148089041587501,0.006725602475758705,25,wsd_20000_24000.csv,WSD sharp,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-4.808270648528978,0.006725602475758705,25,wsdld_20000_24000.csv,WSD linear,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-12.140955133197417,0.006725602475758705,25,wsdcon_9.csv,WSD-con 9e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-5.493813251332358,0.006725602475758705,25,wsdcon_18.csv,WSD-con 18e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-1.0679879778000445,0.006998725388320618,25,cosine_72000.csv,Cosine,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-6.39775946022767,0.006998725388320618,25,wsd_20000_24000.csv,WSD sharp,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-5.003531800023975,0.006998725388320618,25,wsdld_20000_24000.csv,WSD linear,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-22.778859937148045,0.006998725388320618,25,wsdcon_3.csv,WSD-con 3e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-5.7169139001861495,0.006998725388320618,25,wsdcon_18.csv,WSD-con 18e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-1.807590179495444,0.011845477237462546,25,cosine_72000.csv,Cosine,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-10.828330853408508,0.011845477237462546,25,wsd_20000_24000.csv,WSD sharp,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-8.468573741014184,0.011845477237462546,25,wsdld_20000_24000.csv,WSD linear,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-34.1723484715313,0.011845477237462546,25,wsdcon_3.csv,WSD-con 3e-5,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-20.70833521813712,0.011845477237462546,25,wsdcon_9.csv,WSD-con 9e-5,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-20.34808756134414,0.024621858654901116,100,wsd_20000_24000.csv,WSD sharp,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-16.89517402128684,0.024621858654901116,100,wsdld_20000_24000.csv,WSD linear,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-19.861906257729988,0.024621858654901116,100,wsdcon_3.csv,WSD-con 3e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-2.1666387356599426,0.024621858654901116,100,wsdcon_9.csv,WSD-con 9e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-10.13885634233227,0.024621858654901116,100,wsdcon_18.csv,WSD-con 18e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-2.838902175720648,0.01815960589314969,100,cosine_72000.csv,Cosine,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-12.460866826626871,0.01815960589314969,100,wsdld_20000_24000.csv,WSD linear,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-21.863770312043375,0.01815960589314969,100,wsdcon_3.csv,WSD-con 3e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-5.211384512918881,0.01815960589314969,100,wsdcon_9.csv,WSD-con 9e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-11.480794904626713,0.01815960589314969,100,wsdcon_18.csv,WSD-con 18e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-3.2719775050209954,0.020929858904824464,100,cosine_72000.csv,Cosine,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-17.296931462855667,0.020929858904824464,100,wsd_20000_24000.csv,WSD sharp,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-21.826422136014667,0.020929858904824464,100,wsdcon_3.csv,WSD-con 3e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-4.185289519606861,0.020929858904824464,100,wsdcon_9.csv,WSD-con 9e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-11.326536632901785,0.020929858904824464,100,wsdcon_18.csv,WSD-con 18e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-1.5499407524243725,0.009914506199782415,100,cosine_72000.csv,Cosine,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-8.193582909733122,0.009914506199782415,100,wsd_20000_24000.csv,WSD sharp,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-6.803195076709234,0.009914506199782415,100,wsdld_20000_24000.csv,WSD linear,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-5.309824428120913,0.009914506199782415,100,wsdcon_9.csv,WSD-con 9e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-9.347859036348128,0.009914506199782415,100,wsdcon_18.csv,WSD-con 18e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-1.5662007667402111,0.01001851663533715,100,cosine_72000.csv,Cosine,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-8.279539598853258,0.01001851663533715,100,wsd_20000_24000.csv,WSD sharp,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-6.874565578561109,0.01001851663533715,100,wsdld_20000_24000.csv,WSD linear,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-16.413539904449202,0.01001851663533715,100,wsdcon_3.csv,WSD-con 3e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-9.428645570719196,0.01001851663533715,100,wsdcon_18.csv,WSD-con 18e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-1.5544518836964838,0.009943362553739713,100,cosine_72000.csv,Cosine,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-8.21743048457514,0.009943362553739713,100,wsd_20000_24000.csv,WSD sharp,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-6.822995902006623,0.009943362553739713,100,wsdld_20000_24000.csv,WSD linear,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-16.33314298053866,0.009943362553739713,100,wsdcon_3.csv,WSD-con 3e-5,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-5.312375122196222,0.009943362553739713,100,wsdcon_9.csv,WSD-con 9e-5,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-28.68558026985196,0.04339152898551728,400,wsd_20000_24000.csv,WSD sharp,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-25.271763507287393,0.04339152898551728,400,wsdld_20000_24000.csv,WSD linear,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-34.19019591522034,0.04339152898551728,400,wsdcon_3.csv,WSD-con 3e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-4.180119378746394,0.04339152898551728,400,wsdcon_9.csv,WSD-con 9e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-3.5635829621668114,0.04339152898551728,400,wsdcon_18.csv,WSD-con 18e-5,cosine_72000.csv,Cosine,1
+train_size_rho0p5,-4.210038498733237,0.032059781729567555,400,cosine_72000.csv,Cosine,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-18.672013660438147,0.032059781729567555,400,wsdld_20000_24000.csv,WSD linear,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-37.439775458397094,0.032059781729567555,400,wsdcon_3.csv,WSD-con 3e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-8.169923995285789,0.032059781729567555,400,wsdcon_9.csv,WSD-con 9e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-6.971412768859153,0.032059781729567555,400,wsdcon_18.csv,WSD-con 18e-5,wsd_20000_24000.csv,WSD sharp,1
+train_size_rho0p5,-4.7271481578469725,0.03628052616288001,400,cosine_72000.csv,Cosine,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-24.044377656852422,0.03628052616288001,400,wsd_20000_24000.csv,WSD sharp,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-38.028075985815015,0.03628052616288001,400,wsdcon_3.csv,WSD-con 3e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-7.4281404734075736,0.03628052616288001,400,wsdcon_9.csv,WSD-con 9e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-6.361337455718486,0.03628052616288001,400,wsdcon_18.csv,WSD-con 18e-5,wsdld_20000_24000.csv,WSD linear,1
+train_size_rho0p5,-2.047910711600709,0.01521201147061758,400,cosine_72000.csv,Cosine,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-10.106244968623468,0.01521201147061758,400,wsd_20000_24000.csv,WSD sharp,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-8.859663748744573,0.01521201147061758,400,wsdld_20000_24000.csv,WSD linear,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-5.701740910810072,0.01521201147061758,400,wsdcon_9.csv,WSD-con 9e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-4.59224298800468,0.01521201147061758,400,wsdcon_18.csv,WSD-con 18e-5,wsdcon_3.csv,WSD-con 3e-5,1
+train_size_rho0p5,-2.305117619903041,0.017176311666961347,400,cosine_72000.csv,Cosine,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-11.411246546785126,0.017176311666961347,400,wsd_20000_24000.csv,WSD sharp,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-10.003696493842828,0.017176311666961347,400,wsdld_20000_24000.csv,WSD linear,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-24.823723775239483,0.017176311666961347,400,wsdcon_3.csv,WSD-con 3e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-5.053693089086231,0.017176311666961347,400,wsdcon_18.csv,WSD-con 18e-5,wsdcon_9.csv,WSD-con 9e-5,1
+train_size_rho0p5,-2.263209277680478,0.016855625656798698,400,cosine_72000.csv,Cosine,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-11.198195736050764,0.016855625656798698,400,wsd_20000_24000.csv,WSD sharp,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-9.816924992621367,0.016855625656798698,400,wsdld_20000_24000.csv,WSD linear,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-24.436402474927355,0.016855625656798698,400,wsdcon_3.csv,WSD-con 3e-5,wsdcon_18.csv,WSD-con 18e-5,1
+train_size_rho0p5,-6.152634035188709,0.016855625656798698,400,wsdcon_9.csv,WSD-con 9e-5,wsdcon_18.csv,WSD-con 18e-5,1

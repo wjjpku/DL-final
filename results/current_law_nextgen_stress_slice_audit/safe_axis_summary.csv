@@ -1,0 +1,82 @@
+best_delta_pct,group,mean_delta_pct,mean_target_factor,non_harm_rows,rows,scale,slice,test_label,train_label,train_size,value,wins,worst_delta_pct
+-21.872685382051216,,-4.883432871386796,0.5,372,372,100,scale,,,,100,186,0.0
+-38.03579152474552,,-6.433184290110669,0.5,372,372,25,scale,,,,25,186,0.0
+-38.04263854047187,,-6.369986842378323,0.5,372,372,400,scale,,,,400,186,0.0
+-38.028075985815015,,-7.469653863709556,0.625,144,144,,train_size,,,1,1,90,0.0
+-38.008591526181704,,-6.446760580825293,0.5714285714285714,315,315,,train_size,,,2,2,180,0.0
+-38.04263854047187,,-5.904880122728673,0.5,360,360,,train_size,,,3,3,180,0.0
+-38.03579152474552,,-4.981780321513362,0.4,225,225,,train_size,,,4,4,90,0.0
+-36.47263273876212,,-3.144437966455837,0.25,72,72,,train_size,,,5,5,18,0.0
+0.0,,0.0,0.0,186,186,,target_curve,Constant 24k,,,Constant 24k,0,0.0
+0.0,,0.0,0.0,186,186,,target_curve,Constant 72k,,,Constant 72k,0,0.0
+-5.452624065449385,,-2.293952324287327,1.0,93,93,,target_curve,Cosine,,,Cosine,93,-1.0263101049168721
+0.0,,0.0,0.0,186,186,,target_curve,Cosine 24k,,,Cosine 24k,0,0.0
+-25.271763507287393,,-9.859809749085017,1.0,93,93,,target_curve,WSD linear,,,WSD linear,93,-4.808270648528978
+-29.190934124907574,,-11.840063631736076,1.0,93,93,,target_curve,WSD sharp,,,WSD sharp,93,-6.148089041587501
+-12.552359632942501,,-8.097298042287578,1.0,93,93,,target_curve,WSD-con 18e-5,,,WSD-con 18e-5,93,-2.8390851126907646
+-38.04263854047187,,-28.552373320698358,1.0,93,93,,target_curve,WSD-con 3e-5,,,WSD-con 3e-5,93,-16.33314298053866
+-24.438942663352027,,-10.102918947408783,1.0,93,93,,target_curve,WSD-con 9e-5,,,WSD-con 9e-5,93,-1.3644864567528114
+-36.63872643444116,,-10.772161998483272,0.625,24,24,,train_group,,Cosine,,Cosine,15,0.0
+-38.008591526181704,,-9.964216996933889,0.5714285714285714,21,21,,train_group,,Cosine + WSD linear,,Cosine + WSD linear,12,0.0
+-35.08418890127836,,-9.055655492795085,0.5,18,18,,train_group,,Cosine + WSD linear + WSD-con 18e-5,,Cosine + WSD linear + WSD-con 18e-5,9,0.0
+-13.72102707269418,,-4.278324578557044,0.5,18,18,,train_group,,Cosine + WSD linear + WSD-con 3e-5,,Cosine + WSD linear + WSD-con 3e-5,9,0.0
+-17.98464993325808,,-4.464351675455837,0.4,15,15,,train_group,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,6,0.0
+-15.046987765988785,,-4.091941447395986,0.4,15,15,,train_group,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,6,0.0
+-15.346605088390842,,-3.0538603351005436,0.25,12,12,,train_group,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,3,0.0
+-30.74012854889966,,-7.513272562095927,0.5,18,18,,train_group,,Cosine + WSD linear + WSD-con 9e-5,,Cosine + WSD linear + WSD-con 9e-5,9,0.0
+-34.63279848943594,,-8.76909852741938,0.4,15,15,,train_group,,Cosine + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-36.86861238961572,,-9.637540756346997,0.5714285714285714,21,21,,train_group,,Cosine + WSD sharp,,Cosine + WSD sharp,12,0.0
+-38.00604351480222,,-7.918803007962778,0.5,18,18,,train_group,,Cosine + WSD sharp + WSD linear,,Cosine + WSD sharp + WSD linear,9,0.0
+-38.03579152474552,,-8.880507169032338,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 18e-5,,Cosine + WSD sharp + WSD linear + WSD-con 18e-5,6,0.0
+-15.83208690519008,,-3.5550216531634273,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5,6,0.0
+-18.87504072105328,,-2.685709225404491,0.25,12,12,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,3,0.0
+-11.648601408058902,,-2.2036342219672473,0.25,12,12,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,,Cosine + WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,3,0.0
+-36.082611683366906,,-7.884925401198325,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 9e-5,,Cosine + WSD sharp + WSD linear + WSD-con 9e-5,6,0.0
+-36.47263273876212,,-7.761353571706714,0.25,12,12,,train_group,,Cosine + WSD sharp + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD sharp + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,3,0.0
+-34.929308539720886,,-8.853028186730482,0.5,18,18,,train_group,,Cosine + WSD sharp + WSD-con 18e-5,,Cosine + WSD sharp + WSD-con 18e-5,9,0.0
+-14.759065015830931,,-4.24873918359731,0.5,18,18,,train_group,,Cosine + WSD sharp + WSD-con 3e-5,,Cosine + WSD sharp + WSD-con 3e-5,9,0.0
+-17.961636720856077,,-4.083497080034663,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 18e-5,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 18e-5,6,0.0
+-13.263880412628115,,-3.7136064273045744,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 9e-5,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 9e-5,6,0.0
+-13.525579627321626,,-2.5649385727182845,0.25,12,12,,train_group,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD sharp + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,3,0.0
+-31.81227722293235,,-7.500207601782067,0.5,18,18,,train_group,,Cosine + WSD sharp + WSD-con 9e-5,,Cosine + WSD sharp + WSD-con 9e-5,9,0.0
+-34.60385595786876,,-8.274306660499345,0.4,15,15,,train_group,,Cosine + WSD sharp + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD sharp + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-34.219710564438664,,-7.986071621928716,0.5714285714285714,21,21,,train_group,,Cosine + WSD-con 18e-5,,Cosine + WSD-con 18e-5,12,0.0
+-12.270812839556477,,-4.334985438995199,0.5714285714285714,21,21,,train_group,,Cosine + WSD-con 3e-5,,Cosine + WSD-con 3e-5,12,0.0
+-16.69238474226503,,-4.966360352615627,0.5,18,18,,train_group,,Cosine + WSD-con 3e-5 + WSD-con 18e-5,,Cosine + WSD-con 3e-5 + WSD-con 18e-5,9,0.0
+-13.717644963668885,,-4.713514587606544,0.5,18,18,,train_group,,Cosine + WSD-con 3e-5 + WSD-con 9e-5,,Cosine + WSD-con 3e-5 + WSD-con 9e-5,9,0.0
+-14.257062835043799,,-4.199481492874282,0.4,15,15,,train_group,,Cosine + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-26.562259515273347,,-6.620914484844837,0.5714285714285714,21,21,,train_group,,Cosine + WSD-con 9e-5,,Cosine + WSD-con 9e-5,12,0.0
+-32.089178981086484,,-8.315146746338936,0.5,18,18,,train_group,,Cosine + WSD-con 9e-5 + WSD-con 18e-5,,Cosine + WSD-con 9e-5 + WSD-con 18e-5,9,0.0
+-38.028075985815015,,-9.17622509510365,0.625,24,24,,train_group,,WSD linear,,WSD linear,15,0.0
+-34.4903464250953,,-7.886282712051409,0.5714285714285714,21,21,,train_group,,WSD linear + WSD-con 18e-5,,WSD linear + WSD-con 18e-5,12,0.0
+-12.862136093603437,,-3.702930178952541,0.5714285714285714,21,21,,train_group,,WSD linear + WSD-con 3e-5,,WSD linear + WSD-con 3e-5,12,0.0
+-17.381700480941564,,-3.9663654664347,0.5,18,18,,train_group,,WSD linear + WSD-con 3e-5 + WSD-con 18e-5,,WSD linear + WSD-con 3e-5 + WSD-con 18e-5,9,0.0
+-14.491272742760074,,-3.670663442128939,0.5,18,18,,train_group,,WSD linear + WSD-con 3e-5 + WSD-con 9e-5,,WSD linear + WSD-con 3e-5 + WSD-con 9e-5,9,0.0
+-14.988243075435792,,-2.8363527850639225,0.4,15,15,,train_group,,WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-29.35364329943564,,-6.416387703830555,0.5714285714285714,21,21,,train_group,,WSD linear + WSD-con 9e-5,,WSD linear + WSD-con 9e-5,12,0.0
+-33.3375615356581,,-7.408282801352509,0.5,18,18,,train_group,,WSD linear + WSD-con 9e-5 + WSD-con 18e-5,,WSD linear + WSD-con 9e-5 + WSD-con 18e-5,9,0.0
+-37.439775458397094,,-8.31338579353223,0.625,24,24,,train_group,,WSD sharp,,WSD sharp,15,0.0
+-37.31964412462414,,-7.695724042300051,0.5714285714285714,21,21,,train_group,,WSD sharp + WSD linear,,WSD sharp + WSD linear,12,0.0
+-38.04263854047187,,-7.992432624018887,0.5,18,18,,train_group,,WSD sharp + WSD linear + WSD-con 18e-5,,WSD sharp + WSD linear + WSD-con 18e-5,9,0.0
+-14.119238704987403,,-3.050642410811009,0.5,18,18,,train_group,,WSD sharp + WSD linear + WSD-con 3e-5,,WSD sharp + WSD linear + WSD-con 3e-5,9,0.0
+-18.50390677018574,,-2.592024795334201,0.4,15,15,,train_group,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 18e-5,6,0.0
+-11.667947711671667,,-2.2116809956802164,0.4,15,15,,train_group,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5,6,0.0
+-3.2165780682863243,,-0.5971318718377435,0.25,12,12,,train_group,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,WSD sharp + WSD linear + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,3,0.0
+-34.60050538744812,,-6.744037656551815,0.5,18,18,,train_group,,WSD sharp + WSD linear + WSD-con 9e-5,,WSD sharp + WSD linear + WSD-con 9e-5,9,0.0
+-36.13224860465628,,-6.714405185091221,0.4,15,15,,train_group,,WSD sharp + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,,WSD sharp + WSD linear + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-34.044060392908,,-7.670838361375993,0.5714285714285714,21,21,,train_group,,WSD sharp + WSD-con 18e-5,,WSD sharp + WSD-con 18e-5,12,0.0
+-12.803241967873092,,-3.4864246376666435,0.5714285714285714,21,21,,train_group,,WSD sharp + WSD-con 3e-5,,WSD sharp + WSD-con 3e-5,12,0.0
+-17.357856518528834,,-3.662215190823141,0.5,18,18,,train_group,,WSD sharp + WSD-con 3e-5 + WSD-con 18e-5,,WSD sharp + WSD-con 3e-5 + WSD-con 18e-5,9,0.0
+-12.77433443780599,,-3.3680407142413413,0.5,18,18,,train_group,,WSD sharp + WSD-con 3e-5 + WSD-con 9e-5,,WSD sharp + WSD-con 3e-5 + WSD-con 9e-5,9,0.0
+-13.210004850760292,,-2.4555035271527013,0.4,15,15,,train_group,,WSD sharp + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,WSD sharp + WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,6,0.0
+-28.883114216787753,,-6.049712574376097,0.5714285714285714,21,21,,train_group,,WSD sharp + WSD-con 9e-5,,WSD sharp + WSD-con 9e-5,12,0.0
+-33.86676528950618,,-7.154949155225953,0.5,18,18,,train_group,,WSD sharp + WSD-con 9e-5 + WSD-con 18e-5,,WSD sharp + WSD-con 9e-5 + WSD-con 18e-5,9,0.0
+-34.1723484715313,,-7.003872556377849,0.625,24,24,,train_group,,WSD-con 18e-5,,WSD-con 18e-5,15,0.0
+-12.140955133197417,,-3.8387351546117667,0.625,24,24,,train_group,,WSD-con 3e-5,,WSD-con 3e-5,15,0.0
+-15.599995585793813,,-4.26302007355764,0.5714285714285714,21,21,,train_group,,WSD-con 3e-5 + WSD-con 18e-5,,WSD-con 3e-5 + WSD-con 18e-5,12,0.0
+-12.78312853346526,,-4.059757786443007,0.5714285714285714,21,21,,train_group,,WSD-con 3e-5 + WSD-con 9e-5,,WSD-con 3e-5 + WSD-con 9e-5,12,0.0
+-13.728351612592782,,-3.716920692903361,0.5,18,18,,train_group,,WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,,WSD-con 3e-5 + WSD-con 9e-5 + WSD-con 18e-5,9,0.0
+-24.823723775239483,,-5.713542584148565,0.625,24,24,,train_group,,WSD-con 9e-5,,WSD-con 9e-5,15,0.0
+-30.16035191957919,,-6.926601342775823,0.5714285714285714,21,21,,train_group,,WSD-con 9e-5 + WSD-con 18e-5,,WSD-con 9e-5 + WSD-con 18e-5,12,0.0
+0.0,extra_holdout,0.0,0.0,558,558,,group,,,,extra_holdout,0,0.0
+-38.04263854047187,main_matrix,-11.79106933591719,1.0,558,558,,group,,,,main_matrix,558,-1.0263101049168721

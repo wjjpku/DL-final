@@ -1,0 +1,7 @@
+mean_delta_pct,mean_peak_to_mean,mean_target_factor,mode,test_curve,test_label,tests,wins,worst_delta_pct
+7.236073029020669,1.8284634386196517,1.0,raw_nextgen,cosine_24000.csv,Cosine 24k,18,0,21.762086533250226
+0.0,0.0,1.0,raw_nextgen,constant_24000.csv,Constant 24k,18,0,0.0
+0.0,0.0,1.0,raw_nextgen,constant_72000.csv,Constant 72k,18,0,0.0
+0.0,1.8284634386196517,0.0,target_localization_gate,cosine_24000.csv,Cosine 24k,18,0,0.0
+0.0,0.0,0.0,target_localization_gate,constant_24000.csv,Constant 24k,18,0,0.0
+0.0,0.0,0.0,target_localization_gate,constant_72000.csv,Constant 72k,18,0,0.0

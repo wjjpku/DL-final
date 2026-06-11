@@ -39,10 +39,11 @@ faster than it can relax. Under weak stability assumptions we derive a linear-re
 causal convolution of per-step LR decrements with a relaxation kernel in cumulative-LR time.
 The operational correction is its lowest-capacity one-pole closure; in a noise-dominated
 AdamW specialization the amplitude is the equilibrium-floor sensitivity and the relaxation
-time is the classical $\tau\sim1/(\eta\lambda)$. On public LLM curves the
-residual indeed relaxes with $\tau\propto1/\eta$ ($p=1.00\pm0.18$); since the kernel's rate
-constant is empirically stable across the public scales, the correction can be transferred
-with a small number of calibration constants, cutting held-out sharp-decay error by $44\%$
+time is the classical $\tau\sim1/(\eta\lambda)$. Public LLM curves are consistent with this
+mechanism ($p=1.00\pm0.18$), while our independently trained small transformer confirms the
+lag but not a clean inverse-LR scaling. Since the kernel's rate constant is empirically
+stable across the public scales, the correction can be transferred with a small number of
+calibration constants, cutting held-out sharp-decay error by $44\%$
 with no target-curve fitting. An independent reproduction---a separately-trained $\sim$10M transformer
 and a from-scratch AdamW simulation---confirms the effect (the fast sweep ends higher
 \emph{despite} $37\%$ more cumulative LR) and the amplitude identity (within $3\%$). The
@@ -86,9 +87,10 @@ non-adiabatic residual, and use its lowest-capacity one-pole closure as the rate
 term $\Drop$ (\S\ref{sec:theory}). A noise-dominated AdamW specialization identifies the
 amplitude with $dL_{\mathrm{eq}}/d\eta$ and gives the classical $\tau\sim1/(\eta\lambda)$
 relaxation time; our point is that this timescale governs the \emph{loss-curve-law residual}.
-\item We confirm in LLM pretraining that the residual relaxes with $\tau\propto1/\eta$
-($p=1.00\pm0.18$), self-consistently establishing its noise-dominated regime
-(\S\ref{sec:exp}).
+\item Public LLM curves show residual relaxation consistent with $\tau\propto1/\eta$
+($p=1.00\pm0.18$), while the separately trained $\sim$10M reproduction confirms the lag but
+does not resolve this scaling; we therefore use inverse-LR relaxation as a mechanism check,
+not as the main empirical claim (\S\ref{sec:exp}, \S\ref{sec:repro2}).
 \item The kernel's rate constant is empirically stable on the public same-architecture
 scales, enabling a low-calibration cross-scale transfer that improves held-out sharp-decay
 loss by $44\%$ with no target-curve fitting (\S\ref{sec:exp}).
@@ -144,12 +146,29 @@ lag---the textbook signature of a rate-dependent (non-adiabatic) effect, and exa
 dependence an adiabatic law cannot represent.
 
 \begin{figure}[t]\centering
+\includegraphics[width=0.98\linewidth]{figs/fig_wsd_fit_zoom.png}
+\caption{Curve-level reproduction and local WSD fit at $100$M. The reproduced Tissue and
+MPL predictors fit the global trajectory well, but the cooldown zoom reveals that MPL
+systematically underestimates the true loss immediately after the sharp LR drop. The
+residual panel isolates the non-adiabatic lag used by the correction.}
+\label{fig:curve_overlay}
+\end{figure}
+
+\begin{figure}[t]\centering
 \includegraphics[width=0.98\linewidth]{figs/fig_residual_fit.png}
 \caption{The well-fit MPL prediction residual on the held-out \code{wsd} curve (solid) is $\approx0$
 during the stable phase and jumps up at the step-$20000$ decay. The derived rate-dependent
 term $\kappa\,\Drop$ (dashed) captures it ($R^2{=}0.40/0.80/0.87$ at $25/100/400$M; the
 signal, and the fit, grow with model size).}
 \label{fig:resid}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.98\linewidth]{figs/fig_wsd_residual_by_scale.png}
+\caption{WSD cooldown residuals around the LR drop for all three public model scales.
+The positive post-drop residual is visible at $25/100/400$M, so the effect is not a
+single-curve artifact.}
+\label{fig:wsd_resid_scale}
 \end{figure}
 
 
@@ -197,20 +216,27 @@ This assumption is intentionally weaker than a quadratic-loss or diagonal-noise 
 may be a covariance state, a preconditioned noise-floor state, or any locally stable state
 whose equilibrium depends on the LR.
 
-\paragraph{Assumptions used by the main result.}
-The detailed proof in Appendix~\ref{app:linear_response} uses the following local conditions.
-First, $\Phi_{S,\eta}$, $z^\star(S,\eta)$, and $\ell$ are twice differentiable in a small
-neighborhood of the decay window. Second, the linearized dynamics
-\[
-T_t=D_z\Phi_{S_t,\eta_t}\big(z^\star(S_t,\eta_t)\big)
-\]
-is stable in the sense that products $T_{t-1}\cdots T_{k+1}$ are uniformly bounded and
-summable over the window. Third, we isolate the response forced by LR decrements; the response
-to slow $S$-drift is treated as a nuisance drift term already largely captured by the
-adiabatic backbone. Fourth, for the sign statement only, we assume a positive response cone:
-$\partial_\eta z^\star$ lies in a cone preserved by $T_t$, and the loss observable is
-nonnegative on this cone. This last condition is not needed for the convolutional form; it
-only formalizes why LR decay produces a positive residual.
+\paragraph{Weak assumptions used by the main result.}
+The detailed proof in Appendix~\ref{app:linear_response} uses only local conditions on the
+decay window:
+\begin{itemize}
+\item[(A1)] \emph{Smooth moving equilibrium.} $\Phi_{S,\eta}$, $z^\star(S,\eta)$, and
+$\ell$ are twice differentiable near the observed trajectory.
+\item[(A2)] \emph{Local stability.} The linearized maps
+$T_t=D_z\Phi_{S_t,\eta_t}(z^\star(S_t,\eta_t))$ have uniformly summable products:
+$\|T_{t-1}\cdots T_{k+1}\|\le q_{k,t}$ with $\sup_t\sum_{k<t}q_{k,t}<\infty$.
+\item[(A3)] \emph{Separated slow drift.} The first-order response to the gradual change of
+$S_t$ is already included in the adiabatic backbone up to a small nuisance
+$\epsilon^S_t$; we isolate the response forced by LR decrements.
+\item[(A4)] \emph{First-order optimizer time.} On the active subspace,
+$T_t=I-\eta_tA+E_t$ with stable bounded $A$ and
+$\|E_t\|\le C(\eta_t^2+\epsilon_{\mathrm{drift}})$ over the cooldown window.
+\item[(A5)] \emph{Positive response cone, only for the sign claim.}
+$\partial_\eta z^\star$ lies in a cone preserved by $T_t$, and $D\ell$ is nonnegative on that
+cone.
+\end{itemize}
+A1--A4 are enough to derive the current law's convolutional form; A5 is only a sufficient
+condition for the positive residual sign.
 
 \paragraph{Proposition: causal LR-decrement response.}
 Define the tracking error
@@ -308,6 +334,15 @@ $\Drop$ using normalized drops $(\eta_k-\eta_{k+1})_+/\eta_{\mathrm{peak}}$, the
 is equivalently $c\eta_{\mathrm{peak}}\chi$; with raw LR drops, the dimensionally invariant
 amplitude is $c\chi$.
 
+\paragraph{Corollary: current law under the weak assumptions.}
+Under A1--A4, if the initial transient at the decay start is negligible and the scalar
+response kernel is dominated by one slow mode $a=\lambda_{\mathrm{slow}}$, then the leading
+cooldown residual is exactly Eq.~\eqref{eq:law} up to the second-order remainder in
+Eq.~\eqref{eq:error_schematic_main}. Thus the operational correction does not require a
+quadratic network model: it is the one-pole closure of a stable moving-equilibrium response.
+The AdamW calculation below is only used to identify $\chi$ and to motivate the expected
+scale of $\lambda_{\mathrm{slow}}$.
+
 \paragraph{AdamW specialization.}
 The preceding response law does not rely on AdamW. AdamW supplies a local effective-mode
 calculation that explains the observed amplitude and timescale. This reduction ignores
@@ -376,6 +411,14 @@ each)~\cite{luo2025}; a faithfully reproduced MPL (test MAE $0.0054/0.0050/0.008
 \cite{luo2025}) is the baseline throughout. We freeze the published MPL and compare it to
 MPL$+$Eq.~\eqref{eq:law}; the only addition is the rate-dependent term. Unless noted
 $\lambda_{\mathrm{slow}}{=}10$.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.98\linewidth]{figs/fig_data_wsd_focus.png}
+\caption{The public $100$M curves most relevant to the non-adiabatic question. Cosine,
+WSD, and WSD-long-decay reach similar low-LR destinations, but WSD changes LR much faster.
+The bottom-row zoom shows the local region where rate dependence should appear.}
+\label{fig:curve_gallery}
+\end{figure}
 
 \paragraph{The rate prediction $\tau\propto1/\eta$ holds (Fig.~\ref{fig:tau}).}
 The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
@@ -451,6 +494,107 @@ Scale & MPL & $+$ours & MPL & $+$ours & avg.\ $\Delta$\\
 \end{tabular}
 \end{table}
 
+\paragraph{Calibration audit within the same law.}
+We also searched calibration choices while keeping Eq.~\eqref{eq:law} fixed
+(\code{repro/current\_law\_calibration\_search.py}). The final target remained the same:
+cosine-fit MPL evaluated on \code{wsd}/\code{wsdld}. Fitting only the amplitude $\kappa$ on
+the single non-target probe \code{wsdcon\_9} improves the final WSD MAE by $14.5\%$ (6/6
+wins) at $\lambda=10$. Fitting $\kappa$ on all three \code{wsdcon} probes improves by
+$17.9\%$ (6/6 wins), with the best $\lambda$ in the range $7$--$10$. The stronger
+cross-scale chain in Table~\ref{tab:xscale} remains best: scanning
+$\lambda\in\{2,3,5,7,10,14,20,30,50\}$ gives $40.5$--$45.0\%$ improvement, with
+$\lambda=10$ still giving $44.0\%$ and 6/6 wins. Thus $\lambda=10$ is not a tuned optimum
+chosen on the target curves; it is an independently measured, near-optimal value, while the
+main gain comes from the theoretically motivated amplitude transfer
+$\kappa=c\,\eta_{\mathrm{peak}}\chi$.
+
+\paragraph{Final amplitude rule: nuisance-projected empirical Bayes.}
+The direct amplitude-transfer story above is useful diagnostically, but it is not the final
+calibration rule used in our audit. The final estimator treats the MPL residual
+$r=L_{\mathrm{obs}}-L_{\mathrm{MPL}}$ as
+\[
+r=\kappa_\star\phi+g_\star+\varepsilon,\qquad g_\star\in\mathcal G,\qquad \kappa_\star\ge0,
+\]
+where $\phi$ is the response feature generated by Eq.~\eqref{eq:law} and $\mathcal G$ is a
+low-frequency MPL-residual nuisance subspace. Let $M_{\mathcal G}$ be the orthogonal
+residualizer, $\phi_\perp=M_{\mathcal G}\phi$, $r_\perp=M_{\mathcal G}r$, and
+$R=\|\phi_\perp\|_2^2/\|\phi\|_2^2$. The cap-free paper-facing amplitude is
+\begin{equation}\label{eq:kappa_final}
+\widehat\kappa
+=
+\sqrt R
+\left(
+\frac{\langle \phi_\perp,r_\perp\rangle}
+     {\|\phi_\perp\|_2^2+\tau^2}
+\right)_+,
+\qquad \tau=\sigma/k_0 .
+\end{equation}
+This is a Frisch--Waugh--Lovell partial-regression coefficient with an empirical-Bayes
+ridge denominator and an identifiable-amplitude conversion. The prior/noise ratio $\tau$ is
+estimated from calibration curves only; a stricter train-only variant preserves the legacy
+smooth-basis result (worst off-diagonal $-2.7\%$, mean $-12.1\%$, cosine$\to$WSD $-5.6\%$).
+Across the current cross-schedule transfer matrix, the strongest cap-free implementation of
+Eq.~\eqref{eq:kappa_final} gives worst off-diagonal MAE change $-2.7\%$, mean off-diagonal
+$-12.1\%$, cosine$\to$WSD $-4.3\%$, and \code{wsdcon\_9}$\to$WSD $-16.0\%$. The optional
+hard cap $\kappa\le0.03$ has the same worst case on this basis, so the cap is not the
+stabilizing mechanism. Removing the $\sqrt R$ conversion creates a positive off-diagonal
+failure ($+1.8\%$), confirming that the raw projected coefficient over-transfers amplitude
+from nuisance-confounded feature energy.
+
+\paragraph{Choosing the nuisance subspace.}
+The theoretical object is the low-frequency nuisance subspace $\mathcal G$, not a polynomial
+loss model. As a schedule-agnostic check, we also define
+$\mathcal G_K=\operatorname{span}\{q_0,\ldots,q_K\}$ from discrete-cosine low-frequency
+modes and choose the bandwidth by a two-stage rule:
+\[
+K^\star=\arg\min_{K\ge K_{\min}}\left|
+\frac{\|M_{\mathcal G_K}\phi\|_2^2}{\|\phi\|_2^2}-\rho\right|.
+\]
+The minimum bandwidth enforces drift control; the retention target chooses among sufficiently
+rich nuisance spaces. Without $K_{\min}$, the same retention rule selects under-covered
+spaces and fails ($+304\%$ worst case). With $K_{\min}=3$ and $\rho=0.35$, the automatic
+spectral rule remains non-failing (worst $-1.7\%$, mean $-11.2\%$, cosine$\to$WSD
+$-10.1\%$). A balanced fixed choice $K=4$ also remains non-failing (worst $-1.8\%$,
+cosine$\to$WSD $-3.6\%$). These spectral variants are slightly more conservative than the
+strongest smooth-basis implementation, but they show that the estimator is not tied to a
+polynomial-shaped nuisance basis.
+
+\paragraph{Split audit: what the law does \emph{not} claim.}
+To avoid mistaking a useful correction for a universal residual patch, we exhaustively varied
+the calibration/test split over the five non-cosine public curves
+(\code{repro/current\_law\_split\_research.py}). When $\lambda$ and $\kappa$ are chosen only
+by training residual fit, the median held-out improvement is still positive ($-14.1\%$,
+182/225 wins), but there are large failures: calibrating on the two sharp decays and testing
+the long \code{wsdcon} tails can worsen MAE by $70$--$96\%$. Conversely, restricting
+calibration to the \code{wsdcon} probes and evaluating the final sharp-decay target improves
+42/42 scale/probe cases (mean $-14.8\%$). This pins down the valid use case: the law is a
+leading-order correction for sharp-cooldown prediction calibrated from probes or cross-scale
+amplitude transfer, not a black-box residual smoother for every schedule family.
+
+\paragraph{Matched calibration matters.}
+We then asked whether simply using more calibration curves improves the same law
+(\code{repro/current\_law\_more\_data\_calibration.py}). In a leave-one-sharp protocol, using
+the other full sharp-decay curve to calibrate $\kappa$ predicts the held-out sharp decay very
+well: $-49.0\%$ MAE at fixed $\lambda=10$ and $-49.9\%$ when $\lambda$ is selected from the
+calibration set (6/6 wins). But adding the three \code{wsdcon} probes to that same sharp
+calibration \emph{reduces} the gain to $-19.5\%$ at $\lambda=10$; probes alone give
+$-17.6\%$. Thus the issue is not sample count. Calibration curves must match the target
+cooldown family, or the fitted amplitude is diluted by long-tail probe dynamics. This result
+also separates two regimes: if one full WSD-family curve is already available, the current law
+transfers strongly across sharp shapes; if no full WSD curve is available, the safer
+low-calibration claim remains the probe/cross-scale protocol in Table~\ref{tab:xscale}.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.86\linewidth]{figs/fig_decay_family_matrix.pdf}
+\caption{Cross-schedule train-family by test-family calibration matrix for the fixed current law
+($\lambda_{\mathrm{slow}}=10$). Each cell fits only $\kappa$ from the row family and
+evaluates the column family across $25/100/400$M curves. Cosine is included as a smooth-decay
+diagnostic, with the caveat that the MPL backbone was fit on cosine curves. Cosine-calibrated
+residuals do not transfer to WSD targets; \code{wsdcon} step probes transfer stably but with
+smaller amplitude; sharp-WSD calibration over-corrects the two-stage \code{wsdcon} tails.}
+\label{fig:decay_matrix}
+\end{figure}
+
 \paragraph{Honest scope: when it does \emph{not} help.}
 If instead one refits MPL on a few \emph{full} WSD curves, MPL itself absorbs the residual
 (held-out MAE $0.0037\!\to\!0.0032$) and the explicit term adds nothing. So the residual is,
@@ -492,11 +636,13 @@ identifiable only \emph{across} schedules. The honest claim is therefore the no-
 Table~\ref{tab:real} signature plus the $+0.18$ joint advantage, not a single-curve $R^2$.
 
 \begin{table}[t]\centering\small
-\begin{minipage}[t]{0.46\linewidth}\centering
-\caption{Real $\sim$10M transformer: three schedules to the \emph{same} final LR. The fast
-sweep ends highest despite the most cumulative LR.}
-\label{tab:real}
-\begin{tabular}{lcc}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{0pt}
+\captionsetup{justification=raggedright,singlelinecheck=false}
+\begin{minipage}[t]{0.48\linewidth}
+\vspace{0pt}\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcc@{}}
 \toprule
 schedule & final loss & cumulative LR $S$ \\
 \midrule
@@ -505,9 +651,13 @@ wsd (gradual)      & 1.0482 & 9.22\\
 wsd (\textbf{sharp}) & \textbf{1.0593} & \textbf{12.59}\\
 \bottomrule
 \end{tabular}
+\caption{Real $\sim$10M transformer schedules with the same final LR. The sharp sweep ends
+highest despite the largest cumulative LR.}
+\label{tab:real}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.5\linewidth}\centering
-\includegraphics[width=\linewidth]{figs/fig_real_transformer.png}
+\begin{minipage}[t]{0.48\linewidth}
+\vspace{0pt}\centering
+\includegraphics[width=0.96\linewidth]{figs/fig_real_transformer.png}
 \captionof{figure}{Residual vs.\ MPL on the real transformer: positive (lag) only for the
 sharp sweep, captured by $\Drop$.}
 \label{fig:real}
@@ -543,13 +693,13 @@ if Eq.~\eqref{eq:law} is implemented with raw LR drops, the fitted $c$ is $O(1)$
 prefactor becomes $c\,\eta_{\mathrm{peak}}\chi$ and the same data require $c\approx60$--$86$.
 The paper's $c\approx0.5$ is therefore tied to a specific (unstated) normalisation convention.
 
-Finally, several theory-driven extensions were tested in the controlled simulation
-(\code{results/EXTENSIONS\_REPORT.md}). The cleanest success is a \textbf{spectral-mixture}
-diagnostic: on a bimodal spectrum a two-exponential kernel improves $R^2$ by $0.065$ and
-recovers the two theoretical rates $2\lambda/s$ (relative errors $0.13$ and $0.006$). A
-cross-shape transfer of frozen parameters, however, \emph{fails} its pre-registered threshold
-(mean $R^2{=}0.52$); and the open problem (a)---computing $\lambda_{\mathrm{slow}}$ and $c$
-from first principles without an $O(1)$ fitted constant---remains open.
+Finally, \code{results/EXTENSIONS\_REPORT.md} tests several theory-driven extensions. The
+cleanest success is a \textbf{spectral-mixture} diagnostic: on a bimodal spectrum a
+two-exponential kernel improves $R^2$ by $0.065$ and recovers the two theoretical rates
+$2\lambda/s$ (relative errors $0.13$ and $0.006$). A cross-shape transfer of frozen
+parameters, however, \emph{fails} its pre-registered threshold (mean $R^2{=}0.52$); and the
+open problem (a)---computing $\lambda_{\mathrm{slow}}$ and $c$ from first principles without
+an $O(1)$ fitted constant---remains open.
 
 \section{Limitations}\label{sec:disc}
 The gain is regime-specific (data-poor sharp decays). If full WSD curves are available, a

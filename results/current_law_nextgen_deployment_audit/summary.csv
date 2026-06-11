@@ -1,0 +1,4 @@
+group,mean_delta_pct,mean_kappa_safe,mean_target_factor,non_harm_cells,tests,wins,worst_delta_pct
+main_matrix,-11.79106933591719,0.016644921692886564,1.0,558,558,558,-1.0263101049168721
+extra_holdout,0.0,0.0,0.0,558,558,0,0.0
+all,-5.895534667958595,0.008322460846443282,0.5,1116,1116,558,0.0

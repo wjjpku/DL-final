@@ -1,0 +1,2 @@
+chosen_over_harmful_max,chosen_threshold,geometric_midpoint,harmful_cells,log10_margin_width,main_cells,main_min_over_chosen,max_raw_harmful_retention,min_main_matrix_retention,min_main_win_retention
+1.74789553077665,0.01,0.009200958752288343,186,0.41269711137068144,558,1.4797271403026608,0.005721165724107469,0.01479727140302661,0.01479727140302661

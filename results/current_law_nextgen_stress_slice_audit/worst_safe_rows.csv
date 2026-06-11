@@ -1,0 +1,13 @@
+delta_pct,group,kappa,mode,scale,target_factor,target_retention,test_curve,test_label,train_label,train_size
+0.0,extra_holdout,0.024621858654901116,rho0p5_plus_Rtarget_gate,100,0.0,0.005450424819241895,cosine_24000.csv,Cosine 24k,Cosine,1
+0.0,extra_holdout,0.024621858654901116,rho0p5_plus_Rtarget_gate,100,0.0,0.0,constant_24000.csv,Constant 24k,Cosine,1
+0.0,extra_holdout,0.024621858654901116,rho0p5_plus_Rtarget_gate,100,0.0,0.0,constant_72000.csv,Constant 72k,Cosine,1
+0.0,extra_holdout,0.013703333359633963,rho0p5_plus_Rtarget_gate,25,0.0,0.005450424819241895,cosine_24000.csv,Cosine 24k,Cosine,1
+0.0,extra_holdout,0.013703333359633963,rho0p5_plus_Rtarget_gate,25,0.0,0.0,constant_24000.csv,Constant 24k,Cosine,1
+0.0,extra_holdout,0.013703333359633963,rho0p5_plus_Rtarget_gate,25,0.0,0.0,constant_72000.csv,Constant 72k,Cosine,1
+0.0,extra_holdout,0.04339152898551728,rho0p5_plus_Rtarget_gate,400,0.0,0.005450424819241895,cosine_24000.csv,Cosine 24k,Cosine,1
+0.0,extra_holdout,0.04339152898551728,rho0p5_plus_Rtarget_gate,400,0.0,0.0,constant_24000.csv,Constant 24k,Cosine,1
+0.0,extra_holdout,0.04339152898551728,rho0p5_plus_Rtarget_gate,400,0.0,0.0,constant_72000.csv,Constant 72k,Cosine,1
+0.0,extra_holdout,0.022652097282016195,rho0p5_plus_Rtarget_gate,100,0.0,0.005721165724107469,cosine_24000.csv,Cosine 24k,Cosine + WSD sharp,2
+0.0,extra_holdout,0.022652097282016195,rho0p5_plus_Rtarget_gate,100,0.0,0.0,constant_24000.csv,Constant 24k,Cosine + WSD sharp,2
+0.0,extra_holdout,0.022652097282016195,rho0p5_plus_Rtarget_gate,100,0.0,0.0,constant_72000.csv,Constant 72k,Cosine + WSD sharp,2
