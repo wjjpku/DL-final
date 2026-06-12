@@ -31,6 +31,8 @@ pip install -r requirements.txt          # numpy scipy matplotlib torch tqdm sci
 | 表5 / 二阶幅度闭合全协议对比 | `python3 repro/formula_lab/affine_sweep.py` (+`run_candidates.py`, `matrix_protocol.py`) | `results/formula_lab/DECISION_TABLE.md` |
 | floor 幂律 p 测量 | `python3 repro/formula_lab/floor_powerlaw.py` | stdout: p=1.06/1.49/1.25 |
 | 核形状负结果（Lomax/2-exp 坍缩） | `python3 repro/formula_lab/explore_kernels.py` + `probe_grid.py` | `results/formula_lab/explore_kernels.json` |
+| 匹配探针校准（p>1 门控）+ 矩阵单元格扩展 | `python3 repro/formula_lab/matched_probe.py` + `matrix_matched_cells.py` | stdout: probes-only −27.0/−36.8%，矩阵 d=0 严格 Pareto |
+| 结构方向对抗闭合（非线性ODE/吞并/D-factor/合并时钟） | `repro/formula_lab/{nonlinear_ode,annexation,test2_dfactor_gates,test3_clock}.py` | `results/formula_lab/DECISION_TABLE.md` 全程裁决记录 |
 | 真实模型界外泛化套件（双降/循环/逆平方根/急降） | `represent/repro/train_gen.py` + `analyze_gen.py` | `represent/results/GEN_REPORT.json` |
 | 真实模型等-S floor 阶梯 | `represent/repro/train_floor.py` + `analyze_floor.py` | `represent/results/curves_floor/` |
 | §3 完整数学推导 | 见 `docs/core/derivation.md` | — |

@@ -175,7 +175,7 @@ Six seed-matched constant-stage runs ending at identical cumulative LR S*
   confound);
 - floor = 1.0385 + 0.1178 (eta/peak)^0.731, p_real = 0.731 (90% CI
   [0.615, 0.855]) -- SUBLINEAR at 10.7M;
-- tau ~ eta^-0.18 with r2 >= 0.98 per rung (clean long-window confirmation of
+- tau ~ eta^-0.18 with r2 >= 0.977 per rung (clean long-window confirmation of
   the flat-tau anomaly).
 
 Scale trend of p: 0.73 (10.7M) -> 1.06 (25M) -> 1.49 (100M) -> 1.25 (400M).
