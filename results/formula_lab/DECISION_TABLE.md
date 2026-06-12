@@ -457,3 +457,18 @@ AUDIT-B addendum (m contingency executed): seeds 1340/1341 on ds {3000,
 fires vs the core ensemble with margin 3.6e-3 vs 2SE 1.37e-3 (was 3 seeds
 / margin 2.95 vs 2.09).  Wide-ensemble sensitivity unchanged (null).  The
 m prereg's 1.2e-3 contingency clause is now discharged.
+
+bs192 mini-ladder FINAL (prereg=bs192_ladder_prereg.json, committed before
+launch; G3 trunk replay PASS):
+  floors (design window): 0.9525/0.9677/0.9929/1.0254 at eta2 =
+  {2,4,8,15}e-4;  p = 0.614 (90% CI [0.576, 0.651]), monotone.
+  dp(bs48 -> bs192) = -0.033 vs fire line 0.074 -> BS_NULL.
+  Batch size does NOT reproduce the public-bed superlinearity at the m
+  recipe; combined with the matched-recipe scale ladder, BOTH parameter
+  count AND batch size are now positively excluded as lone drivers; the
+  attribution stays "source not localized (data/recipe/horizon/schedule
+  family/floor protocol)".  Clean side observation: B shifts the floor
+  LEVEL down substantially (consistent with noise-floor amplitude ~ eta/B)
+  while leaving the eta-EXPONENT unchanged -- the floor exponent is
+  invariant to the gradient-noise scale on this bed.
+  (analyze_b192.py, curves_floor_m_b192/)
