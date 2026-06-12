@@ -24,11 +24,20 @@ RUNG_ETA = {"5": 0.5e-4, "10": 1e-4, "20": 2e-4, "30": 3e-4, "40": 4e-4,
 N_BOOT = 1000
 
 
-def tail_floor(path):
+def tail_floor(path, eta2=None):
+    """Floor = mean smoothed eval over the DESIGN window (last 25% of stage
+    2 in STEPS: step >= 3000 + 0.75*T2).  The original row-fraction tail was
+    layout-dependent (audit finding 2-1: old/new CSVs got different windows,
+    and the no-drop rung's window started before the drop)."""
     rows = np.genfromtxt(path, delimiter=",", names=True)
     step = np.atleast_1d(rows["step"]).astype(int)
     loss = np.atleast_1d(rows["eval_loss"]).astype(float)
     sm = AC.smooth_by_step(step, loss)
+    if eta2 is not None:
+        cut = 3000 + 0.75 * int(round(1.2 / eta2))
+        m = step >= cut
+        if m.sum() >= 4:
+            return float(np.mean(sm[m])), step, sm
     n = len(step)
     return float(np.mean(sm[-max(4, n // 4):])), step, sm
 
@@ -122,7 +131,7 @@ def main():
         per_rung = {}
         for (r, seed), f in sorted(files.items(),
                                    key=lambda kv: RUNG_ETA[kv[0][0]]):
-            fl, _, _ = tail_floor(f)
+            fl, _, _ = tail_floor(f, RUNG_ETA[r])
             per_rung.setdefault(r, {})[seed] = fl
             print(f"  floor_{r:<4s} s{seed}: {fl:.4f}")
         rungs = sorted(per_rung, key=lambda r: RUNG_ETA[r])

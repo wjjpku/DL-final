@@ -344,3 +344,31 @@ prereg=optsched_predictions_l.json committed 8af32fa before launch):
   margins are 6-12x their 2SE).
   (train_optsched.py --scale l, analyze_optsched_l.py,
    OPTSCHED_L_REPORT.json)
+
+## Mid-round adversarial audit (5-agent workflow) -- remediation record
+
+AUDIT-C (Attempt 2 floor-extraction bug, severity major, verdict SURVIVES
+AND TIGHTENS): analyze_floor2.py took the last n//4 CSV ROWS, which is
+layout-dependent (old m files start at step 0, new at 3000 with dense early
+sampling; the no-drop rung's window even started 120 steps BEFORE the
+drop).  Fixed to the design window step >= 3000 + 0.75*T2.  Corrected:
+  m: p = 0.647 (90% CI [0.610, 0.683]);  l: p = 0.641 ([0.613, 0.673])
+  dp(m->l) = -0.006 vs fire line 0.067 (the test is now properly powered:
+  prereg expected signal 0.33 >> 0.067, unlike the shipped 0.380)
+  -> PRIMARY no; both CIs EXCLUDE 1 -> sublinear THROUGH the top trained
+  scale is now established (the prereg sublinear_through_top branch applies
+  legitimately); per-seed "chimera" (0.715 vs 0.861) collapses to
+  0.626/0.669 -- a uniform seed offset, protocol identity confirmed.
+  GATE-HARDENING at l RE-SCORED: was scoreable all along -> committed call
+  is "pool (p<=1)" (operationally unchanged; record corrected).
+  ATTRIBUTION WEAKENED per audit: "public 25M p=1.06 is not a
+  parameter-count effect at the matched recipe; the responsible bed-level
+  difference (batch size, recipe, data/tokenization, horizon, schedule
+  family, or floor protocol) is NOT localized."  A bs=192 mini-ladder
+  (bs192_ladder_prereg.json, committed before launch) is running to give
+  the batch-size hypothesis its first direct test; wording upgrades only
+  if BS_DRIVES fires.
+  Sensitivity per audit: no-150-rung p ~ 0.71 at both scales (stable under
+  corrected windows); floors are equal-S endpoint losses, still relaxing
+  (slopes -0.002..-0.025/1k steps) -- p is a budget-indexed equal-S
+  exponent, not an equilibrium exponent; p_tau covers the fast mode only.
