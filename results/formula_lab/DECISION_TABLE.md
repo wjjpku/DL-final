@@ -472,3 +472,19 @@ launch; G3 trunk replay PASS):
   while leaving the eta-EXPONENT unchanged -- the floor exponent is
   invariant to the gradient-noise scale on this bed.
   (analyze_b192.py, curves_floor_m_b192/)
+
+Attempt 3 spectroscopy, l bed FINAL (gate-filled second scale, post-audit
+wording): OFF_REGIME REPLICATES at 25M.  Control S_pre(0) = 9619 vs
+deterministic momentum-corrected edge 38/eta1 = 25333: ratio 0.38 (median
+over kept constant-eta control probes 0.37; volatility range 21x, 5/12
+probes dropped at the 0.05 Ritz gate -- dropped values 19.9k-80.1k
+disclosed; same P(v_hat)-state-driven spike pattern as m).  The e10 drop
+arm's in-window S_pre trend is NEGATIVE (rho = -0.80) -- the spectral top
+moves AWAY from the new edge while the loss relaxes (tau_loss = 230).
+Scoped conclusion (per AUDIT-D language): the deterministic-AEoS
+edge-pinning frame fails its pre-registered sanity precondition on BOTH
+beds (0.28 at 10.7M, 0.38 at 25M); post-drop loss relaxation proceeds
+without deterministic-edge re-pinning at either scale; re-pinning at a
+stochastic/adaptive effective threshold remains untested.  The slow mode
+remains phenomenological.  Attempt 3 is now terminal at both
+pre-registered scales.  (analyze_spectrum.py, SPECTRUM_REPORT.json)
