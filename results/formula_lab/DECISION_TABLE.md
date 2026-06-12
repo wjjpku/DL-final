@@ -372,3 +372,25 @@ drop).  Fixed to the design window step >= 3000 + 0.75*T2.  Corrected:
   corrected windows); floors are equal-S endpoint losses, still relaxing
   (slopes -0.002..-0.025/1k steps) -- p is a budget-indexed equal-S
   exponent, not an equilibrium exponent; p_tau covers the fast mode only.
+
+AUDIT-A (Attempt 1A, severity FATAL, VERDICT FLIPS): the shipped
+b_B = -0.199 was an artifact of per-arm fit windows confounded with B2
+(b12 fit over 8000 steps, b48+ over 4000; single-exp tau grows 2-3x with
+window length on the same arm because the model is misspecified).
+Window-matched re-analysis (bladder_rewindow.py, common caps, r2 gate 0.6):
+  W=1000: b_B = +0.014 [-0.023, +0.056]
+  W=2000: b_B = -0.016 [-0.059, +0.031]
+  W=4000: b_B = +0.121 [+0.077, +0.190]
+Every matched window lands in the pre-registered C1/C3 B-BLIND bucket
+(point in [-0.15, 0.15], CI excludes -0.5).  RESTATED VERDICT: C1/C3
+B-BLIND fires; "tau ~ B^-0.2" and "dichotomy falsified" are RETRACTED.
+What survives: exclusion of the C2 noise clock (-0.5) under every spec;
+the e10 sign flip at B2 >= 96 (robust at common horizon [6000,7000):
+-0.109/-0.066/-0.029/+0.006/+0.034), qualified to eta2=1e-4 only
+(B192/4e-4 gap is zero within noise).  The q amplitude claims are struck:
+the gap power law crosses zero so q is unestimable (the shipped fit also
+used un-preregistered sign-censoring).  Prereg disposition (B_blind
+branch): slow mode at 10.7M is not optimizer-noise relaxation; mechanism
+hunt moved to Attempt 3 -- which has since returned OFF_REGIME at m.
+Deployment unchanged (shipped clock was already B-blind).
+(bladder_rewindow.py)
