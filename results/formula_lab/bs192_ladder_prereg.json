@@ -1,0 +1,19 @@
+{
+  "name": "bs=192 mini equal-S floor ladder at m (audit mandatory item 8)",
+  "committed_before_launch": true,
+  "question": "Does raising batch size to 192 at the m recipe produce the superlinear floor exponent seen on public beds (directly testing the batch-size half of the Stage-1 attribution)?",
+  "design": {
+    "trunk": "bs=192, seed 1337, linear warmup 400 -> 1.5e-3, constant to step 3000, G3 bitwise replay gate",
+    "rungs": "eta2 in {2,4,8,15}e-4, T2 = round(1.2/eta2) equal-S, bs=192, seed 1337 (train_floor2.py --bs 192)",
+    "floors": "design window step >= 3000 + 0.75*T2 (the audit-corrected extraction), smoothed eval mean",
+    "fit": "3-param NLS floor = L + a*(eta/peak)^p + 1000-rep residual bootstrap (analyze_floor pipeline)"
+  },
+  "verdicts": {
+    "BS_DRIVES": "p(bs192) - p(bs48 corrected, = 0.647) > 2x pooled CI half-width AND p(bs192) CI_lower > 1: batch size produces superlinearity; Stage-1 attribution gets direct support",
+    "BS_ELEVATES": "delta-p > 2x pooled half-width but CI straddles/below 1: bs raises p but does not reproduce public superlinearity alone",
+    "BS_NULL": "delta-p <= 2x pooled half-width: attribution falls to data/recipe/protocol; the weakened wording (source not localized) becomes permanent"
+  },
+  "power_note": "4 rungs, 1 seed: expect CI half-width ~0.08-0.15 (vs 0.037 at 8 rungs x 2 seeds); powered only for the large public-bed-size effect (delta-p ~ 0.3-0.7), which is the claim under test",
+  "wording_pending": "DECISION_TABLE attribution is weakened to 'not parameter count; source not localized' EFFECTIVE IMMEDIATELY and upgraded only if BS_DRIVES fires",
+  "dof_note": "zero formula DOF; pure bed measurement"
+}

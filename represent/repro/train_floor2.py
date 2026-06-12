@@ -38,6 +38,7 @@ SCALES = {
     "xl": dict(d=576, nh=9, nl=9, block=256),
 }
 PEAK, WARM, TRUNK, S2STAR, BS = 1.5e-3, 400, 3000, 1.2, 48
+DIRSFX = ""   # set to f"_b{bs}" by --bs for non-48 beds (bs192 prereg)
 RUNGS = {
     "floor_5": 0.5e-4, "floor_10": 1.0e-4, "floor_20": 2.0e-4,
     "floor_30": 3.0e-4, "floor_40": 4.0e-4, "floor_60": 6.0e-4,
@@ -55,7 +56,7 @@ def build_model(scale, seed):
 
 
 def cdir(scale):
-    d = os.path.join(ROOT, "results", f"curves_floor_{scale}")
+    d = os.path.join(ROOT, "results", f"curves_floor_{scale}{DIRSFX}")
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -154,7 +155,12 @@ def main():
     ap.add_argument("--seed", type=int, default=1337)
     ap.add_argument("--only", default=None)
     ap.add_argument("--trunk_only", action="store_true")
+    ap.add_argument("--bs", type=int, default=48)
     a = ap.parse_args()
+    if a.bs != 48:
+        global BS, DIRSFX
+        BS = a.bs
+        DIRSFX = f"_b{a.bs}"
     trd = np.memmap(os.path.join(a.data_dir, "wiki_train.u8"), dtype=np.uint8,
                     mode="r")
     vad = np.memmap(os.path.join(a.data_dir, "wiki_val.u8"), dtype=np.uint8,
