@@ -114,8 +114,14 @@ def main():
         for seed in [1338, 1339]:
             arms.append((f"wsdld_s{seed}", wsdld_sched(), seed))
     if a.only:
-        tag, etas, seed = next(x for x in arms if x[0] == a.only)
-        train_one(tag, etas, seed, trd, vad)
+        import re
+        m_ = re.match(r"ds(\d+)_s(\d+)$", a.only)
+        if m_:
+            train_one(a.only, lin_sched(int(m_.group(1))), int(m_.group(2)),
+                      trd, vad)
+        else:
+            tag, etas, seed = next(x for x in arms if x[0] == a.only)
+            train_one(tag, etas, seed, trd, vad)
         return
     for tag, etas, seed in arms:
         train_one(tag, etas, seed, trd, vad)

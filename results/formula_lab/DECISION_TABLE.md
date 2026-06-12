@@ -321,3 +321,26 @@ Attempt 3 spectroscopy, m bed FINAL (prereg=repin_prereg.json):
   claim.  l-bed verdict pending (l wave re-running at micro-12 probes
   P=1 after the 3x10.4GB OOM collision; coexists with Phase-B derby).
   (train_spectrum.py, analyze_spectrum.py, SPECTRUM_REPORT.json)
+
+Attempt 2 appendix FINAL-pending-contingency (25M derby, 12 arms,
+prereg=optsched_predictions_l.json committed 8af32fa before launch):
+  Tail means [5800,6000); paired gaps vs ds=3000:
+    g(1300)=+2.14e-3 +/-0.87e-3 | g(5000)=+8.61e-3 +/-0.63e-3 |
+    g(5700)=+30.34e-3 +/-0.70e-3
+  V1_l FIRES (+8.61e-3 vs adiabatic +0.17e-3 + spread 0.14e-3; 2SE=1.27e-3)
+  V2_l FIRES (+30.34e-3 vs adiabatic +13.95e-3 + spread 0.51e-3; 2SE=1.39e-3)
+  => lag pricing of FINAL loss REPLICATES at 25M: not a 10.7M artifact.
+  V5_transfer: B_identity beats naive on ALL closures (delta-chi2 = +73.4 /
+  +206.7 / +226.9 for d=0/0.5/0.75, far over the 6 line) => the
+  zero-measurement kappa transfer kappa_l = kappa_m * B_l/B_m is
+  decisively selected; the B-identity chain generalizes across scale.
+  Best closure at l remains d=0.75 (chi2 120 vs d=0 668) and ALL closures
+  still underprice late cooldowns -- same mechanism-stronger-than-formula
+  signature as the m bed.
+  Contingency clause triggered to the letter: max paired SD 1.51e-3 >
+  1.5e-3 (driven by the ds=1300 sanity arm; verdict-bearing gaps are at
+  1.10/1.21e-3) -> seeds 1340/1341 on ds {3000,5700} launched; verdicts
+  will be restated on 5 seeds when they land (no directional risk: V1/V2
+  margins are 6-12x their 2SE).
+  (train_optsched.py --scale l, analyze_optsched_l.py,
+   OPTSCHED_L_REPORT.json)
