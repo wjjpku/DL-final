@@ -36,3 +36,6 @@ slides/*.log
 represent/data/
 represent/MultiPowerLaw/
 represent/.DS_Store
+
+# Local LaTeX compiler binary (50MB+, machine-specific)
+tools/

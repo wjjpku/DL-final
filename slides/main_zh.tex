@@ -11,6 +11,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage[normalem]{ulem}
 
 \newcommand{\hl}[1]{\textcolor{blue!60!black}{\textbf{#1}}}
 \newcommand{\Drop}{\ensuremath{\mathrm{DropRelaxS}}}
@@ -306,6 +307,36 @@ $\lambda_{\rm slow}$（经验稳定）+ $c$（留一校准）+ $dL_{\rm eq}/d\et
 \textbf{诚实边界。} 若已有几条\emph{完整} WSD 曲线、直接重拟 MPL，MPL 自己就把残差吸收了（MAE $0.0037\to 0.0032$），显式项不再加分。\hl{价值在数据稀缺场景}：有 cosine + 廉价探针、但没有完整 WSD 曲线——正是"训练前预测"的真实用途。
 \end{frame}
 
+\begin{frame}{升级 1：B-恒等式——幅度本来就在 MPL 里}
+\textbf{命题。} 在固定 $S$ 下比较"保持 $\eta$"与"降到 $\eta-d\eta$ 并等饱和"：MPL 退火项变化 $-B\,d\eta\,G(\cdot)\to -B\,d\eta$（$G\to1$）。
+\[
+\left.\partial_\eta L^{\rm MPL}_{\rm eq}\right|_S = B
+\quad\Rightarrow\quad \text{MPL 自带的 } B \text{ 就是修正所需的地板敏感度 } dL_{\rm eq}/d\eta .
+\]
+\vfill
+\textbf{验证（可证伪）。} $B=363.8/437.9/523.4$ vs 独立探针测量 $381.7/499.3/561.5$（偏差 $5$--$15\%$，三个尺度全部成立）。
+\vfill
+\begin{block}{零额外测量迁移链}
+$\kappa = c''\,\eta_{\rm peak} B$（$c''$ 留一尺度平均，CV 14.7\%）→ 同协议 \hl{$-43\%$，6/6}，与探针链 $-44\%$ 持平，但\hl{不需要目标尺度的任何额外训练}。光滑-only 重拟合 $B$（漂移 $\le30\%$）仍保留 $-36\%\sim-40\%$。
+\end{block}
+\end{frame}
+
+\begin{frame}{升级 2：二阶幅度闭合 $\chi(\eta)\propto\eta^{\delta}$}
+\textbf{发现。} 平衡噪声地板\hl{超线性}：$F_{\rm eq}\propto\eta^{1+\delta}$，$1{+}\delta = 1.06/1.49/1.25$（25/100/400M 探针实测）。原闭合把 $\chi$ 冻结为常数，丢掉了推导中本来就有的 $\eta_k$ 依赖。
+\[
+L(t)=L_{\rm MPL}(t)+\kappa\sum_{k<t}\Big(\tfrac{\eta_k}{\eta_{\rm peak}}\Big)^{\!\delta}
+e^{-\lambda_{\rm slow}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\rm peak}}
+\]
+\vfill
+\begin{itemize}
+\item 公开曲线：$\delta{=}1/4$（Pareto 选取，从不在目标上拟合）令审计迁移矩阵\hl{所有聚合指标占优}；纯探针校准 $-17\%\to-23\%\sim-29\%$。
+\item \hl{真实 10.7M 模型、从未用于选 $\delta$ 的界外调度}：sharp600 $-18\%\to-71\%$（$\delta{=}3/4$）；第二套 showcase 床 wsd\_sharp $-14\%\to-52\%$。
+\item 诚实拆分：部分增益来自幅度再校准（$\le1$ 权重抬高拟合 $\kappa$）；oracle 等幅度下族内形状仍以 $\delta{=}0$ 略优。
+\item 机制：NQM 仿射路线在量级上\hl{被证伪}（差 3 个量级）；bulk+edge 谱（追踪截断 $a_{\max}\!\propto\!1/\eta$）给出 $F=c_1\eta+c_2\eta^{\zeta}$——一致但边缘重适应步仍是 conjecture。
+\item 等-$S$ 阶梯（消除骨干混淆）：10.7M 的地板指数 $p=0.73\,[0.62,0.86]$ \hl{亚线性}——指数随尺度涌现（$0.73\to1.06\to1.49\to1.25$），10M 上 $\delta>0$ 的增益来自浓度依赖的可见幅度而非地板曲率；$\delta$ \hl{无跨尺度普适值}，按尺度实测是唯一可辩护路线。
+\end{itemize}
+\end{frame}
+
 % =====================================================================
 \section{独立复现}
 \begin{frame}{独立复现 1：真实 $\sim$10M transformer}
@@ -415,23 +446,27 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=1.00\pm 0.18$），自洽验证噪声主导假设。
 \item 独立复现（真实 transformer + NQM 模拟）从两端确认机制，同时\hl{诚实标出边界}（$\tau$ 在 $\sim$10M 未复现、单曲线简并、$\eta_{\rm peak}$ 歧义）。
 \item 形状常数在公开同架构尺度上经验稳定 $\Rightarrow$ \hl{低校准跨尺度迁移}，陡降误差 $-$44\%、6/6 全胜。
+\item \hl{B-恒等式}：MPL 自带的 $B$ 即地板敏感度（$5$--$15\%$ 内验证）$\Rightarrow$ 零额外测量迁移 $-43\%$。
+\item \hl{二阶幅度闭合} $\chi(\eta)\propto\eta^{\delta}$：审计矩阵全指标占优；真实模型界外调度上探针校准 $-18\%\to-71\%$；核形状与速率统一两条死路诚实关闭。
 \end{enumerate}
 \vfill
 \textbf{局限（诚实版）。} 增益限于数据稀缺的陡降；$\lambda_{\rm slow}, c$ 是测量值而非第一性原理计算；$\eta_{\rm peak}$ 归一化有歧义；$\tau\propto 1/\eta$ 在 $\sim$10M 未复现；跨形状迁移失败；单曲线上核简并；所有真实数据仅来自单一公开数据集的三个尺度。
 \end{frame}
 
 \begin{frame}{下一步工作}
-\textbf{优先级 1（补上最大证据缺口）：}
+\textbf{本轮已完成（原优先级 1/2 中的三项）：}
 \begin{itemize}
-\item \hl{幅度恒等在真实模型上的独立检验}：在 $\sim$10M 模型上训练 3--4 条 constant LR 曲线，独立测 $dL_{\rm eq}/d\eta$，与 DropRelaxS 拟合幅度比较。
-\item \hl{S-time 操控实验}：改 batch size 使 step-time profile 相同但 S-time 不同，直接检验记忆变量是 $S$ 而非 $t$。
+\item \sout{真实模型地板独立测量} → 等-$S$ 阶梯（6 条 constant 段、统一累计 LR）直接测 $F_{\rm eq}(\eta)$ 幂律。
+\item \sout{多段递减探针} → \texttt{twodrop} 叠加分解：低 $\eta$ 降的可见滞后 $A_2/A_1\le0.13$，比一切闭合预测更强的抑制。
+\item \sout{warmup 对称性} → \texttt{cyclic} 再升温：MPL 骨干自身先失效（残差 $+0.07$），滞后项无法在其上检验。
 \end{itemize}
 \vfill
-\textbf{优先级 2（拓展适用范围）：}
+\textbf{仍开放：}
 \begin{itemize}
-\item 多段递减探针：不同 drop 幅度、不同第二阶段长度，验证残差结构。
+\item \hl{S-time 操控实验}：改 batch size 使 step-time profile 相同但 S-time 不同，直接检验记忆变量是 $S$ 而非 $t$。
 \item NQM 中换 SGD，检验效应是否不限于 AdamW。
-\item warmup 对称性：快速 LR 上升是否产生负残差？
+\item $c$ 的浓度依赖（瞬时降 $c\approx0.1$--$0.26$ vs 渐进降 $0.43$--$0.60$）的第一性原理解释。
+\item 识别性门槛的跨套件可移植性（invsqrt 过矫案例）。
 \end{itemize}
 \vfill
 \textbf{优先级 3（深入机理）：}
@@ -460,6 +495,9 @@ NQM 模拟 E1--E6 & \texttt{represent/repro/E*.py} \\
 真实 transformer 训练 & \texttt{represent/repro/train.py} \\
 曲线分析 + 对抗审计 & \texttt{represent/repro/analyze\_*.py} \\
 综合报告 & \texttt{represent/REPORT.md} \\
+B-恒等式与零测量链 & \texttt{repro/formula\_lab/\{amp\_from\_B,b\_stability\}.py} \\
+二阶闭合全协议对比 & \texttt{repro/formula\_lab/affine\_sweep.py} 等 \\
+真实模型界外套件/等-$S$ 阶梯 & \texttt{represent/repro/\{train\_gen,train\_floor,analyze\_gen,analyze\_floor\}.py} \\
 \bottomrule
 \end{tabular}
 \end{center}
