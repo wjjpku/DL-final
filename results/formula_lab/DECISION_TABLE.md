@@ -451,3 +451,9 @@ AUDIT-D (Attempt 3 m-bed, severity major on wording, gate outcome STANDS):
   only to the preconditioned operator; probe values are not bitwise
   reproducible across driver revisions (2ppm FP-order difference).
   (derby_likeforlike.py, SPECTRUM_REPORT.json)
+
+AUDIT-B addendum (m contingency executed): seeds 1340/1341 on ds {3000,
+5000} landed; V1 restated on 5 seeds: g(5000) = +7.75e-3 +/- 0.68e-3,
+fires vs the core ensemble with margin 3.6e-3 vs 2SE 1.37e-3 (was 3 seeds
+/ margin 2.95 vs 2.09).  Wide-ensemble sensitivity unchanged (null).  The
+m prereg's 1.2e-3 contingency clause is now discharged.
