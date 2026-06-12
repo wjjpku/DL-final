@@ -394,3 +394,60 @@ branch): slow mode at 10.7M is not optimizer-noise relaxation; mechanism
 hunt moved to Attempt 3 -- which has since returned OFF_REGIME at m.
 Deployment unchanged (shipped clock was already B-blind).
 (bladder_rewindow.py)
+
+AUDIT-B (1F + l-appendix, severity FATAL on metric construction, verdicts
+RESTATED like-for-like): committed predictions were ENDPOINT (step 5999)
+values while the metric is the window mean over [5800,6000) of
+still-cooling curves -- the late-cooldown arm descends 15e-3 inside the
+window, mechanically inflating measured-vs-predicted excesses.  Both sides
+now use the identical 21-step eval grid (derby_likeforlike.py; zero new
+freedom).  RESTATED:
+  m bed:  V1 fires marginally vs the core ensemble (+7.14e-3 vs 3.35+0.84;
+    margin 2.95e-3 vs 2SE 2.09e-3) but goes NULL under a widened 7-split
+    ensemble (spread 18.8e-3) and sits below the backbone's own
+    demonstrated V4 systematic (-6.3e-3 at ds=1300) => absolute lag
+    pricing at m is NOT established.  V2 is NULL-consistent like-for-like
+    (+28.31 vs 26.53+2.11).  Closure comparison (POST-HOC at m -- the chi2
+    machinery was not in the m prereg; it was prereg'd only at l): d>0
+    closures beat d=0/MPL (chi2 36.4/31.0 -> 18.0/15.5), d=0.5 vs d=0.75
+    indistinguishable (delta 2.5 < 6).  "Mechanism stronger than strongest
+    closure" RETRACTED (it inverts like-for-like).  Headline weakened to:
+    late-cooldown final-loss gaps are consistent with the lag-corrected
+    backbone; the adiabatic-only excess is marginal and ensemble-dependent.
+  l bed (g(5700) restated on 5 seeds per contingency: +29.48e-3 +/-0.70):
+    V1_l fires vs core ensemble (+8.61 vs 3.67+0.25; margin 4.7e-3 vs 2SE
+    1.27e-3) -- stronger than m -- but NULL under the widened ensemble;
+    V2_l NULL like-for-like (+29.48 vs 28.82+0.97).
+    V5_transfer like-for-like is MIXED: B_identity wins d=0 (+12.7) and
+    d=0.5 (+12.9), naive wins d=0.75 (-43.5).  "B-identity decisively
+    selected" is RETRACTED -> "closure-dependent; not separated overall".
+    kappa-ratio split instability (1.18 vs 2.42; B_m 581 vs 277) now
+    reported as the transfer chain's dominant internal uncertainty.
+  m contingency seeds 1340/1341 on ds {3000,5000} are running (the m
+  prereg's own 1.2e-3 clause had fired unnoticed); V1 will be restated on
+  5 seeds when they land.  Bookkeeping fixed per audit: V4 band and the
+  closure chi2 are labeled post-hoc at m; wsdld cross-check is
+  cross-driver and not comparable; "14 arms 3 seeds" -> 14 runs.
+
+AUDIT-D (Attempt 3 m-bed, severity major on wording, gate outcome STANDS):
+  the OFF_REGIME gate is robust (median control ratio 0.23, all edge
+  conventions outside band: 38/eta -> 0.28, 2/eta -> 5.4, 3.8/eta -> 2.8
+  -- under the prereg's own definition the band check fails under all).
+  BUT the terminal language overreached: the [0.5,1.5]x38/eta yardstick
+  assumes deterministic full-batch dynamics with slow preconditioner;
+  this bed is bs=48 + bf16 noise + beta2=0.95 (20-step v_hat memory),
+  where noise-regulated SUB-edge curvature equilibration predicts exactly
+  the observed sub-band reading -- and the b192 arm's clean monotone
+  S_pre rise (7158 -> 21341, rho=0.94) positively supports that account.
+  RESTATED: "the deterministic-AEoS edge-pinning frame fails its prereg
+  sanity precondition on this bed; re-pinning at a stochastic/adaptive
+  effective threshold remains UNTESTED."  "Progressive sharpening
+  instead" is deleted (control raw lam_max falls; S_pre shows no trend).
+  Disclosures added per audit: control S_pre is violently volatile under
+  constant eta (kept range 4182-55136, 13x; the two dropped probes are
+  the extremes 156717/45573 -- P(v_hat)-state-driven, not curvature);
+  the raw-Hessian secondary channel NEVER converged (res_r 0.19-0.30 >>
+  0.05 gate on all but 1 probe) and is unusable -- "probes clean" applied
+  only to the preconditioned operator; probe values are not bitwise
+  reproducible across driver revisions (2ppm FP-order difference).
+  (derby_likeforlike.py, SPECTRUM_REPORT.json)
