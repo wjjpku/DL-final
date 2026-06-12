@@ -304,3 +304,20 @@ Attempt 2 Stage-1 FINAL (scale ladder m/l, prereg=scaleladder_prereg.json):
   trunks survived, refill idempotent via skip-if-exists).  schedules.json
   read-modify-write race killed wsdcon_20 (relaunched solo).
   (train_floor2.py, train_suite.py, analyze_floor2.py, FLOOR2_REPORT.json)
+
+Attempt 3 spectroscopy, m bed FINAL (prereg=repin_prereg.json):
+  OFF_REGIME fires.  Control arm preconditioned sharpness S_pre(0) = 7158
+  vs AdamW momentum-corrected edge 38/eta1 = 25333: ratio 0.28, outside
+  the pre-registered [0.5, 1.5] sanity band.  Training at 10.7M/bs=48 is
+  NOT edge-pinned (progressive-sharpening regime instead); the edge
+  re-pinning account of the post-drop slow mode is FALSIFIED on this bed
+  (terminal per prereg: spectral account CLOSED, slow mode remains
+  phenomenological).  Decoupling evidence doubles it: tau_loss = 209-273
+  across drop arms while R(dS) never reaches 1-1/e on any drop arm
+  (tau_spectral unfittable); probes clean (Ritz residual 0.000, only 2
+  late probes dropped on the control).
+  B-axis secondary NOT SCORED (requires C_REPIN); descriptive note: b192
+  shows the only clean monotone S_pre rise (rho=0.94) -- recorded, no
+  claim.  l-bed verdict pending (l wave re-running at micro-12 probes
+  P=1 after the 3x10.4GB OOM collision; coexists with Phase-B derby).
+  (train_spectrum.py, analyze_spectrum.py, SPECTRUM_REPORT.json)

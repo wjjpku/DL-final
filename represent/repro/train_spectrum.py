@@ -66,13 +66,18 @@ def unflatten_to(flat, like, dev):
     return out
 
 
+MICRO = 12  # probe micro-batch; equal split sizes keep the mean-CE operator
+            # bitwise-identical to the full-batch definition
+
+
 def hvp_avg(model, params, batches, vec):
-    """Mean-CE HVP over the probe set.  Each bs=48 batch is processed as two
-    bs=24 halves (equal sizes -> identical mean/operator, half peak memory)."""
+    """Mean-CE HVP over the probe set, accumulated in bs=MICRO slices
+    (identical operator, lower peak memory for double-backward)."""
     Hv = [torch.zeros_like(p) for p in params]
-    n_micro = 2 * len(batches)
+    n_micro = (PROBE_BS // MICRO) * len(batches)
     for x, y in batches:
-        for sl in (slice(0, PROBE_BS // 2), slice(PROBE_BS // 2, PROBE_BS)):
+        for sl in (slice(i * MICRO, (i + 1) * MICRO)
+                   for i in range(PROBE_BS // MICRO)):
             with sdpa_kernel([SDPBackend.MATH]):
                 _, loss = model(x[sl], y[sl])
             g = torch.autograd.grad(loss, params, create_graph=True)
