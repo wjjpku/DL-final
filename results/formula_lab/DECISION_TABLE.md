@@ -229,3 +229,24 @@ T-C bed validation: RULE SCOPE-GATED (the pre-set 'cannot regress' framing
   6/6 per-scale held-out wins.  Failure asymmetry: wrongly pooling only
   forfeits upside (never regresses below shipped pooled numbers); the
   falsifiable direction is firing at p > 1 where the mechanism fails.
+
+## Round "post-CONVERGED reopen" -- Attempt 1 verdicts (5090 bed)
+
+1F derby (14 arms, 3 seeds, prereg=optsched_predictions_m.json): FINAL.
+  Tail means [5800,6000); paired gaps vs ds=3000:
+    g(1300)=+3.23e-3 +/-1.37e-3 | g(5000)=+7.14e-3 +/-1.05e-3 |
+    g(5700)=+28.31e-3 +/-1.37e-3
+  V1 FIRES (+7.14e-3 vs adiabatic +0.06e-3 + spread 0.62e-3; 2SE=2.09e-3)
+  V2 FIRES (+28.31e-3 vs adiabatic +12.53e-3 + spread 1.26e-3; 2SE=2.73e-3)
+  -> the lag law prices FINAL LOSS, not just curve MAE.  Closure chi2
+  (1300/5000/5700, GLS-lite): MPL 205 > d=0 179 > d=0.5 113 > d=0.75 76
+  (delta-chi2=37 >= 6: d=0.75 selected; ALL closures underprice late
+  cooldowns -- mechanism stronger than strongest shipped closure).
+  V4 FLAG: ds=1300 measured +3.2e-3 vs MPL +9.8e-3 (backbone overprices
+  early cooldown); per prereg the absolute-pricing claims carry this flag.
+  Consequence per plan: Attempt-2 schedule appendix gates may run in full.
+
+1A bladder PRELIMINARY (14/19; all 5 B2=192 arms OOMed under 12-way
+  concurrency -- refilling at P=3): b_B=-0.338 [90% CI -0.522,-0.241]
+  (excludes 0, contains -0.5); paired floor gaps q(1e-4)=-0.891,
+  q(4e-4)=-0.701 (C2 band [-0.65,-0.35]).  FINAL verdict after b192 refill.
