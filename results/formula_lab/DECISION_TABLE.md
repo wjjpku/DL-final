@@ -277,3 +277,30 @@ T-C bed validation: RULE SCOPE-GATED (the pre-set 'cannot regress' framing
   decomposition -- routed to Attempt 3 spectroscopy as a target question
   (does the slow channel's edge population shift with B?).
   (train_bladder.py, analyze_bladder.py, results/BLADDER_REPORT.json)
+
+Attempt 2 Stage-1 FINAL (scale ladder m/l, prereg=scaleladder_prereg.json):
+  m (10.7M, 8 rungs x 2 seeds): p = 0.815  (90% CI [0.658, 0.974])
+  l (25M,   8 rungs x 2 seeds): p = 0.834  (90% CI [0.611, 1.046])
+  dp(m->l) = +0.019 vs pre-registered fire line 0.380 -> PRIMARY emergence
+  DOES NOT FIRE; CIs overlap massively; BONUS tier no.
+  => The public 25M bed's p=1.06 is NOT a parameter-count effect: at the
+  matched single recipe (same depth/width co-scaling, bs=48, equal-S
+  ladder) 25M shows the SAME sublinear floor exponent as 10.7M (m's CI
+  excludes 1).  The superlinear-floor onset reported on public beds is a
+  recipe/batch-size effect, not scale emergence.  Paper sentence on p(N)
+  re-scoped accordingly.
+  STAGING GATE: CLOSED (p_l=0.834 < 0.9, CIs not disjoint) -- ml/xl NOT
+  trained, per prereg (no fishing).
+  GATE-HARDENING at l: NOT SCOREABLE (CI straddles 1); per prereg no
+  fire/pool claim is made.
+  tau ladder: p_tau = 0.10 (m, r2=0.39), -0.01 (l, r2=0.01) -- no 1/eta
+  clock at either scale; per-scale AIC prefers affine clock with finite
+  tau0 (140 m / 183 l), consistent with the shipped lam_slow account.
+  Clock-rescope committed prediction (tau0 -> infinity as p crosses 1)
+  untestable here since p never crosses 1 -- recorded, not claimed.
+  Attempt-3 scale slot (gate-filled per repin_prereg): m + l.
+  Operational note: first chain launch lost 26 arms to dash-vs-bash <<< and
+  6+2 jobs to OOM against the b192 refill (zero curves lost for verdicts;
+  trunks survived, refill idempotent via skip-if-exists).  schedules.json
+  read-modify-write race killed wsdcon_20 (relaunched solo).
+  (train_floor2.py, train_suite.py, analyze_floor2.py, FLOOR2_REPORT.json)
