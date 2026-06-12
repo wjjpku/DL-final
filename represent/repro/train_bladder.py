@@ -87,7 +87,7 @@ def restore(blob, seed):
     model.load_state_dict(state["model"])
     opt.load_state_dict(state["opt"])
     gen = torch.Generator()
-    gen.set_state(state["gen"])
+    gen.set_state(state["gen"].cpu().to(torch.uint8))
     return model, opt, gen
 
 
@@ -143,6 +143,8 @@ def main():
     ap.add_argument("--data_dir", default="/root/dlf/data")
     ap.add_argument("--seed", type=int, default=1337)
     ap.add_argument("--arms", default="all", choices=["all", "main", "replicates"])
+    ap.add_argument("--only", default=None, help="run a single arm tag, e.g. b12_e10_s1337")
+    ap.add_argument("--trunk_only", action="store_true")
     a = ap.parse_args()
 
     trd = np.memmap(os.path.join(a.data_dir, "wiki_train.u8"), dtype=np.uint8, mode="r")
@@ -167,16 +169,34 @@ def main():
         return blob
 
     B2S = [12, 24, 48, 96, 192]
+    ARM_LIST = []
+    for B2 in B2S:
+        for eta2, et in [(1e-4, "10"), (4e-4, "40"), (PEAK, "nodrop")]:
+            ARM_LIST.append((1337, B2, eta2, f"b{B2}_e{et}_s1337"))
+    for B2 in [12, 192]:
+        for eta2, et in [(1e-4, "10"), (4e-4, "40")]:
+            ARM_LIST.append((1338, B2, eta2, f"b{B2}_e{et}_s1338"))
+
+    if a.trunk_only:
+        for seed in (1337, 1338):
+            make_trunk(seed)
+        print("TRUNKS READY", flush=True)
+        return
+    if a.only:
+        seed, B2, eta2, tag = next(x for x in ARM_LIST if x[3] == a.only)
+        blob = make_trunk(seed)
+        run_arm(blob, trd, vad, seed, B2, eta2, tag)
+        return
     if a.arms in ("all", "main"):
         blob = make_trunk(1337)
-        for B2 in B2S:
-            for eta2, et in [(1e-4, "10"), (4e-4, "40"), (PEAK, "nodrop")]:
-                run_arm(blob, trd, vad, 1337, B2, eta2, f"b{B2}_e{et}_s1337")
+        for seed, B2, eta2, tag in ARM_LIST:
+            if seed == 1337:
+                run_arm(blob, trd, vad, seed, B2, eta2, tag)
     if a.arms in ("all", "replicates"):
         blob = make_trunk(1338)
-        for B2 in [12, 192]:
-            for eta2, et in [(1e-4, "10"), (4e-4, "40")]:
-                run_arm(blob, trd, vad, 1338, B2, eta2, f"b{B2}_e{et}_s1338")
+        for seed, B2, eta2, tag in ARM_LIST:
+            if seed == 1338:
+                run_arm(blob, trd, vad, seed, B2, eta2, tag)
     print("BLADDER DONE", flush=True)
 
 

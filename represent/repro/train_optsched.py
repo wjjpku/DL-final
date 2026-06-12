@@ -93,14 +93,22 @@ def train_one(tag, etas, seed, trd, vad):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data_dir", default="/root/dlf/data")
+    ap.add_argument("--only", default=None)
     a = ap.parse_args()
     trd = np.memmap(os.path.join(a.data_dir, "wiki_train.u8"), dtype=np.uint8, mode="r")
     vad = np.memmap(os.path.join(a.data_dir, "wiki_val.u8"), dtype=np.uint8, mode="r")
+    arms = []
     for seed in SEEDS:
         for ds in DS:
-            train_one(f"ds{ds}_s{seed}", lin_sched(ds), seed, trd, vad)
+            arms.append((f"ds{ds}_s{seed}", lin_sched(ds), seed))
     for seed in [1338, 1339]:
-        train_one(f"wsdld_s{seed}", wsdld_sched(), seed, trd, vad)
+        arms.append((f"wsdld_s{seed}", wsdld_sched(), seed))
+    if a.only:
+        tag, etas, seed = next(x for x in arms if x[0] == a.only)
+        train_one(tag, etas, seed, trd, vad)
+        return
+    for tag, etas, seed in arms:
+        train_one(tag, etas, seed, trd, vad)
     print("OPTSCHED DONE", flush=True)
 
 
