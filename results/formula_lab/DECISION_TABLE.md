@@ -250,3 +250,30 @@ T-C bed validation: RULE SCOPE-GATED (the pre-set 'cannot regress' framing
   concurrency -- refilling at P=3): b_B=-0.338 [90% CI -0.522,-0.241]
   (excludes 0, contains -0.5); paired floor gaps q(1e-4)=-0.891,
   q(4e-4)=-0.701 (C2 band [-0.65,-0.35]).  FINAL verdict after b192 refill.
+
+1A bladder FINAL (19/19, b192 refilled at P=3, prereg=bladder_prereg.json):
+  regression log tau = a + b_B log B2 + b_eta log eta2 over 14 used fits
+  (r2 gate 0.6 passed by all):
+    b_B = -0.199  (90% CI [-0.273, -0.117]),  b_eta = +0.145
+  Verdict vs pre-registered buckets: NONE FIRES -- the CI excludes BOTH
+  -0.5 (C2 noise clock) AND 0 (C1/C3 B-blind).  Amplitude check confirms:
+  q(1e-4) = -0.891, q(4e-4) = -1.796, far outside C2's [-0.65,-0.35]; and
+  the gap = G*B^q power law is itself misspecified (paired gaps flip sign
+  at B2 >= 96: drop arms END WORSE than no-drop controls at large batch).
+  => DICHOTOMY FALSIFIED at 10.7M: the slow-mode clock carries a weak but
+  real batch dependence tau ~ B^-0.2, inconsistent with both the pure
+  optimizer-noise clock (B^-1/2) and a pure step clock (B^0).
+  Note the preliminary 14-arm b_B=-0.338 collapsed to -0.199 once the five
+  b192 arms anchored the high-B end -- the OOM'd arms were load-bearing;
+  preliminary leaning ("noise clock") would have been the WRONG call.
+  Post-hoc interpretation (not verdict-bearing, G5): an intermediate
+  exponent is the natural signature of a MIXTURE of relaxation channels
+  (one B-clocked, one B-blind); single-mechanism accounts are too simple.
+  Sign flip at large B is an independent novel observation: at B2>=96 the
+  benefit of dropping eta vanishes/inverts in the tail mean.
+  Disposition: B-axis at 10.7M is ANSWERED (not unmeasurable, not either
+  prereg branch).  Deployment kernel keeps the shipped B-blind clock as
+  scoped (10.7M bed, bs=48); B-corrected clock would need the mixture
+  decomposition -- routed to Attempt 3 spectroscopy as a target question
+  (does the slow channel's edge population shift with B?).
+  (train_bladder.py, analyze_bladder.py, results/BLADDER_REPORT.json)
