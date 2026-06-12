@@ -67,16 +67,20 @@ def unflatten_to(flat, like, dev):
 
 
 def hvp_avg(model, params, batches, vec):
+    """Mean-CE HVP over the probe set.  Each bs=48 batch is processed as two
+    bs=24 halves (equal sizes -> identical mean/operator, half peak memory)."""
     Hv = [torch.zeros_like(p) for p in params]
+    n_micro = 2 * len(batches)
     for x, y in batches:
-        with sdpa_kernel([SDPBackend.MATH]):
-            _, loss = model(x, y)
-        g = torch.autograd.grad(loss, params, create_graph=True)
-        dot = sum((gi * vi).sum() for gi, vi in zip(g, vec))
-        h = torch.autograd.grad(dot, params)
-        for a, b in zip(Hv, h):
-            a.add_(b.detach(), alpha=1.0 / len(batches))
-        del g, dot, h
+        for sl in (slice(0, PROBE_BS // 2), slice(PROBE_BS // 2, PROBE_BS)):
+            with sdpa_kernel([SDPBackend.MATH]):
+                _, loss = model(x[sl], y[sl])
+            g = torch.autograd.grad(loss, params, create_graph=True)
+            dot = sum((gi * vi).sum() for gi, vi in zip(g, vec))
+            h = torch.autograd.grad(dot, params)
+            for a, b in zip(Hv, h):
+                a.add_(b.detach(), alpha=1.0 / n_micro)
+            del g, dot, h
     return Hv
 
 

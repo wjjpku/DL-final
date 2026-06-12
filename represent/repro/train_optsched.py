@@ -24,7 +24,6 @@ import train as T
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CDIR = os.path.join(ROOT, "results", "curves_optsched")
-os.makedirs(CDIR, exist_ok=True)
 
 CFG = dict(d=384, nh=6, nl=6, block=256)
 PEAK, WARM, TOTAL, ENDF = 1.5e-3, 400, 6000, 0.1
@@ -91,18 +90,29 @@ def train_one(tag, etas, seed, trd, vad):
 
 
 def main():
+    global CFG, CDIR
     ap = argparse.ArgumentParser()
     ap.add_argument("--data_dir", default="/root/dlf/data")
     ap.add_argument("--only", default=None)
+    ap.add_argument("--scale", default="m",
+                    help="m (default, original bed) or ml/l/xl per "
+                         "train_floor2.SCALES; non-m outputs go to "
+                         "curves_optsched_<scale> (12 ds-arms, no wsdld)")
     a = ap.parse_args()
+    if a.scale != "m":
+        from train_floor2 import SCALES
+        CFG = dict(SCALES[a.scale])
+        CDIR = os.path.join(ROOT, "results", f"curves_optsched_{a.scale}")
+    os.makedirs(CDIR, exist_ok=True)
     trd = np.memmap(os.path.join(a.data_dir, "wiki_train.u8"), dtype=np.uint8, mode="r")
     vad = np.memmap(os.path.join(a.data_dir, "wiki_val.u8"), dtype=np.uint8, mode="r")
     arms = []
     for seed in SEEDS:
         for ds in DS:
             arms.append((f"ds{ds}_s{seed}", lin_sched(ds), seed))
-    for seed in [1338, 1339]:
-        arms.append((f"wsdld_s{seed}", wsdld_sched(), seed))
+    if a.scale == "m":
+        for seed in [1338, 1339]:
+            arms.append((f"wsdld_s{seed}", wsdld_sched(), seed))
     if a.only:
         tag, etas, seed = next(x for x in arms if x[0] == a.only)
         train_one(tag, etas, seed, trd, vad)
