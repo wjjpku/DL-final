@@ -566,9 +566,14 @@ Regressing the well-fit MPL residual on $\Drop_{10}$ (through the origin) gives
 $R^2{=}0.40/0.80/0.87$ at $25/100/400$M (Fig.~\ref{fig:resid}); a 2-exponential kernel
 improves $R^2$ by $0.06\text{--}0.07$, confirming the predicted spectral mixture
 (Eq.~\ref{eq:mix}). The form is not arbitrary: in a fair few-shot comparison the derived
-S-time exponential of decrements beats a step-time kernel ($-21\%$ vs.\ $-11\%$ held-out MAE)
-and a memoryless floor ($-3\%$), confirming that the cumulative-LR ``time'' and the decaying
-memory both matter (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
+S-time exponential kernel cuts held-out MAE by $-15\%$, beating a step-time kernel
+($-7\%$, wrong ``time'' variable) and a memoryless floor ($-2\%$), so the cumulative-LR
+``time'' and the decaying memory both matter; an S-time kernel driven on the LR
+\emph{level} rather than on decrements ties the decrement-driven one ($-15\%$), so this
+comparison isolates the time variable and the presence of memory but does \emph{not} by
+itself single out decrements as the drive---that choice is fixed by the LR-decrement
+response derivation (\S\ref{sec:theory}), not by this test
+(\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
 the finite-$\lambda_{\mathrm{slow}}$ kernel is numerically close to the $\lambda_{\mathrm{slow}}{\to}0$
 adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S\ref{sec:repro2}.)
 

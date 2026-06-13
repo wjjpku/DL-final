@@ -660,3 +660,32 @@ clock, phenomenological slow mode).  Slides Upgrade-2 frame caveated to
 match.  grep confirms "clearly superlinear"/"measured superlinear floor"
 no longer appear un-caveated.  With this fix all three convergence
 conditions hold and no escaping candidate remains.
+
+## Round-convergence review #3 (fan-out exhaustion, 5 blind finders x 2 rounds + per-escape skeptics): CONTINUE -> remediated
+
+Architecture upgraded per user mandate: the candidate-exhaustion step is no
+longer a single guided agent but a fan-out of 5 mutually-blind finders
+(mechanism / protocol / repro-stats / paper-completeness / devil's
+advocate), each given only the bucket definitions + hard constraints (NO
+pre-bucketing in the prompt), with every escaping candidate adversarially
+refuted by a skeptic, looped until two CONSECUTIVE dry rounds.
+  Round 1: 0 surviving escapes (all candidates self-bucket A/B/C honestly).
+  Round 2 (fresh instances, reworded): 1 surviving escape -- a single-pass
+  sweep would have wrongly declared CONVERGED here.
+SURVIVING DEFECT (paper integrity, zero-GPU): paper/main.tex L568-571
+  shipped "the derived S-time exponential of decrements beats a step-time
+  kernel (-21% vs -11% held-out MAE) and a memoryless floor (-3%)", citing
+  repro/generic_kernel_compare.py.  Re-running the committed script (exit 0)
+  gives -15.0% (derived) / -7.3% (steptime) / -2.3% (floor) -- the headline
+  numbers never matched the artifact (git log -S '21%' on the script is
+  empty).  Worse, the script's own `level` control (S-time memory driven on
+  LR LEVEL not decrements) TIES derived at -15.0%, silently omitted from the
+  paper, so the comparison does NOT establish that decrements specifically
+  are the drive.
+REMEDIATED this commit: numbers corrected to -15/-7/-2; the level tie
+  reported; the claim narrowed to "isolates the cumulative-LR time variable
+  and the presence of memory" with the decrement drive attributed to the
+  LR-decrement response derivation (sec:theory), not to this test.  This is
+  a pre-existing inherited-paper defect that the fan-out's second round
+  caught -- vindicating the loop-until-dry-K=2 architecture.  Round must now
+  re-enter convergence check (re-run the fan-out) before any CONVERGED.
