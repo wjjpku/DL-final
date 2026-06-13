@@ -526,3 +526,46 @@ sign-flip pricing; dL_eq/deta-anchored B_m) gating E1 (backbone-null
 matched-S paired derby), E4 (horizon-extended ladder), E5 (sign-flip
 seed replication), E3 (concentration-graded drop ladder), E2
 (stochastic-threshold re-pinning), in that order.
+
+## Round 2 worklist: A-series zero-GPU analyses (verified, scripts committed)
+
+A1 (sub-edge mode tracking): NO trackable sub-edge preconditioned mode
+  relaxes with tau within 3x tau_loss in the spike-robust ABSOLUTE
+  observable, any drop arm, either scale (0/16 ranks x 2 associations;
+  controls 0 FP).  The ratio channel shows in-band relaxations at m but
+  false-positives on the l constant-eta control -> not verdict-bearing.
+  "Slow mode remains phenomenological" STANDS, strengthened.  E2 must
+  bring its own equilibration observable.  (a1_mode_tracking.py)
+A2 (public protocol extraction): the settled-wsdcon protocol MANUFACTURES
+  superlinearity on our beds.  Fixed-T2 wsdcon floors are U-shaped (the
+  documented S-confound); fit over all probes degenerates (p pins at the
+  0.2 bound), but sampled in the public 3-POINT WINDOW the same data read
+  p ~ 3.5 (pinned at the upper bound) at BOTH scales whose equal-S
+  ladders give 0.647/0.641.  The unlocalized-source sentence now has a
+  PRIMARY SUSPECT: floor protocol.  Public 1.06/1.49/1.25 three-point
+  fits inherit a demonstrated mechanism-level caveat.
+  (a2_protocol_extraction.py)
+A3 (equilibrium-p): the fitted-asymptote exponent does NOT stay
+  sublinear: p_Finf ~ 1.04 [0.80,1.28] (m) / 1.00 [0.61,1.37] (l), while
+  removing only the exp transient keeps p at 0.71/0.67 -- the entire gap
+  is carried by the secular drift term b*T2 ~ b/eta.  Sublinearity is
+  hereby scoped as a property of the equal-S budget-indexed floor; per
+  the pre-stated gate E4 (horizon-extended ladder) is MANDATORY.
+  (a3_equilibrium_p.py)
+A4 (sign-flip pricing): the large-B sign flip is a horizon-indexed LEVEL
+  inversion: benefit = ctrl_tail - F_inf crosses zero at B ~ 96 (measured
+  flip B* = 86; predicted 80-86); the B-blind transient is real but ~3e-3
+  (10x too small to drive it).  Free-s law gap = +224.6e-3 - 0.552*B^-0.20
+  fits all five gaps within 0.65e-3; the eta/B and 1/sqrt(B) forms are
+  REJECTED.  Note scope: bs192-ladder "amplitude ~ eta/B" must not be
+  extrapolated to paired gaps.  Caveat: no s1338 controls exist -- the
+  paired gap is unreplicated across seeds -> E5 sharpened to replicating
+  CONTROLS at B in {96,192}.  (a4_signflip_pricing.py)
+A5 (split-free B anchor): direct ladder-floor dL_eq/deta gives an
+  anchored ratio B_l/B_m = 1.099 -- close to the wsdcon_20-split 1.18,
+  far from wsdcon_40's 2.42 (confirming that fit as the unstable member)
+  and below the committed ensemble mean 1.80.  Under the anchored ratio
+  the kappa transfer is NOT SEPARATED from naive at ANY closure (deltas
+  +1.6/+3.2/-0.8).  "Closure-dependent; not separated" is now confirmed
+  split-free; B-identity's curve-shape support unaffected.
+  (a5_B_anchor.py, sensitivity-only per G5)
