@@ -39,3 +39,8 @@ represent/.DS_Store
 
 # Local LaTeX compiler binary (50MB+, machine-specific)
 tools/
+
+# large regenerable trunk checkpoints (bitwise-reproducible via seed + G3 replay)
+*.pt
+# SSH helper holds the server password -- never commit
+tools/srv.py
