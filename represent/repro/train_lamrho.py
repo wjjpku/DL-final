@@ -22,7 +22,10 @@ from train_floor2 import SCALES, make_trunk, restore, step_once, TRUNK
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PEAK, ETA2, HOLD, BS = 1.5e-3, 1e-4, 4000, 48
-WIDTHS = {"W1": 1, "W10": 10, "W40": 40, "W160": 160, "W640": 640}
+WIDTHS = {"W1": 1, "W10": 10, "W40": 40, "W160": 160, "W640": 640,
+          # g2d3b wider+denser rho ladder (prereg=lamrho_b_prereg.json)
+          "W4": 4, "W80": 80, "W320": 320, "W1280": 1280,
+          "W2560": 2560, "W5120": 5120}
 
 
 def cdir():
