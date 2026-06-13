@@ -1017,3 +1017,30 @@ deliverables vs committed artifacts returned a CLEAN BOUNDED list (3 real +
   All four deliverables recompiled.  This clears every number-integrity
   class the convergence finder kept surfacing one-at-a-time; the next
   convergence run should find nothing on the paper-completeness axis.
+
+## Round-convergence review #12 (deterministic verdict, no hang): CONTINUE -> remediated REPO-WIDE
+
+The deterministic in-workflow verdict worked (no adjudicator hang; the null
+judge-refusal was dropped, not crashed). R1 clean on the 4 compiled
+deliverables but 1 escape: README.md (+ siblings) still shipped the retracted
+tau p=1.00+/-0.18 and the scale-emergence floor reading -- because the
+prior "comprehensive audit" scoped only to the FOUR COMPILED deliverables and
+silently excluded the git-tracked .md/.json DOCS that also carry referee-
+facing claims.  ROOT-CAUSE FIX (repo-wide, not file-by-file): grepped EVERY
+tracked text file for the retracted-number signatures and fixed all claim-
+bearing ones in one batch:
+  - README.md L117 (tau 1.00->0.84 + per-scale + deep_tau_pooled cite),
+    L119 (superlinear floor -> protocol-dependent caveat), L121 (scale-
+    emergence -> no-emergence/sublinear 0.65/protocol-artifact).
+  - docs/core/second_order_amplitude.md: scale-emergence reading RETRACTED.
+  - represent/results/NQM_REPORT.md: real-wsdcon pooled 1.00+/-0.18 -> 0.84+/-0.17.
+  - results/formula_lab/CONVERGENCE_DOSSIER.md: SUPERSEDED banner + [RETRACTED]
+    inline on the emergence line.
+  - represent/results/E1.json + E1_tau_vs_eta.py: circular p_real_pooled
+    1.0/0.18 literal -> 0.84/0.17 (uncited sim artifact, fixed for hygiene).
+  - represent/repro/analyze_tau.py + wf_nqm.js: comment/string refs to the
+    retracted 1.00+/-0.18 -> 0.84+/-0.17.
+  Audit-trail files (DECISION_TABLE, deep_tau_pooled.py, DEEP_TAU_POOLED.json)
+  correctly RETAIN the retracted values as the documented correction record.
+  Final repo-wide sweep: zero retracted numbers remain outside the audit
+  trail.  This closes the file-set gap that the per-deliverable audits missed.

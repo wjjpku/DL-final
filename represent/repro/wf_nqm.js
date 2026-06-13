@@ -29,7 +29,7 @@ THEORY (Hessian eigenbasis, mode i: curvature lambda_i, grad-noise std s_i):
   drop_t=max(eta_{t-1}-eta_t,0), S_t=cumsum(eta). Correction added to baseline = c * eta_peak * dL_eq/deta * K(t).
 
 PAPER'S REPORTED RESULTS to compare against:
-- Real wsdcon curves: tau ~ eta^{-p}, pooled p = 1.00 +/- 0.18.
+- Real wsdcon curves: tau ~ eta^{-p}, pooled p = 0.84 +/- 0.17 (deep_tau_pooled.py).
 - From-scratch AdamW NQM sim: tau ~ eta^{-1}, log-log slope p = 1.01.
 - beta2 sweep [0.9, 0.9999]: tau FLAT, CV 2%.
 - residual = DropRelaxS, R2 = 0.40/0.80/0.87 (25/100/400M).
@@ -109,7 +109,7 @@ adamw_nqm_from_state(..., etas=full(4000, eta_lo), seed=1); measure_tau(loss, t0
 Discard any fit with r2<0.9 or where eta_lo*max(lambda)/min(sigma) is not <<1 (edge of stability).
 Fit tau vs eta with fit_powerlaw -> report p, c, r2. Cross-check the smallest-eta tau against
 nqm_linear_tau (slowest mode) -- they should agree within ~30%.
-PAPER: p ~ 1.01 (sim), pooled p=1.00+/-0.18 (real). Save results/E1.json. matches_paper if |p-1|<0.2.`,
+PAPER: p ~ 1.01 (sim), pooled p=0.84+/-0.17 (real). Save results/E1.json. matches_paper if |p-1|<0.2.`,
   },
   {
     key: 'E2_beta2',

@@ -14,7 +14,7 @@ Protocol:
   - Fit tau vs eta with fit_powerlaw -> report p, c, r2.
   - Cross-check smallest-eta tau against nqm_linear_tau (slowest mode), agree within ~30%.
 
-PAPER: p ~ 1.01 (sim), pooled p = 1.00 +/- 0.18 (real).  matches_paper if |p-1| < 0.2.
+PAPER: p ~ 1.01 (sim); real-data pooled p = 0.84 +/- 0.17 (deep_tau_pooled.py).  matches_paper if |p_sim-1| < 0.2.
 """
 import sys, os, json
 sys.path.insert(0, r'c:/Users/21100/Desktop/represent/repro')
@@ -82,7 +82,7 @@ def main():
     y = np.array([row["tau"] for row in kept])
     p, c, r2 = fit_powerlaw(x, y)
     print(f"\npower-law fit  tau = {c:.3g} * eta^(-{p:.3f})   r2={r2:.4f}")
-    print(f"  (paper: p ~ 1.01 sim, pooled p = 1.00 +/- 0.18 real)")
+    print(f"  (paper: p ~ 1.01 sim; real-data pooled p = 0.84 +/- 0.17, deep_tau_pooled.py)")
 
     # cross-check: smallest-eta tau vs linear-theory slowest mode
     eta_min = x.min()
@@ -111,7 +111,7 @@ def main():
         crosscheck=dict(eta_min=eta_min, tau_measured=tau_meas_min,
                         tau_linear_slowest=tau_lin_slow, ratio=ratio,
                         agree_within_30pct=bool(agree)),
-        paper=dict(p_sim=1.01, p_real_pooled=1.00, p_real_err=0.18),
+        paper=dict(p_sim=1.01, p_real_pooled=0.84, p_real_err=0.17),
         matches_paper=bool(matches_paper),
     )
     os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)

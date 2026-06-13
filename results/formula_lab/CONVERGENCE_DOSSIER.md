@@ -3,6 +3,15 @@
 State of the formula-optimization program as of the structural-overhaul round.
 Read together with DECISION_TABLE.md (same directory) which holds all numbers.
 
+> **SUPERSEDED IN PART by the round-2 adversarial reopen** (see DECISION_TABLE
+> round-2 + paper sec:round2): the "floor exponent emerges with scale" reading
+> below is RETRACTED -- matched-recipe confound-free equal-S ladders read
+> SUBLINEAR (p=0.65/0.64 at 10.7M/25M, horizon-robust to 24k; no emergence,
+> dp=-0.006), so the public 1.06/1.49/1.25 is a settled-probe PROTOCOL artifact,
+> not a scale effect. The tau exponent is the corrected pooled p=0.84+/-0.17
+> (per-scale 0.51/1.06/0.94), not 1.00+/-0.18. The deposit cross-check moves to
+> ~0.96 (marginally above the 0.86-0.92 band) at the corrected p=0.65.
+
 ## Shipped (in paper + PR #1)
 1. B-identity: dL_eq/deta|_S = B (proved + verified 5-15%); zero-extra-
    measurement amplitude chain (-43.1% vs -44.0% probe chain, 6/6).
@@ -11,8 +20,10 @@ Read together with DECISION_TABLE.md (same directory) which holds all numbers.
    real-model never-scanned beds -18 -> -71% (sharp600), -14 -> -52%
    (showcase wsd_sharp).
 3. Theory: NQM affine route falsified at magnitude; bulk+edge mechanism
-   (tracking cutoff) consistent; floor exponent emerges with scale
-   (0.73 -> 1.06 -> 1.49 -> 1.25); edge re-adaptation flagged conjecture.
+   (tracking cutoff) consistent; [RETRACTED round-2: "floor exponent emerges
+   with scale 0.73->1.06->1.49->1.25" -- matched-recipe ladders are SUBLINEAR
+   0.65/0.64, no emergence; public superlinearity is a settled-probe protocol
+   artifact]; edge re-adaptation flagged conjecture.
 
 ## Closed directions (with evidence type)
 - Kernel shapes (2-exp / Lomax / stretched): EXPERIMENT, twice (with and

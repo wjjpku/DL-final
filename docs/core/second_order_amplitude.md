@@ -178,9 +178,13 @@ Six seed-matched constant-stage runs ending at identical cumulative LR S*
 - tau ~ eta^-0.18 with r2 >= 0.977 per rung (clean long-window confirmation of
   the flat-tau anomaly).
 
-Scale trend of p: 0.73 (10.7M) -> 1.06 (25M) -> 1.49 (100M) -> 1.25 (400M).
-Reading: the edge population (source of both superlinearity and tau ~ 1/eta)
-emerges with model scale; at 10M neither is present.  Hence the delta>0
+Public settled-probe scale trend of p: 1.06 (25M) / 1.49 (100M) / 1.25 (400M).
+SUPERSEDED reading (round-2 RETRACTION): this is NOT scale emergence -- matched-
+recipe confound-free equal-S ladders read SUBLINEAR (p=0.65 at 10.7M, 0.64 at
+25M, horizon-robust to 24k; dp=-0.006 vs the 0.067 fire line), so the public
+superlinearity is a settled-probe PROTOCOL artifact, not a parameter-count
+(nor batch-size) effect; the bed-level source is not localized (see
+DECISION_TABLE round-2 + paper sec:round2).  The delta>0
 transfer gains at 10M are carried by the concentration-dependent visible
 amplitude (Section 5), not floor curvature, and no universal delta across
 scales exists -- the measured per-scale route is the defensible one.

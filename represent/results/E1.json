@@ -135,8 +135,8 @@
   },
   "paper": {
     "p_sim": 1.01,
-    "p_real_pooled": 1.0,
-    "p_real_err": 0.18
+    "p_real_pooled": 0.84,
+    "p_real_err": 0.17
   },
   "matches_paper": true
 }
