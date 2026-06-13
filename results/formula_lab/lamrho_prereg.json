@@ -1,0 +1,19 @@
+{
+  "name": "g2d3: concentration-dependent relaxation rate Lambda(rho) (escaping design, m-bed decisive test)",
+  "committed_before_launch": true,
+  "origin": "convergence review #4 generator design g2d3; judge would_be=ESCAPING, m-bed test ~6 GPU-h feasible (cross-scale extension stays compute_blocked for the user).",
+  "anomaly": "The single-pole lag kernel uses a fixed rate lam_slow, but instantaneous-drop probes want lam~15-19 while gradual sharp decays want lam~0.5-5 (DECISION_TABLE lam-non-unification). A merged additive clock (lam_S*eta + 1/tau0) was already FALSIFIED. Hypothesis: the rate is a smooth functional of the LOCAL decrement concentration rho at the deposit, not a constant.",
+  "redesign": "K(S_t,S_k) = exp(-Lambda(rho_k)*(S_t-S_k)), rho_k = (eta_{k-1}-eta_k)_+/(eta_k * w_k) the local fractional drop rate; Lambda(rho) = lam_inf + (lam_0-lam_inf)*exp(-rho/rho_star) interpolates lam_0 (concentrated/instant) -> lam_inf (smeared/gradual). 3 shared params (lam_0, lam_inf, rho_star) replace the single lam_slow.",
+  "design": {
+    "bed": "m recipe d=384 nh=6 nl=6 block=256, bs=48, AdamW(0.9,0.95) wd=0.1; resume the G3-replayed trunk_s1337 / trunk_s1338 (const 1.5e-3 to step 3000)",
+    "rho_ladder": "from the shared trunk, cool 1.5e-3 -> 1e-4 over a WIDTH W in {1,10,40,160,640} steps (W=1 instant/high-rho probe-like; W=640 gradual/low-rho), then HOLD 1e-4 for 4000 steps to expose the relaxation; seeds 1337+1338; eval dense (every 4 steps for 1600 post-cooldown, then coarse), eval-bs=48 gen 12345",
+    "fit": "per-arm S-time relaxation r(S)=F+A*exp(-lam*(S-S_Wend)) on the HOLD window (r2>=0.6 gate); lam(W) extracted; rho(W) computed from the schedule"
+  },
+  "verdicts": {
+    "LAMBDA_READS_RHO": "lam(W) decreases monotonically with W (Spearman rho<=-0.8) spanning >=3x AND the Lambda(rho) form fits lam(rho) across rungs at R2>=0.8 with lam_0 in [10,25], lam_inf in [1,7] AND the joint Lambda(rho)-kernel cuts the pooled multi-arm curve MAE by >=20% vs the best single-fixed-lam kernel -> the concentration-dependent rate is real; the single-pole kernel generalizes; ship Lambda(rho) and re-scope the lam-non-unification limitation",
+    "LAMBDA_FLAT": "lam(W) flat or non-monotone (range <2x, or Spearman rho>-0.5) -> the probe-vs-sharp rate gap is NOT a smooth function of local decrement concentration; the redesign is FALSIFIED on this bed; lam non-unification stays a disclosed limitation (terminal)",
+    "AMBIG": "monotone but Lambda(rho) R2<0.8 or the MAE margin <20% -> report lam(W) as measured, no kernel change"
+  },
+  "compute_blocked_extension": "cross-scale confirmation at 25M (l) ~16 GPU-h and public-scale generality are the larger follow-up; surfaced to the user, NOT run here. This prereg covers ONLY the m-bed decisive test (~6 GPU-h).",
+  "dof_note": "3 shared params (lam_0,lam_inf,rho_star) replace 1 (lam_slow): +2 DOF, justified ONLY if LAMBDA_READS_RHO fires with the MAE margin (else rejected). G5: backbone MPL not refit verdict-bearing."
+}
