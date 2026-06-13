@@ -1,0 +1,16 @@
+{
+  "name": "g4: visible-amplitude concentration dependence (the amplitude analog of g2d3's rate result)",
+  "committed_before_launch": true,
+  "decision_context": "User ruled out a bigger machine (one RTX 5090 only), so the public-100M/400M width-x-depth amplitude ladder that could move the PUBLIC chi claim (~200-400 GPU-h) is permanently future work. This prereg does the FEASIBLE characterization on the bed we have -- symmetric to g2d3 (rate side): measure whether the visible lag AMPLITUDE depends on decrement concentration rho, mostly zero-GPU, with a cheap (~6-10 GPU-h) depth ladder only if the width axis warrants it.",
+  "anomaly": "(ii)+(iii): chi(eta)~eta^delta + fixed c leave a ~3-4x roughly UNIFORM mid-eta probe amplitude deficit; the deepest drop (wsdcon_3) recovers to 0.80-0.96 of sharp kappa. Hypothesis: the VISIBLE fraction of the deposit the slow kernel carries is concentration-gated, kappa_vis = B * phi(rho).",
+  "tests": {
+    "T1_width_axis_zeroGPU": "From the 11 existing lamrho arms (fixed depth Delta-eta=1.4e-3, varied width W -> varied rho), extract the post-drop excess AMPLITUDE A(W) (the A in r(S)=F+A*exp(-lam*(S-S_end))) and the per-drop visible amplitude a(W)=A(W)/Delta-eta. Test whether a(W) varies systematically with rho (a concentration gate on the width axis) or is flat. ZERO GPU (re-analysis of committed curves_lamrho).",
+    "T2_depth_axis_GPU_gated": "ONLY IF T1 is ambiguous/flat on the width axis: a cheap 10.7M depth ladder (vary destination eta2 in {0.5,1,2,4,8}e-4 at a fixed moderate width W=40, shared trunk, ~6-10 GPU-h) to test saturation in DROP DEPTH (the axis where 'deepest drop recovers' lives). Fit kappa_vis(depth)=B*depth^n/(depth+depth_half) Hill form."
+  },
+  "verdicts": {
+    "AMP_GATE_CONFIRMED": "a(rho) varies with rho in a saturating direction, fits a Hill/Weibull gate phi(rho) at R2>=0.8, AND (if T2 run) the gate cuts held-out probe-kappa MAE by >=20% vs constant c -> ship a concentration-gated visible amplitude; upgrade formula + paper.",
+    "AMP_GATE_WEAK": "a(rho) varies (Spearman |.|>=0.7) but no clean gate form (R2<0.8) or <20% held-out gain -> real but no formula change; report measured (mirrors the g2d3 rate-side outcome).",
+    "AMP_FLAT": "a(rho) flat in rho on the width axis (Spearman |.|<0.5, span <2x) -> the amplitude deficit is NOT a width-concentration effect; it is depth/eta-bound and its public-scale validation is the documented 200-400 GPU-h wall (terminal on this bed)."
+  },
+  "dof_note": "if CONFIRMED, the concentration gate phi(rho) replaces the constant c (DOF-neutral to mildly +1), gated on the held-out kappa margin; else rejected. G5: MPL backbone not refit verdict-bearing. The public-scale chi law remains future work needing a bigger machine."
+}
