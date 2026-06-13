@@ -47,9 +47,13 @@ sharp-decay error by $44\%$. We then upgrade the law's \emph{amplitude structure
 ways. First, a \emph{B-identity}: MPL's own annealing coefficient $B$ \emph{is} the
 equilibrium-floor sensitivity the correction needs, so the amplitude transfers from MPL's
 published parameters with no additional measurements ($-43\%$, matching the probe-based
-chain). Second, the measured equilibrium floor is \emph{superlinear} in $\eta$
-($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06$--$1.49$, three-point fits,
-clearly superlinear at $100/400$M); the corresponding second-order amplitude closure
+chain). Second, the public-bed equilibrium floor reads \emph{superlinear} in $\eta$
+($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06$--$1.49$ from three-point
+fits at $100/400$M)---though we show this reading is protocol-dependent (confound-free
+equal-$S$ ladders on our own beds give a \emph{sublinear} exponent $\approx0.65$, robust
+to model size, batch size, and horizon; \S\ref{sec:round2}), so the superlinearity is a
+property of the settled-probe protocol, not established as a bed-independent law. The
+corresponding second-order amplitude closure
 $\chi(\eta)\!\propto\!\eta^{\delta}$ with default $\delta{=}1/4$ (Pareto-selected on the
 audited matrix, never fit on targets) improves that transfer matrix on every aggregate and
 lifts cheap-probe calibration by $35$--$70\%$ relative. An independent
@@ -109,8 +113,8 @@ MPL-implied equilibrium-floor sensitivity $dL_{\mathrm{eq}}/d\eta$, and verify i
 independent floor measurements ($5$--$15\%$ at all scales). The correction's amplitude then
 transfers from MPL's own published parameters with no additional measurements ($-43\%$ on
 the same protocol; \S\ref{sec:exp}).
-\item We measure the equilibrium floor to be \emph{superlinear} in $\eta$ at the two larger
-scales (three-point fits, qualitative; marginal at $25$M) and derive and
+\item The public-bed equilibrium floor reads \emph{superlinear} in $\eta$ at the two larger
+scales (three-point fits, qualitative; marginal at $25$M); we use it to derive and
 evaluate the corresponding second-order amplitude closure $\chi(\eta)\propto\eta^{\delta}$:
 with the Pareto-selected default $\delta{=}1/4$ it improves the audited transfer matrix on
 every aggregate (the hardest cell, cosine$\to$WSD, nearly doubles its gain) and
@@ -119,6 +123,13 @@ in-sample $\delta{=}1/2$ variant); we also report exactly which
 part of that gain is amplitude recalibration rather than shape (\S\ref{sec:exp}). The naive
 NQM route to $\chi(\eta)$ is falsified at magnitude; a bulk$+$edge spectral mechanism is
 consistent with all observations (\S\ref{sec:theory}).
+\item A second pre-registered, adversarially-audited round (\S\ref{sec:round2}) sharpens
+the scope: confound-free equal-$S$ floor ladders read \emph{sublinear} ($\approx0.65$,
+robust across $10.7$/$25$M, batch size, and horizon to $24$k), so the public superlinearity
+is shown to be settled-probe-\emph{protocol}-dependent rather than a parameter-count law;
+the post-drop slow-mode clock is batch-size-\emph{blind} (not optimizer-noise relaxation);
+and direct Hessian spectroscopy closes the spectral edge-re-pinning account three ways,
+leaving the slow mode phenomenological on this bed.
 \item We give a fair-baseline diagnostic separating a genuine formula gain from an
 information gap, clarifying exactly when the correction helps, and close two structural
 dead ends (multi-pole/Lomax kernel shapes; cross-family rate unification)
@@ -1162,7 +1173,9 @@ Its empirically stable shape enables low-calibration cross-scale transfer ($-44\
 sharp decays in the public same-architecture setting). We then upgraded the law's amplitude
 structure: the B-identity shows MPL's own annealing coefficient \emph{is} the floor
 sensitivity the correction needs (amplitude transfer from MPL's published parameters with
-no additional measurements, $-43\%$), and the measured superlinear floor yields a
+no additional measurements, $-43\%$), and the public-bed superlinear floor reading (shown
+in \S\ref{sec:round2} to be settled-probe-protocol-dependent---confound-free equal-$S$
+ladders read sublinear---rather than a bed-independent law) motivates a
 second-order closure
 $\chi(\eta)\propto\eta^{\delta}$ that improves the audited transfer matrix on every
 aggregate and strengthens cheap-probe calibration by $35$--$70\%$ relative, with the

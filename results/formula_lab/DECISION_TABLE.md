@@ -636,3 +636,27 @@ E2 (scoped: constant-eta S_pre equilibration ladder in batch size) FINAL:
   stochastic edge, AND the mode-tracking observable.  "Slow mode remains
   phenomenological" is terminal and maximally hardened on this bed.
   (e2_prereg.json, analyze_spectrum.py, spec_nodrop_b{12,192})
+
+## Round-convergence review #2: CONTINUE (one escaping wording defect) -> remediated
+
+Both verifiers passed (terminality + re-disposition + paper-body
+consistency all clean; E1/E3 self-bucketings confirmed honest against
+their JSONs; no dangling obligation).  Mechanism-lens exhaustion returned
+EMPTY (every GPU candidate self-buckets: the only claim-flipping
+experiment is the un-trainable public 100M/400M equal-S ladder = bucket
+B; on-bed restages are bucket C against deliberately-hedged claims; the
+stochastic-edge re-pin has no constructible new observable A1 didn't
+already check).  ONE escaping defect (methodology lens, zero-GPU):
+  the abstract (L50-52), contribution bullet (L116), and conclusion
+  (L1165) shipped the floor as "clearly superlinear" and used it as the
+  stated rationale for the second-order closure, WITHOUT the protocol
+  caveat the audited round-2 body establishes (confound-free equal-S beds
+  read sublinear 0.65) -- and the abstract/intro omitted round-2 entirely.
+REMEDIATED this commit: abstract + contribution + conclusion now scope
+the superlinear reading to the public settled-probe three-point protocol,
+flag it protocol-dependent, and state the confound-free sublinear result;
+a new contribution bullet surfaces round-2 (protocol-dependence, B-blind
+clock, phenomenological slow mode).  Slides Upgrade-2 frame caveated to
+match.  grep confirms "clearly superlinear"/"measured superlinear floor"
+no longer appear un-caveated.  With this fix all three convergence
+conditions hold and no escaping candidate remains.
