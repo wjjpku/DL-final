@@ -961,15 +961,21 @@ fitted floor power law at $10.7$M is $F_{\mathrm{eq}}\propto\eta^{0.65}$ ($90\%$
 $[0.61,0.68]$): the floor is \emph{sublinear}. We then repeated the identical protocol at
 $25$M with the same depth/width recipe and batch size: $F_{\mathrm{eq}}\propto\eta^{0.64}$
 ($[0.61,0.67]$), and the flat-$\tau$ anomaly persists at both scales
-($p_\tau\approx0.1$ and $\approx0$). The pre-registered emergence test does \emph{not}
+($p_\tau\approx0.1$ and $\approx0$). The exponent value is itself horizon-indexed: a
+pre-registered extension to trunks of $12$k and $24$k steps raises it to
+$0.77$ and $0.79$ (still strictly sublinear, CI upper $0.81<1$), so the equal-$S$
+floor at finite budget is not an equilibrium quantity---but the \emph{direction}
+is horizon-robust, sublinear at every horizon out to $24$k, and $p$ never crosses $1$.
+The pre-registered emergence test does \emph{not}
 fire ($\Delta p=-0.006$ against a $0.067$ line): \textbf{the superlinear exponents on the
 public beds ($1.06/1.49/1.25$ at $25/100/400$M) are not reproduced by parameter count at a
 matched recipe}. A pre-registered $B{=}192$ ladder excludes batch size as well: it shifts
 the floor \emph{level} down substantially (consistent with a noise-floor amplitude
 $\propto\eta/B$) while leaving the exponent unchanged ($p=0.61$ $[0.58,0.65]$) --- the
 floor's $\eta$-exponent is invariant to the gradient-noise scale on this bed. Whatever
-switches the floor superlinear between these beds (data, recipe, horizon, schedule
-family, or floor protocol) is neither model size nor batch size alone --- and we have a
+switches the floor superlinear between these beds (data, recipe, schedule
+family, or floor protocol---horizon is excluded, our beds staying sublinear out to $24$k)
+is neither model size nor batch size alone --- and we have a
 primary suspect: re-running the \emph{public} floor protocol (settled fixed-length
 \code{wsdcon} probes, three-point fit) on our own beds manufactures strongly superlinear
 readings ($p$ pinned at the fit bound ${\approx}3.5$ in the public three-point window)
