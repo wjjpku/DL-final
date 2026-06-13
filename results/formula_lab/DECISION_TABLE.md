@@ -603,3 +603,22 @@ E5 (sign-flip control replication) FINAL: the inversion REPLICATES.
   seed-dependent at B=96".  A4's level-pricing account gains an
   out-of-sample point in the right direction at both B.
   (e4_e5_prereg.json, curves_bladder/*s1338*)
+
+E4 (horizon-extended equal-S ladder at m, MANDATORY per A3) FINAL: H_DRIFT.
+  p by trunk horizon: 0.647 [0.610,0.683] (3k) -> 0.773 [0.746,0.801]
+  (12k) -> 0.789 [0.773,0.805] (24k).  The exponent RISES with horizon
+  and the 24k CI is disjoint above the 3k CI -> budget-indexing is
+  load-bearing (A3 confirmed with real long-horizon runs): the precise
+  value 0.647 is an equal-S-3000 budget-indexed quantity, not an
+  equilibrium exponent.  BUT the direction is horizon-ROBUST: p stays
+  strictly sublinear (CI upper 0.805 < 1) at every horizon tested, so the
+  no-emergence / no-superlinearity conclusion holds independent of
+  horizon, and p does NOT cross 1 even at 24k (the clock-rescope
+  tau0->infinity prediction stays untestable here).  Net effect on
+  shipped claims: "sublinear" STANDS and strengthens (true at 3k/12k/24k
+  and at 25M matched recipe and bs192); the specific number is restated
+  as horizon-indexed (0.65 at the 3k bed, drifting to ~0.79 by 24k).
+  Horizon is therefore NOT the source of the public-bed superlinearity
+  (our beds stay sublinear out to 24k) -- consistent with A2 localizing
+  the suspect to floor PROTOCOL, not horizon.  (analyze_e4.py,
+  curves_floor_m/floor_*_t{12000,24000}.csv)
