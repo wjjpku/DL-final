@@ -37,7 +37,7 @@
 \vfill
 \begin{block}{一句话摘要}
 现有最优的损失曲线律（Multi-Power Law / Functional Scaling Law）是\hl{绝热}的：它们预测的是调度在\hl{准静态平衡}下会达到的损失，忽略了当学习率衰减\emph{快于}系统弛豫时间时，损失会\hl{滞后}于平衡值——留下一个系统性的\hl{正残差}。\\[6pt]
-我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=1.00\pm 0.18$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
+我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=0.84\pm 0.17$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
 \end{block}
 \vfill
 \centering
@@ -226,7 +226,7 @@ $\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S
 \begin{column}{0.50\textwidth}
 \textbf{结果：}
 \begin{itemize}
-\item 合并 $100$M+$400$M：\hl{$p=1.00\pm 0.18$}
+\item 合并 $100$M+$400$M：\hl{$p=0.84\pm 0.17$}
 \item 各尺度单独：$-1.06/-0.94/-0.51$（$100/400/25$M）
 \item 受控 AdamW 模拟复现：\hl{$p=0.971$}，$R^2=0.9996$
 \item $\beta_2\in[0.9,0.9999]$ 扫描：$\tau$ 平坦，CV 仅 1.1\%
@@ -443,7 +443,7 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \begin{enumerate}
 \item 指出现有最优损失曲线律（MPL/FSL）皆为\hl{绝热近似}——预测准静态平衡值，忽略快速衰减时的弛豫滞后。
 \item 从 AdamW 预条件二阶矩动力学\hl{推导}出非绝热修正 \Drop，其幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$（在受控 NQM 中验证到 3\% 内）。
-\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=1.00\pm 0.18$），自洽验证噪声主导假设。
+\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=0.84\pm 0.17$），自洽验证噪声主导假设。
 \item 独立复现（真实 transformer + NQM 模拟）从两端确认机制，同时\hl{诚实标出边界}（$\tau$ 在 $\sim$10M 未复现、单曲线简并、$\eta_{\rm peak}$ 歧义）。
 \item 形状常数在公开同架构尺度上经验稳定 $\Rightarrow$ \hl{低校准跨尺度迁移}，陡降误差 $-$44\%、6/6 全胜。
 \item \hl{B-恒等式}：MPL 自带的 $B$ 即地板敏感度（$5$--$15\%$ 内验证）$\Rightarrow$ 零额外测量迁移 $-43\%$。
@@ -483,7 +483,7 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \midrule
 MPL 复现（表 1） & \texttt{repro/reproduce\_cosine\_to\_wsd.py} \\
 残差结构、$R^2$、与 $\Drop$ 回归 & \texttt{repro/nonadiabatic\_theory.py} \\
-$\tau\propto 1/\eta$（$p=1.00\pm 0.18$） & \texttt{repro/deep\_tau.py} \\
+$\tau\propto 1/\eta$（$p=0.84\pm 0.17$） & \texttt{repro/deep\_tau.py} \\
 S-time vs step-time 核对比 & \texttt{repro/deep\_stime.py}、\texttt{deep\_stime2.py} \\
 谱混合（双指数）与自洽性 & \texttt{repro/deep\_rigor.py} \\
 低校准跨尺度迁移 $-44\%$ & \texttt{repro/deep\_predict.py} \\

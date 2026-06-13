@@ -40,7 +40,7 @@ causal convolution of per-step LR decrements with a relaxation kernel in cumulat
 The operational correction is its lowest-capacity one-pole closure; in a noise-dominated
 AdamW specialization the amplitude is the equilibrium-floor sensitivity and the relaxation
 time is the classical $\tau\sim1/(\eta\lambda)$. Public LLM curves are consistent with this
-mechanism ($p=1.00\pm0.18$), while our independently trained small transformer confirms the
+mechanism ($p=0.84\pm0.17$), while our independently trained small transformer confirms the
 lag but not a clean inverse-LR scaling. The kernel's rate constant is empirically stable
 across the public scales, enabling a zero-target-fitting transfer that cuts held-out
 sharp-decay error by $44\%$. We then upgrade the law's \emph{amplitude structure} in two
@@ -102,7 +102,7 @@ term $\Drop$ (\S\ref{sec:theory}). A noise-dominated AdamW specialization identi
 amplitude with $dL_{\mathrm{eq}}/d\eta$ and gives the classical $\tau\sim1/(\eta\lambda)$
 relaxation time; our point is that this timescale governs the \emph{loss-curve-law residual}.
 \item Public LLM curves show residual relaxation consistent with $\tau\propto1/\eta$
-($p=1.00\pm0.18$), while the separately trained $\sim$10M reproduction confirms the lag but
+($p=0.84\pm0.17$), while the separately trained $\sim$10M reproduction confirms the lag but
 does not resolve this scaling; we therefore use inverse-LR relaxation as a mechanism check,
 not as the main empirical claim (\S\ref{sec:exp}, \S\ref{sec:repro2}).
 \item The kernel's rate constant is empirically stable on the public same-architecture
@@ -541,10 +541,12 @@ The bottom-row zoom shows the local region where rate dependence should appear.}
 The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
 $\eta\!\in\!\{3,9,18\}\!\times\!10^{-5}$, giving a clean relaxation window. Fitting the
 residual transient $r(t)\propto e^{-(t-8000)/\tau}$ yields $\tau$ that scales as $\eta^{-p}$
-with \emph{pooled} $p=1.00\pm0.18$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M). This is
-the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
-pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
-the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
+with \emph{pooled} $p=0.84\pm0.17$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M;
+\code{repro/deep\_tau\_pooled.py}). This is consistent with the classical
+$\tau\sim1/(\eta\lambda)$ (the noise-dominated value $p{=}1$ lies within one SE, and the two
+larger scales give $p=1.06/0.94$; the $25$M is shallower) for the loss-curve-law residual in
+LLM pretraining, self-consistently justifying the $v_i^*\!\approx\!s_i^2$ step of the
+derivation. The implied rate constant
 $\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is approximately stable across the public
 same-architecture scales; its modes have
 $\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\!\approx\!2\!\times\!10^{-3}\!\ll\!2$ (deep in the
@@ -554,7 +556,7 @@ slow regime, far from the edge of stability---unlike $\gamma$).
 \includegraphics[width=0.5\linewidth]{figs/fig_tau_scaling.png}
 \caption{Loss-relaxation time $\tau$ measured from \code{wsdcon} decay transients vs.\
 stage-2 LR. The $100/400$M curves track the predicted slope $-1$ ($\tau\propto1/\eta$);
-pooled $p=1.00\pm0.18$.}
+pooled $p=0.84\pm0.17$.}
 \label{fig:tau}
 \end{figure}
 
@@ -1203,7 +1205,7 @@ scales; broader scales and architectures are the natural next step.
 Existing loss-curve laws are adiabatic approximations. We identified and validated the leading
 non-adiabatic correction: under weak stability assumptions it is a causal linear response to LR
 decrements, and its one-pole closure gives a rate-dependent term whose relaxation time follows
-the classical $\tau\propto1/\eta$ ($p=1.00\pm0.18$, confirmed for the loss-curve residual).
+the classical $\tau\propto1/\eta$ ($p=0.84\pm0.17$, confirmed for the loss-curve residual).
 Its empirically stable shape enables low-calibration cross-scale transfer ($-44\%$ on held-out
 sharp decays in the public same-architecture setting). We then upgraded the law's amplitude
 structure: the B-identity shows MPL's own annealing coefficient \emph{is} the floor

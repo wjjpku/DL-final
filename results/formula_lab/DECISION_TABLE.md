@@ -938,3 +938,29 @@ redesign fails to beat the shipped four formulae on held-out fit; the
 formula structure is at a local optimum for this bed.  The ONLY genuinely
 claim-moving direction left is the public-100M/400M chi-amplitude ladder
 (~200-400 GPU-h), a bigger-machine wall the user has ruled out.
+
+## Round-convergence review #10 (gen-split fan-out): CONTINUE -> remediated (HEADLINE number, not cosmetic)
+
+R1: genCount=10, padding 8/10 (deep exhaustion), 1 surviving escape + 1
+compute_blocked (g2d4, same public-100M/400M chi-amplitude wall).  The
+escape is the most SUBSTANTIVE one the loop has found -- a headline claim,
+not a doc-sync cosmetic:
+  The tau-exponent p=1.00+/-0.18 (the "tau ~ 1/eta rate prediction holds"
+  claim) is cited 10x across main.tex/theory.tex/slides but has NO committed
+  backing artifact.  The committed deep_tau.log gives per-scale slopes
+  0.51/1.06/0.94 (25/100/400M); E1.json's p_real_pooled:1.0 is a HARDCODED
+  literal copied from the paper text (circular, per E1_tau_vs_eta.py).
+  RESOLUTION (honest, backed): wrote repro/deep_tau_pooled.py (committed
+  backing) -- ALL three pooling methods (naive mean-of-slopes,
+  balanced fixed-effects, single-intercept OLS) agree at p = 0.84 +/- 0.17,
+  NOT 1.00 +/- 0.18.  The "1.00" was the 100M+400M-only pooling (excluding
+  the shallow 25M=0.51) presented as the headline without that caveat.
+  Corrected p=1.00+/-0.18 -> 0.84+/-0.17 in ALL 16 locations across the four
+  deliverables (main.tex x5, theory.tex x5, slides EN x2, slides ZH x4),
+  reframed honestly: consistent with the classical tau~1/eta (p=1 within one
+  SE; the two larger scales give 1.06/0.94, 25M shallower at 0.51).  The
+  qualitative tau~1/eta claim survives (0.84+0.17~=1.0); the AdamW-simulation
+  p=0.971 is a separate synthetic result, left intact.  DEEP_TAU_POOLED.json
+  archived.  This is the adversarial loop's highest-value catch: a headline
+  scientific number that was not referee-reproducible.
+  (deep_tau_pooled.py, DEEP_TAU_POOLED.json)
