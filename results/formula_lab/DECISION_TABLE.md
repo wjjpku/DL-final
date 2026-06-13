@@ -869,3 +869,25 @@ theory.tex, slides/main.tex, slides/main_zh.tex) now carry the
 round-2/round-3/round-6 corrected numbers and caveats and are mutually
 consistent.  COMPUTE_BLOCKED unchanged (g1d3/g2d4/g3* chi-amplitude public
 100-400M wall, user decision).  Fixes reset the dry-round counter -> re-run.
+
+g4 (visible-amplitude concentration dependence, amp_rho_prereg.json) T1 FINAL:
+AMP_GATE_WEAK (zero-GPU, on the existing 11 lamrho fixed-depth/varied-width
+arms).  Post-drop excess amplitude a=A/depth vs concentration rho:
+  a = 41.0,42.0,41.4,39.9,40.4,34.6,31.2,26.2,33.4,18.9,29.3 (W=1..5120)
+  Spearman(a,rho) = +0.90 (concentrated drops -> larger visible amplitude,
+  monotone) but span only 2.22x and no clean saturating-gate form
+  (Hill phi(rho) R2=0.74).  => the visible amplitude has a REAL but MILD
+  concentration dependence -- the AMPLITUDE-side mirror of g2d3's RATE-side
+  result (rate: 12x monotone but log-linear-not-fractional; amplitude:
+  2.2x monotone but no clean gate).  NEITHER channel earns a closed-form
+  concentration law on this bed.
+  T2 (depth-axis ladder, ~6-10 GPU-h) DELIBERATELY NOT RUN: the user has one
+  RTX 5090 and is cost-constrained; the 10.7M/25M beds are sublinear and
+  documented as unable to move the PUBLIC-scale chi-amplitude claim (where
+  the strong mid-eta deficit lives, p>1), so a depth ladder here is
+  low-yield and scope-limited -- the frugal call is to leave the depth axis
+  + public-scale validation as the documented bigger-machine wall
+  (~200-400 GPU-h at 100M/400M).  The chi-amplitude axis is now CLOSED on
+  the feasible bed: both its concentration sub-axes (rate via g2d3, visible
+  amplitude via g4-T1) are characterized as real-but-modest with no
+  formula change earned here.  (analyze_amp.py, AMP_RHO_REPORT.json)
