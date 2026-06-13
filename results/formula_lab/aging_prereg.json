@@ -1,0 +1,13 @@
+{
+  "name": "g3d2: aging two-clock floor (zero-GPU test on existing E4 horizon ladder)",
+  "committed_before_launch": true,
+  "origin": "convergence review #9 design g3d2 (judge: would_be escaping, ~8-20 GPU-h GPU version). Tests the CORE claim zero-GPU on the existing E4 floors at horizons {3000,12000,24000} before any GPU spend.",
+  "model": "F_eq(eta,H) = L0 + a*eta^zeta - b_sec*log(1+H/(tau0*eta)); fit jointly to per-rung design-window floors at 3 horizons.",
+  "verdicts": {
+    "AGING_SUPPORTED": "single form fits all horizons R2>=0.9 AND zeta>1.05 -> reconciles sublinear endpoint (p~0.65) with superlinear equilibrium; a candidate formula term (then a GPU 48k extension would be warranted -- user decision given ~8-20 GPU-h)",
+    "AGING_FITS": "fits R2>=0.9 but zeta<=1.05 -> consistent with sublinear, no new claim; aging term not earned",
+    "AGING_WEAK": "no clean closed-form fit -> reject"
+  },
+  "gpu_extension": "the 48k-96k equal-S ladder (~8-20 GPU-h on one 5090) is run ONLY if AGING_SUPPORTED fires; otherwise the zero-GPU result stands and the GPU spend is not justified (user is cost-constrained).",
+  "dof_note": "G5: MPL backbone not refit verdict-bearing; +2 secular params (b_sec,tau0) gated on AGING_SUPPORTED."
+}
