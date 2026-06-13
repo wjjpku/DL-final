@@ -226,8 +226,8 @@ $\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S
 \begin{column}{0.50\textwidth}
 \textbf{结果：}
 \begin{itemize}
-\item 合并 $100$M+$400$M：\hl{$p=0.84\pm 0.17$}
-\item 各尺度单独：$-1.06/-0.94/-0.51$（$100/400/25$M）
+\item 合并三尺度：\hl{$p=0.84\pm 0.17$}（\texttt{deep\_tau\_pooled.py}）
+\item 各尺度单独：$p=0.51/1.06/0.94$（$25/100/400$M）
 \item 受控 AdamW 模拟复现：\hl{$p=0.971$}，$R^2=0.9996$
 \item $\beta_2\in[0.9,0.9999]$ 扫描：$\tau$ 平坦，CV 仅 1.1\%
 \end{itemize}
@@ -483,7 +483,7 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \midrule
 MPL 复现（表 1） & \texttt{repro/reproduce\_cosine\_to\_wsd.py} \\
 残差结构、$R^2$、与 $\Drop$ 回归 & \texttt{repro/nonadiabatic\_theory.py} \\
-$\tau\propto 1/\eta$（$p=0.84\pm 0.17$） & \texttt{repro/deep\_tau.py} \\
+$\tau\propto 1/\eta$（$p=0.84\pm 0.17$） & \texttt{repro/deep\_tau\_pooled.py} \\
 S-time vs step-time 核对比 & \texttt{repro/deep\_stime.py}、\texttt{deep\_stime2.py} \\
 谱混合（双指数）与自洽性 & \texttt{repro/deep\_rigor.py} \\
 低校准跨尺度迁移 $-44\%$ & \texttt{repro/deep\_predict.py} \\

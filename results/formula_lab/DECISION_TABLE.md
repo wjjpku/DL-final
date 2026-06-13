@@ -964,3 +964,29 @@ not a doc-sync cosmetic:
   archived.  This is the adversarial loop's highest-value catch: a headline
   scientific number that was not referee-reproducible.
   (deep_tau_pooled.py, DEEP_TAU_POOLED.json)
+
+## Round-convergence review #11 (gen-split fan-out, null-fix applied): CONTINUE -> remediated
+
+Executor robustness: prior run (wixh6se0x) CRASHED on a null judge (a judge
+agent hit a transient API usage-policy refusal -> returned null -> unguarded
+x.j.bucket).  Fixed the workflow's null-handling (filter x.j/x.v non-null +
+log a warning); this run completed cleanly.
+R1: genCount=9, padding 6/9, ZERO escapes (CLEAN -- first half of two-dry).
+R2: genCount=9, 1 escape: the review-#10 tau-fix SIBLINGS that the
+16-location replace_all missed because they are not the literal "1.00"
+string (same companions-lag-main.tex pattern):
+  - theory.tex L610 + main_zh.tex L230 rendered per-scale tau-exponents as
+    NEGATIVE -1.06/-0.94/-0.51 (slopes) at order 100/400/25M -> corrected to
+    positive p=0.51/1.06/0.94 at 25/100/400M (matches main.tex L544 +
+    DEEP_TAU_POOLED.json per_scale_p).
+  - main_zh.tex L229 mislabeled 0.84+/-0.17 as the "100M+400M" pooling ->
+    relabeled "all three scales" (0.84 is the all-scale pooling;
+    100M+400M-only IS the retracted 1.00).
+  - main_zh.tex L486 cited deep_tau.py (yields the retracted 1.00) ->
+    deep_tau_pooled.py (the correct backing).
+  Recompiled theory.pdf + main_zh.pdf.  main.tex re-verified CLEAN by the
+  finder (every headline number reproduces from its artifact).
+COMPUTE_BLOCKED (unchanged, surfaced): g1d1/g3d2 aging-floor (~8-20 GPU-h,
+the same g3d2 thread already tested zero-GPU = AGING_WEAK) and g2d3
+chi-amplitude (public-100M/400M ~200-400 GPU-h wall).  No new feasible
+claim-changer.  Fix resets the dry counter -> re-run for two-dry.

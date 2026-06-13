@@ -607,7 +607,8 @@ the rate-dependent term. Unless noted $\lambda_{\mathrm{slow}}{=}10$.
 The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
 $\eta\!\in\!\{3,9,18\}\!\times\!10^{-5}$, giving a clean relaxation window. Fitting the
 residual transient $r(t)\propto e^{-(t-8000)/\tau}$ yields $\tau$ that scales as $\eta^{-p}$
-with \emph{pooled} $p=0.84\pm0.17$ (per scale $-1.06/-0.94/-0.51$ at $100/400/25$M). This is
+with \emph{pooled} $p=0.84\pm0.17$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M;
+\code{repro/deep\_tau\_pooled.py}). This is
 the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
 pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
 the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
