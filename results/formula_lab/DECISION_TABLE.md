@@ -891,3 +891,21 @@ arms).  Post-drop excess amplitude a=A/depth vs concentration rho:
   the feasible bed: both its concentration sub-axes (rate via g2d3, visible
   amplitude via g4-T1) are characterized as real-but-modest with no
   formula change earned here.  (analyze_amp.py, AMP_RHO_REPORT.json)
+
+## Round-convergence review #8 (gen-split fan-out): CONTINUE -> remediated (EN slides synced)
+
+R1: genCount=11, padding 5/11, ZERO escapes (clean); 2 compute_blocked
+(g1d4/g3d3, the SAME public-100M/400M chi-amplitude wall, ~200-400 GPU-h,
+user already informed -- no bigger machine).  R2: genCount=10, padding 7/10
+(deep exhaustion), 1 escape: the ENGLISH slides (slides/main.tex L922-928)
+still advertised the Lambda(rho) concentration-rate experiment as
+"open/next" future work with a stale ~6/~20-30 GPU-h estimate, though
+g2d3/g2d3b/g2d3c COMPLETED it (review #7).  The ZH deck was updated (review
+#7) but the EN deck was missed -- the mirror sync gap.  Fixed: moved the
+Lambda(rho) item to the "done" frame restating the result (12x log-linear,
+not fractional, dAIC 22, +5.9% -> fixed-lambda vindicated; amplitude
+mirror +0.90/2.2x); deleted the stale GPU estimate; recompiled main.pdf.
+All FOUR compiled deliverables (paper main.tex/theory.tex, slides EN/ZH)
+now consistently reflect the full round-2 + g2d3/g4 results.  R1-clean is
+the FIRST half of the two-dry requirement; the R2 fix resets the counter ->
+one more fan-out needed for two consecutive clean rounds.
