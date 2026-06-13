@@ -1111,14 +1111,23 @@ rate wanted by instantaneous-drop probes ($\sim$15) and by gradual sharp decays 
 differ, but always across \emph{different} schedule families. A pre-registered
 concentration ladder---cool $1.5{\to}0.1\times10^{-3}$ over a width $W\in\{1,10,40,160,640\}$
 from a shared trunk, then hold and fit the $S$-time relaxation---isolates the effect within
-one bed. The fitted rate \emph{is} monotone in concentration ($\lambda=14.3{\to}5.6$ as $W$
-grows, Spearman $-1.0$, bridging the two regimes), confirming the gap is a real smooth
-function of how concentrated the decrement is---but the sensitivity is mild ($2.6\times$
-over a $220\times$ concentration range, not the na\"ive $3\times$), the pre-registered
-saturating-exponential form is rejected ($R^2{=}0.52$), and a constant effective
-$\lambda_{\mathrm{slow}}$ is therefore a defensible compromise rather than an oversight. A
-correct closed-form $\lambda(\rho)$ (the data hint at $\lambda\!\sim\!a-b\log W$) is left to
-future work; we do not adopt a concentration-dependent kernel here.
+one bed. Over a wide pre-registered width ladder ($W\in\{1,\dots,5120\}$, $11$ rungs,
+concentration $\rho$ spanning $14{\to}5\!\times\!10^{-4}$) the fitted rate is strongly
+monotone (Spearman $-0.97$, $\lambda=14.3{\to}1.2$, a $12\times$ span that bridges the
+instant-probe and gradual-sharp regimes) and cleanly \emph{log-linear},
+$\lambda\approx15.1-3.7\log_{10}W$ ($R^2{=}0.96$; held-out $R^2{=}0.88$ predicting six new
+arms from the original five). So the rate gap is a real, large, predictable function of how
+concentrated the decrement is. Two pre-registered follow-ups then decide \emph{against}
+changing the kernel: (i) a scale-free Mittag-Leffler/fractional memory would make
+$\lambda_{\mathrm{eff}}(W)$ a \emph{power} law $W^{-(1-\beta)}$, but the power-law fit is far
+worse than log-linear ($\Delta\mathrm{AIC}{=}22$), so the trend is not a fractional-memory
+fingerprint; (ii) promoting the rate to a width-dependent $\lambda(W)$ improves held-out
+relaxation-curve MAE by only $5.9\%$, and heavy-tailed kernels (Lomax, two-exponential,
+stretched) collapse to the single pole on the cross-family transfer matrix. A constant
+effective $\lambda_{\mathrm{slow}}$ is therefore vindicated as the deployment choice; the
+non-unification is now a \emph{measured} mild log-linear concentration effect rather than a
+mystery, and a closed-form $\lambda(\rho)$ that also earns its held-out keep is left to
+future work.
 
 \section{Limitations}\label{sec:disc}
 The gain is regime-specific (data-poor sharp decays). If full WSD curves are available, a
