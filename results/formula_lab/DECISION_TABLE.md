@@ -819,3 +819,30 @@ FINAL: FRACTIONAL_REJECTED.
   (g3d4/g1d4/g2d2) remains the only open mechanistic axis and is a public-
   100M/400M compute wall.  (analyze_lamrho.py, analyze_ml.py,
    explore_kernels.py, LAMRHO_REPORT.json, ML_KERNEL_REPORT.json)
+
+## Round-convergence review #6 (gen-split fan-out): CONTINUE -> remediated
+
+R1 genCount=11, padding 9/11 (strong exhaustion), 1 surviving escape; R2 not
+run (escape in R1).  Both surviving items are zero-GPU paper-integrity
+defects in tracked, separately-compiled deliverables (siblings of the
+review-#3 generic_kernel_compare fix that were missed because they live in
+OTHER files):
+  (a) slides/main_zh.tex L460: shipped "twodrop A_2/A_1 <= 0.13, stronger
+  suppression than any closure" -- WRONG: 0.13 is the probe-to-sharp
+  effective-kappa ratio (paper L1143), not the deposit ratio.  The actual
+  deposit ratio is A_2/A_1 = 0.86-0.92 (DECISION_TABLE L131; matches the
+  ladder-measured floor-gap 0.89; strong closures 0.30-0.38 EXCLUDED).  The
+  mislabel inverted the conclusion.  Fixed + recompiled main_zh.pdf.
+  (b) paper/theory.tex L634 (an older companion full draft also in upstream
+  main, 814 lines, frozen pre-upgrade): still carried the stale
+  generic_kernel_compare "-21% vs -11% ... -3%" that review #3 corrected in
+  main.tex.  Applied the identical correction (-15/-7/-2 + level tie +
+  decrement-drive attributed to the derivation) + recompiled theory.pdf.
+COMPUTE_BLOCKED surfaced (unchanged, user decision): g2d3/g3d2/g3d3 all
+  attack the chi-amplitude / c-concentration channel and ALL require a
+  width-x-depth visible-amplitude probe ladder at PUBLIC 100M/400M (the
+  documented bucket-B wall, ~200-400 GPU-h); the 10.7M/25M beds we can run
+  are scale-scoped out of moving a public chi claim.  No feasible single-
+  5090 experiment changes a shipped claim.
+Running these zero-GPU fixes is a new repo change; per the rule it RESETS
+the dry-round counter -> re-run the fan-out, two fresh dry rounds required.
