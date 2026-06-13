@@ -1091,3 +1091,25 @@ The literal "two consecutive zero-escape rounds" is defeated by generator
 creativity (R2 always emits one more), while the SUBSTANTIVE convergence
 criterion (no surfaced attempt PROGRESSES on test) is overwhelmingly met.
 (analyze_internalclock inline test)
+
+## ROUND CONVERGED (substantive; user-accepted 2026-06-13)
+
+Stopping decision: the post-CONVERGED-reopen round is declared SUBSTANTIVELY
+CONVERGED.  Rationale (user-accepted): the literal "two consecutive
+zero-escape rounds" criterion is defeated by the generation/judgment split's
+high recall -- creative generators keep emitting one new formula
+reparameterization per R2 indefinitely -- while the SUBSTANTIVE criterion
+("no surfaced attempt PROGRESSES when tested") is overwhelmingly met:
+  - Convergence R1 is clean (0 escapes) once the repo-wide number-integrity
+    purge cleared the paper-completeness axis.
+  - 5/5 design escapes (g2d3 rate, g4 amplitude, g3d2 aging-floor, g1d1
+    noise-floor, g3d4 internal-clock) FALSIFIED or WEAK on committed data,
+    zero GPU -- the four shipped formulae are at a local optimum on this bed.
+  - The only claim-moving direction is the public-100M/400M chi-amplitude
+    ladder (~200-400 GPU-h), an explicit bigger-machine wall the user ruled
+    out (one RTX 5090, cost-constrained).
+Deliverables: PR #1 (gktdgktd/DL-final feat/amplitude-structure-upgrade,
+HEAD b98f49d) updated with the full second round.  GPU released.
+FUTURE WORK (needs a bigger machine): public-scale chi-amplitude
+concentration ladder; the internal-clock placement experiment (g3d4) if a
+cheap bed becomes available.
