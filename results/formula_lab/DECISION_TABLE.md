@@ -754,3 +754,32 @@ FINAL: AMBIG -> no kernel change; a genuine measured finding.
   This design is now ANSWERED (run + measured); it no longer escapes.
   (train_lamrho.py, analyze_lamrho.py, LAMRHO_REPORT.json,
    curves_lamrho/*.csv)
+
+## Round-convergence review #5 (generation-split fan-out): CONVERGED -- but SUPERSEDED (in-flight g2d3b + zero-GPU Mittag-Leffler test owed)
+
+Two CONSECUTIVE zero-escape rounds (R1 genCount=11 escapes=0; R2 genCount=10
+escapes=0), both >=9 designs, padding HIGH (5/11, 4/10) = strong
+generation-exhaustion signal.  Per the binding rule the workflow returned
+CONVERGED.  I am NOT treating this as terminal yet, for two honest reasons:
+  (1) g2d3b (wider rho ladder) was LAUNCHED before this review finished and
+  is still running -- running a new experiment RESETS the dry-round counter
+  (memory 1a), so a fresh two-round confirmation is owed after it lands.
+  (2) The generation surfaced a deeper idea the judges flagged as having a
+  ZERO-GPU decisive test (so NOT truly compute_blocked): a MITTAG-LEFFLER /
+  fractional-relaxation kernel.  Insight: force-fitting a single exponential
+  to a scale-free fractional memory yields lam_eff(W) ~ lam0 * W^-(1-beta),
+  i.e. EXACTLY the log-law lam ~ a - b*log W that g2d3 found but could not
+  explain -- one global beta would unify the probe-vs-sharp lam gap and make
+  c(rho) derived.  This is the SAME family as the closed "Lomax/2-exp/
+  stretched collapse to one-pole" direction, BUT that closure tested kernel
+  SHAPE on single-curve residual fits; the Mittag-Leffler prediction is
+  about the lam_eff(W) CONCENTRATION-LADDER signature, which that
+  exploration never had data for.  Decisive cheap test (g2d3c, below) settles
+  whether the closure extends to the new ladder data.
+COMPUTE_BLOCKED DIRECTIONS surfaced to user (full versions need a bigger
+machine; do not block convergence, never swallowed):
+  - g1d3 Mittag-Leffler fractional kernel: decisive head-to-head ~0 GPU
+    (running as g2d3c); full cross-family + 25M confirmation ~16-30 GPU-h.
+  - g1d4 / g2d2 two-channel & rho-gated amplitude for the mid-eta uniform
+    deficit: to MOVE the chi claim needs a width-x-depth probe ladder at
+    public 100M/400M (hundreds of GPU-h; the documented bucket-B wall).
