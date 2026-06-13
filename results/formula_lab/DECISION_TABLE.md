@@ -846,3 +846,26 @@ COMPUTE_BLOCKED surfaced (unchanged, user decision): g2d3/g3d2/g3d3 all
   5090 experiment changes a shipped claim.
 Running these zero-GPU fixes is a new repo change; per the rule it RESETS
 the dry-round counter -> re-run the fan-out, two fresh dry rounds required.
+
+## Round-convergence review #7 (gen-split fan-out): CONTINUE -> remediated (ZH slide fully synced)
+
+R1 genCount=11, padding 9/11 (exhaustion), 2 surviving escapes, BOTH in
+slides/main_zh.tex (the under-maintained Chinese sibling that never got the
+round-2/round-3 updates; review #6 fixed two of its lines but missed more):
+  (a) L250: stale pre-round-3 kernel-compare -21%/-3% -> corrected to
+  -15/-7/-2 + the level-tie disclosure (matches main.tex/theory.tex).
+  (b) L325/L336: un-caveated superlinear floor headline + the RETRACTED
+  scale-emergence reading (0.73->1.06->1.49->1.25) + old p=0.73 -> rewritten
+  to public-three-point-protocol-dependent, matched-recipe SUBLINEAR
+  p=0.65/0.64 (CI excludes 1, horizon-robust to 24k), NO emergence
+  (dp=-0.006 vs 0.067), source not localized.
+  ALSO proactively synced the same file's "next work" frame: added a
+  "second round closed" block (B-blind clock, OFF_REGIME spectroscopy both
+  scales, bs192 BS_NULL, lam 12x log-linear) and removed the batch-size
+  S-time control from "still open" (done in round 2); trimmed open items to
+  the genuine ones + the public-scale chi-amplitude compute wall.
+Recompiled main_zh.pdf.  All FOUR compiled deliverables (main.tex,
+theory.tex, slides/main.tex, slides/main_zh.tex) now carry the
+round-2/round-3/round-6 corrected numbers and caveats and are mutually
+consistent.  COMPUTE_BLOCKED unchanged (g1d3/g2d4/g3* chi-amplitude public
+100-400M wall, user decision).  Fixes reset the dry-round counter -> re-run.
