@@ -39,6 +39,7 @@ SCALES = {
 }
 PEAK, WARM, TRUNK, S2STAR, BS = 1.5e-3, 400, 3000, 1.2, 48
 DIRSFX = ""   # set to f"_b{bs}" by --bs for non-48 beds (bs192 prereg)
+TSFX = ""     # set to f"_t{len}" by --trunk_len for horizon beds (E4 prereg)
 RUNGS = {
     "floor_5": 0.5e-4, "floor_10": 1.0e-4, "floor_20": 2.0e-4,
     "floor_30": 3.0e-4, "floor_40": 4.0e-4, "floor_60": 6.0e-4,
@@ -75,7 +76,7 @@ def step_once(model, opt, gen, trd, lr, bs, block):
 
 
 def make_trunk(scale, seed, trd):
-    ck = os.path.join(cdir(scale), f"trunk_s{seed}.pt")
+    ck = os.path.join(cdir(scale), f"trunk_s{seed}{TSFX}.pt")
     if os.path.exists(ck):
         return open(ck, "rb").read()
     model, opt = build_model(scale, seed)
@@ -116,7 +117,7 @@ def restore(scale, seed, blob):
 
 
 def run_rung(scale, seed, blob, tag, trd, vad):
-    sfx = "" if seed == 1337 else f"_s{seed}"
+    sfx = ("" if seed == 1337 else f"_s{seed}") + TSFX
     out = os.path.join(cdir(scale), f"{tag}{sfx}.csv")
     if os.path.exists(out):
         print(f"[skip] {scale}/{tag}{sfx}", flush=True)
@@ -156,11 +157,16 @@ def main():
     ap.add_argument("--only", default=None)
     ap.add_argument("--trunk_only", action="store_true")
     ap.add_argument("--bs", type=int, default=48)
+    ap.add_argument("--trunk_len", type=int, default=3000)
     a = ap.parse_args()
     if a.bs != 48:
         global BS, DIRSFX
         BS = a.bs
         DIRSFX = f"_b{a.bs}"
+    if a.trunk_len != 3000:
+        global TRUNK, TSFX
+        TRUNK = a.trunk_len
+        TSFX = f"_t{a.trunk_len}"
     trd = np.memmap(os.path.join(a.data_dir, "wiki_train.u8"), dtype=np.uint8,
                     mode="r")
     vad = np.memmap(os.path.join(a.data_dir, "wiki_val.u8"), dtype=np.uint8,

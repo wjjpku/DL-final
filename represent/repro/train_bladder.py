@@ -183,9 +183,16 @@ def main():
         print("TRUNKS READY", flush=True)
         return
     if a.only:
-        seed, B2, eta2, tag = next(x for x in ARM_LIST if x[3] == a.only)
+        import re
+        m_ = re.match(r"b(\d+)_e(10|40|nodrop)_s(\d+)$", a.only)
+        if m_:
+            B2 = int(m_.group(1))
+            eta2 = {"10": 1e-4, "40": 4e-4, "nodrop": PEAK}[m_.group(2)]
+            seed = int(m_.group(3))
+        else:
+            seed, B2, eta2, _ = next(x for x in ARM_LIST if x[3] == a.only)
         blob = make_trunk(seed)
-        run_arm(blob, trd, vad, seed, B2, eta2, tag)
+        run_arm(blob, trd, vad, seed, B2, eta2, a.only)
         return
     if a.arms in ("all", "main"):
         blob = make_trunk(1337)
