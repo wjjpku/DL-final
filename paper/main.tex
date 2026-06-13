@@ -754,7 +754,9 @@ cells (it never touches cosine rows): at $\delta{=}0$ it is a strict Pareto impr
 to $-14.0$ with worst/median unchanged
 (\code{repro/formula\_lab/matrix\_matched\_cells.py}). The rule's domain is
 floor-curvature-dominated regimes and we gate it on the probe-measured floor exponent
-$p>1$: training a deliberately matched probe on the $10.7$M bed ($p_{\mathrm{real}}{=}0.73$)
+$p>1$: training a deliberately matched probe on the $10.7$M bed
+($p_{\mathrm{real}}{=}0.65$ under the audit-corrected design window; $0.73$ as originally
+extracted---the gate pools either way)
 shows the rule \emph{firing there would hurt} ($-3.8\%$ vs pooled $-71.2\%$ on
 \code{sharp600} at $\delta{=}3/4$---the deepest-drop probe has the most
 concentration-suppressed amplitude), so below $p{=}1$ the rule pools; the gate uses only
@@ -1015,15 +1017,18 @@ $21$-step eval grid).
 \textbf{Does the lag price final loss?} Equal-terminal-LR cooldown derbies (linear
 cooldown started at $d_s\in\{1300,3000,5000,5700\}$ of $6000$, three to five seeds,
 seed-paired) at both $10.7$M and $25$M. Like-for-like, the mid-late arm fires at both
-scales: $g(5000)=+7.8\times10^{-3}\pm0.7$ ($10.7$M, $5$ seeds) and
+scales \emph{against the core backbone-prediction ensemble}:
+$g(5000)=+7.7\times10^{-3}\pm0.7$ ($10.7$M, $5$ seeds) and
 $+8.6\times10^{-3}\pm0.6$ ($25$M) against adiabatic-backbone predictions of
-$+3.4$/$+3.7\times10^{-3}$ --- but the latest arm is \emph{null-consistent} once windows
-match, and the fire margins are smaller than the backbone's own demonstrated
-schedule-shape systematic at the early-cooldown control ($-6.3\times10^{-3}$).
+$+3.3$/$+3.7\times10^{-3}$ --- but the fire is ensemble-dependent (null under a widened
+seven-split ensemble), the latest arm is \emph{null-consistent} once windows match, and
+the fire margins are smaller than the backbone's own demonstrated schedule-shape
+systematic at the early-cooldown control ($-6.3\times10^{-3}$).
 Our honest statement: late-cooldown final-loss gaps are \emph{consistent} with the
 lag-corrected law and the $\delta>0$ closures beat the adiabatic/MPL baselines in relative
-comparison ($\chi^2$ $36{\to}15$ at $10.7$M), but an \emph{absolute} ``lag prices final
-loss'' claim is not established at these margins. The $\kappa$ transfer test at $25$M
+comparison ($\chi^2$ $65{\to}17$ at $10.7$M on five seeds; post-hoc there, pre-registered
+only at $25$M), but an \emph{absolute} ``lag prices final loss'' claim is not established
+at these margins. The $\kappa$ transfer test at $25$M
 (zero-measurement B-identity $\kappa_l=\kappa_m B_l/B_m$ vs.\ naive carry-over, both
 pre-registered) is closure-dependent --- B-identity wins at $\delta\in\{0,0.5\}$, naive at
 $\delta=0.75$ --- so the B-identity chain remains supported for curve-shape transfer
@@ -1090,8 +1095,11 @@ The floor exponents $p$ are three-point log-log fits whose backbone subtraction 
 $B$-annealing term; we use them as qualitative evidence for $p>1$ \emph{at the public
 scales}, not as a quantitative
 confirmation of any specific $\delta$ (at $25$M, $p{-}1=0.06$ is consistent with no
-superlinearity, and the confound-free equal-$S$ ladder gives a \emph{sublinear}
-$p=0.73$ at $10.7$M---the exponent is scale-dependent; \S\ref{sec:repro2}). $\delta{=}1/2$, although strongest for probe-only calibration, was first
+superlinearity, and the confound-free equal-$S$ ladders give \emph{sublinear} exponents
+$0.65/0.64/0.61$ at $10.7$M, $25$M matched-recipe, and $10.7$M-$B{=}192$
+respectively---the exponent is \emph{bed}-dependent, not parameter-count- or
+batch-size-dependent, and the source of the public-bed superlinearity is not localized;
+\S\ref{sec:repro2}, \S\ref{sec:round2}). $\delta{=}1/2$, although strongest for probe-only calibration, was first
 identified in an in-sample scan over the public curves and is therefore reported but not
 claimed as a pre-registered result; the paper-facing default $\delta{=}1/4$ was selected by
 Pareto dominance on the audited matrix, not by target fitting. The bulk$+$edge mechanism

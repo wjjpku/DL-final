@@ -488,3 +488,41 @@ without deterministic-edge re-pinning at either scale; re-pinning at a
 stochastic/adaptive effective threshold remains untested.  The slow mode
 remains phenomenological.  Attempt 3 is now terminal at both
 pre-registered scales.  (analyze_spectrum.py, SPECTRUM_REPORT.json)
+
+## Round-convergence review #1 (6-agent workflow): CONTINUE -- worklist record
+
+Verdict: CONTINUE (blocking bookkeeping + 5 escaping candidates E1-E5 from
+the mechanism-lens exhaustion pass; methodology-lens pass returned empty).
+Bookkeeping discharged with this commit:
+  (a) Deposit cross-check bridging restatement (completes the parked
+  deposit-form item): at the AUDIT-C corrected p = 0.647 the floor-gap
+  deposit prediction moves 0.889 -> ~0.96, marginally ABOVE the measured
+  0.86-0.92 band; the cross-check weakens from "inside band" to ~5%
+  agreement.  The pre-audit sentence at the Multi-seed A2/A1 entry is
+  superseded accordingly (paper already revised).
+  (b) AUDIT-B m closure chi2 superseded by the 5-seed artifact: dMPL 64.6
+  / d=0 53.8 / d=0.5 26.1 / d=0.75 17.1 -- delta(d=0.5 vs d=0.75) = 9.0
+  >= 6 would select d=0.75 under the post-hoc rule; recorded 3-seed
+  figures (36.4/31.0 -> 18.0/15.5, "indistinguishable") are the
+  superseded snapshot.  Still post-hoc at m, non-verdict-bearing.
+  (c) Pre-audit l-derby descriptive RETRACTED explicitly: "best closure
+  at l remains d=0.75 (chi2 120 vs 668); all closures underprice late
+  cooldowns" is inverted like-for-like (d=0.5 best, 85.4 vs 136.1; V2_l
+  null => no underpricing).
+  (d) AUDIT-E count fix: the audit's five labeled remediations are A-D
+  plus the ensemble-widening/kappa-split-instability item that was folded
+  into AUDIT-B's like-for-like record; there is no separate finding E.
+  (e) BLADDER_REPORT.json is superseded by bladder_rewindow.py (AUDIT-A);
+  restated b_B lives in the AUDIT-A record.
+  (f) Review pass-2's zero-GPU checks entered on the record: bitwise
+  trunk-identity for all seed-paired derby arms at m and l confirmed
+  (maxdiff 0.0 over 150 shared-prefix eval rows); model-free t_half
+  slow-clock estimator on the bladder common window gives b_B ~ +0.23,
+  consistent with the AUDIT-A B-blind-to-mildly-positive restatement.
+Escaping candidates adopted as the new round's worklist (preregs to
+follow per G4): A1-A5 zero-GPU analyses (sub-edge mode tracking; public
+three-point protocol extraction; equilibrium-p from F_inf; floor-level
+sign-flip pricing; dL_eq/deta-anchored B_m) gating E1 (backbone-null
+matched-S paired derby), E4 (horizon-extended ladder), E5 (sign-flip
+seed replication), E3 (concentration-graded drop ladder), E2
+(stochastic-threshold re-pinning), in that order.
