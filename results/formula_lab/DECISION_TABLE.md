@@ -689,3 +689,39 @@ REMEDIATED this commit: numbers corrected to -15/-7/-2; the level tie
   a pre-existing inherited-paper defect that the fan-out's second round
   caught -- vindicating the loop-until-dry-K=2 architecture.  Round must now
   re-enter convergence check (re-run the fan-out) before any CONVERGED.
+
+## Round-convergence review #4 (generation-split fan-out: 3 pure designers + 3 falsifiers, steelman-then-bucket judges): CONTINUE
+
+Architecture iterated per user: generation split from judgment (generators
+FORBIDDEN to bucket; independent judges steelman-then-bucket each design;
+compute_blocked surfaced not silently closed; padding guardrail).
+  Round 1: genCount=14 designs (>=9, real generation), PADDING 9/14 -- a
+  strong generation-exhaustion signal (designers scraping the barrel; most
+  designs collapsed to bucket A = already-answered).  1 surviving escape
+  (paper-completeness falsifier).
+SURVIVING ESCAPE (zero-GPU, REMEDIATED this commit): slides/main.tex
+  advertised three round-2 experiments as un-done future work (Priority 3
+  >=25M relaxation + Hessian spectroscopy; Priority 2 batch-size S-time
+  control; "What remains open"), all executed in round 2.  Fixed: the
+  "Next work" frame now states round-2 RESULTS (B-identity transfer,
+  B-blind clock, BS_NULL, 25M sublinear floor, OFF_REGIME spectroscopy);
+  "What remains open" gains a "Closed by the second round" block; only P0
+  + the two compute_blocked directions remain as honest future work.
+COMPUTE_BLOCKED DIRECTIONS surfaced to the user (do NOT block convergence
+  per the rule, but recorded, never swallowed):
+  - g2d3 CONCENTRATION-DEPENDENT RATE Lambda(rho): replace the fixed-rate
+    pole exp(-lam_slow*dS) with Lambda(rho_k)=lam_inf+(lam_0-lam_inf)
+    *exp(-rho_k/rho_star), rho_k = local fractional drop rate -- unifies
+    the lam non-unification (15-19 probe vs 0.5-5 sharp) AND the
+    concentration-dependent c into ONE object (c(rho)=lam_eff/Lambda).
+    Judge: would_be ESCAPING; decisive m-bed test ~6 GPU-h (feasible,
+    same class as shipped jobs), cross-scale ~20-30 GPU-h.  -> RUNNING the
+    m-bed test this round (see lamrho_prereg.json).
+  - g3d4 HILL SATURATING visible-amplitude: chi_visible = B*[depth/(depth
+    +eta_half)]^n replacing chi~eta^delta for the mid-eta uniform deficit.
+    Judge: bucket A/B -- moving the chi claim needs a depth-varied ladder
+    at public 100M/400M (hundreds of GPU-h; the documented bucket-B wall);
+    10.7M cannot move a public-scale claim.  Surfaced for user decision;
+    NOT run.
+Round NOT converged: one surviving escape (now fixed) + g2d3 is a feasible
+claim-changing experiment mislabeled compute_blocked -> promoted to a run.

@@ -892,35 +892,42 @@ relaxation trend.
 \item The relationship to MPL's empirical exponent $\gamma$ is complementary and still only
 qualitative.
 \end{itemize}
+\vfill
+\textbf{Closed by the second (adversarially-audited) round.}
+\begin{itemize}
+\item The slow-mode \emph{spectral} explanation was tested directly (top-Lanczos
+preconditioned sharpness at 10.7M and 25M) and \textbf{falsified} (OFF\_REGIME at both):
+$\lambda_{\mathrm{slow}}$ stays phenomenological, not a deterministic edge-re-pinning rate.
+\item The floor superlinearity is \textbf{protocol-dependent}: confound-free equal-$S$
+ladders read sublinear ($\approx0.65$, robust across $10.7$/$25$M, batch size, horizon to
+$24$k); the public $1.06$--$1.49$ is a settled-probe three-point-fit artifact, not a
+parameter-count law.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Next work: highest-value experiments}
-\textbf{Priority 0: strengthen current-law calibration.}
+\begin{frame}{Second round: what we ran (all pre-registered, audited)}
+\textbf{Priorities 1--3 from the original plan are now DONE.}
 \begin{itemize}
-\item Add more two-stage probe LRs to estimate $\chi$ and $\lambda_{\mathrm{slow}}$ with
-tighter confidence intervals.
-\item Pre-register $\lambda=10$ and the cross-scale $c$ rule, then evaluate on new WSD shapes.
-\item Test whether the same $c$ transfers across architectures or only within one family.
+\item \emph{Amplitude identity (was P1):} the B-identity ($dL_{\mathrm{eq}}/d\eta=B$) transfers
+MPL's own annealing coefficient with no extra measurement ($-43\%$); a split-free ladder
+anchor gives $B_l/B_m=1.10$.
+\item \emph{S-time / batch control (was P2):} the slow-mode clock is batch-size-\textbf{blind}
+(bladder ladder, AUDIT-A C1/C3); the floor exponent is invariant to gradient-noise scale
+(bs192 ladder, BS\_NULL $p=0.61$).
+\item \emph{Scale + spectrum (was P3):} the $25$M equal-$S$ floor ladder ran ($p=0.64$,
+sublinear); top-Lanczos sharpness spectroscopy at $10.7$/$25$M returned OFF\_REGIME --
+the spectral slow-mode account is falsified, not open.
 \end{itemize}
 \vfill
-\textbf{Priority 1: real-model amplitude identity.}
+\textbf{Genuinely open / next (some need a bigger machine).}
 \begin{itemize}
-\item Train $3$--$4$ constant-LR curves at $\sim$10M.
-\item Independently estimate $dL_{\mathrm{eq}}/d\eta$.
-\item Compare it against the \Drop{} fitted amplitude.
-\end{itemize}
-\vfill
-\textbf{Priority 2: S-time control.}
-\begin{itemize}
-\item Alter batch size or effective LR integration so step-time and $S$-time are separated.
-\item Directly test whether memory follows $S_t-S_k$ rather than $t-k$.
-\end{itemize}
-\vfill
-\textbf{Priority 3: scale and spectrum.}
-\begin{itemize}
-\item If compute allows, repeat the real-transformer relaxation probe at $\ge25$M.
-\item If diagnostics are available, measure Hessian/noise spectra and test the slow-mode
-explanation for $\lambda_{\mathrm{slow}}$.
+\item \emph{P0 (cheap):} more two-stage probe LRs for tighter $\chi/\lambda$ CIs; cross-family
+$c$ transfer.
+\item \emph{Concentration-dependent rate} $\Lambda(\rho)$: promote the fixed $\lambda_{\mathrm{slow}}$
+to a functional of local decrement density to unify the probe-vs-sharp rate gap (15--19 vs
+0.5--5); decisive $m$-bed test $\sim$6 GPU-h, cross-scale $\sim$20--30.
+\item \emph{Saturating (Hill) visible-amplitude} for the mid-$\eta$ probe deficit: needs a
+depth-varied ladder at public $100$/$400$M to move the $\chi$ claim (large compute).
 \end{itemize}
 \end{frame}
 
