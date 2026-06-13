@@ -622,3 +622,17 @@ E4 (horizon-extended equal-S ladder at m, MANDATORY per A3) FINAL: H_DRIFT.
   (our beds stay sublinear out to 24k) -- consistent with A2 localizing
   the suspect to floor PROTOCOL, not horizon.  (analyze_e4.py,
   curves_floor_m/floor_*_t{12000,24000}.csv)
+
+E2 (scoped: constant-eta S_pre equilibration ladder in batch size) FINAL:
+  DECOUPLED_HARDENS.  Equilibrated S_pre (median kept probes dS in
+  [800,4000]): b12 = 4645 (0.18x edge), b48 = 10140 (0.40x), b192 = 8136
+  (0.32x).  NON-monotone in batch size (b48 > b192) and span only 1.75x
+  (< the 2x bar) -- and the per-batch probe ranges are huge (b12
+  [2130,100033]) from the documented P(v_hat) spikes.  The stochastic-edge
+  account is NOT supported: equilibrated curvature is not a clean
+  noise-set function of B.  Combined with A1 (no spectral mode tracks
+  tau_loss) and the deterministic OFF_REGIME at both scales, the spectral
+  account of the slow mode is now closed at the deterministic edge, the
+  stochastic edge, AND the mode-tracking observable.  "Slow mode remains
+  phenomenological" is terminal and maximally hardened on this bed.
+  (e2_prereg.json, analyze_spectrum.py, spec_nodrop_b{12,192})
