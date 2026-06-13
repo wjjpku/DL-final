@@ -35,6 +35,8 @@ ARMS = {
     "spec_nodrop": dict(eta2=1.5e-3, bs2=48, t2=4000),
     "spec_e10_b12": dict(eta2=1e-4, bs2=12, t2=8000),
     "spec_e10_b192": dict(eta2=1e-4, bs2=192, t2=4000),
+    "spec_nodrop_b12": dict(eta2=1.5e-3, bs2=12, t2=4000),
+    "spec_nodrop_b192": dict(eta2=1.5e-3, bs2=192, t2=4000),
 }
 K_TOP, M_PRE, M_RAW = 16, 64, 32
 N_PROBE_BATCHES, PROBE_BS, PROBE_SEED = 4, 48, 424242

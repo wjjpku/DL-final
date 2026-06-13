@@ -26,7 +26,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ETA1, B1 = 1.5e-3, 0.9
 EDGE = lambda eta: (2 + 2 * B1) / ((1 - B1) * eta)   # 38/eta
 ETA2 = {"spec_e10": 1e-4, "spec_e40": 4e-4, "spec_nodrop": 1.5e-3,
-        "spec_e10_b12": 1e-4, "spec_e10_b192": 1e-4}
+        "spec_e10_b12": 1e-4, "spec_e10_b192": 1e-4,
+        "spec_nodrop_b12": 1.5e-3, "spec_nodrop_b192": 1.5e-3}
 RES_GATE = 0.05
 
 
