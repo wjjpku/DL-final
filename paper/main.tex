@@ -48,8 +48,8 @@ ways. First, a \emph{B-identity}: MPL's own annealing coefficient $B$ \emph{is} 
 equilibrium-floor sensitivity the correction needs, so the amplitude transfers from MPL's
 published parameters with no additional measurements ($-43\%$, matching the probe-based
 chain). Second, the public-bed equilibrium floor reads \emph{superlinear} in $\eta$
-($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06$--$1.49$ from three-point
-fits at $100/400$M)---though we show this reading is protocol-dependent (confound-free
+($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06/1.49/1.25$ at $25/100/400$M,
+three-point fits)---though we show this reading is protocol-dependent (confound-free
 equal-$S$ ladders on our own beds give a \emph{sublinear} exponent $\approx0.65$, robust
 to model size, batch size, and horizon; \S\ref{sec:round2}), so the superlinearity is a
 property of the settled-probe protocol, not established as a bed-independent law. The
@@ -179,8 +179,8 @@ signature (Fig.~\ref{fig:resid}): it is $\approx 0$ throughout the long stable p
 gradual cosine decay, but jumps \emph{positive} exactly when the LR decays steeply, and is
 largest---and \emph{undamped at the curve's end}---for the sharpest decays (\code{wsd},
 \code{wsdld}; the effect is visible at all three scales,
-Fig.~\ref{fig:wsd_resid_scale}). The end-of-curve lag is $+(6\text{--}15)\times10^{-3}$ on WSD/WSDLD versus
-$\lesssim\!4\times10^{-3}$ on cosine. Crucially, a gradual cosine and a sharp WSD decay reach
+Fig.~\ref{fig:wsd_resid_scale}). The end-of-curve lag read from that figure reaches
+$+(6\text{--}15)\times10^{-3}$ on WSD/WSDLD versus $\lesssim\!4\times10^{-3}$ on cosine. Crucially, a gradual cosine and a sharp WSD decay reach
 the \emph{same} final LR, yet only the fast one lags: same destination, faster sweep, bigger
 lag---the textbook signature of a rate-dependent (non-adiabatic) effect, and exactly the
 dependence an adiabatic law cannot represent.
@@ -485,8 +485,8 @@ $\kappa=c\,\eta_{\mathrm{peak}}\chi$ under the normalized-drop convention of
 It cannot come from the same slow noise-dominated modes that set
 $\lambda_{\mathrm{slow}}$: the exact mode response gives
 $\chi_i(\eta)=s_i/(2-\eta\lambda_i/s_i)^2=s_i/4+(\lambda_i/4)\eta+O(\eta^2)$, and with the
-measured $\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\sim2\times10^{-3}$ this varies by
-$\sim\!0.2\%$ across the decay---three orders of magnitude short. A mechanism consistent
+fitted $\eta_{\mathrm{peak}}\lambda_{\mathrm{slow}}\approx3\times10^{-3}$ ($\lambda_{\mathrm{slow}}\approx10$) this varies by
+well under $1\%$ across the decay---three orders of magnitude short. A mechanism consistent
 with all observations is a two-population spectrum: a \emph{bulk} of slow modes contributing
 the linear floor $\propto\sum_i s_i\eta/4$, plus an \emph{edge} tail of preconditioned rates,
 $g(a)\propto a^{-\zeta}$, truncated at the adaptive stability boundary
@@ -549,7 +549,7 @@ LLM pretraining, self-consistently justifying the $v_i^*\!\approx\!s_i^2$ step o
 derivation. The implied rate constant
 $\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is approximately stable across the public
 same-architecture scales; its modes have
-$\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\!\approx\!2\!\times\!10^{-3}\!\ll\!2$ (deep in the
+$\eta_{\mathrm{peak}}\lambda_{\mathrm{slow}}\!\approx\!3\!\times\!10^{-3}\!\ll\!2$ (deep in the
 slow regime, far from the edge of stability---unlike $\gamma$).
 
 \begin{figure}[t]\centering
@@ -1117,8 +1117,8 @@ one bed. Over a wide pre-registered width ladder ($W\in\{1,\dots,5120\}$, $11$ r
 concentration $\rho$ spanning $14{\to}5\!\times\!10^{-4}$) the fitted rate is strongly
 monotone (Spearman $-0.97$, $\lambda=14.3{\to}1.2$, a $12\times$ span that bridges the
 instant-probe and gradual-sharp regimes) and cleanly \emph{log-linear},
-$\lambda\approx15.1-3.7\log_{10}W$ ($R^2{=}0.96$; held-out $R^2{=}0.88$ predicting six new
-arms from the original five). So the rate gap is a real, large, predictable function of how
+$\lambda\approx14.9-3.3\log_{10}W$ (out-of-sample held-out $R^2{=}0.88$ predicting the six
+new arms from the original five; in-sample full-grid $R^2{=}0.96$). So the rate gap is a real, large, predictable function of how
 concentrated the decrement is. Two pre-registered follow-ups then decide \emph{against}
 changing the kernel: (i) a scale-free Mittag-Leffler/fractional memory would make
 $\lambda_{\mathrm{eff}}(W)$ a \emph{power} law $W^{-(1-\beta)}$, but the power-law fit is far

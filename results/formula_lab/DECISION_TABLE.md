@@ -990,3 +990,30 @@ COMPUTE_BLOCKED (unchanged, surfaced): g1d1/g3d2 aging-floor (~8-20 GPU-h,
 the same g3d2 thread already tested zero-GPU = AGING_WEAK) and g2d3
 chi-amplitude (public-100M/400M ~200-400 GPU-h wall).  No new feasible
 claim-changer.  Fix resets the dry counter -> re-run for two-dry.
+
+## Comprehensive one-pass number audit (6 parallel read-only auditors) -- treadmill break
+
+Instead of the convergence loop finding one number defect per ~1h round, a
+single exhaustive cross-check of ALL referee-facing numbers across the four
+deliverables vs committed artifacts returned a CLEAN BOUNDED list (3 real +
+3 soft), ALL fixed in one batch:
+  1. main.tex abstract: floor range "1.06-1.49 at 100/400M" mislabeled
+     (1.06 is the 25M value) -> "1.06/1.49/1.25 at 25/100/400M" (matches
+     body L467 + both slide decks).
+  2. main.tex L1120: the lam(W) equation conflated the in-sample full-grid
+     fit (15.1/3.7, R2=0.96) with the out-of-sample held-out R2=0.88 (whose
+     committed coefficients in LAMRHO_REPORT.json are 14.9/3.3) -> rewritten
+     to "lam~14.9-3.3 log10 W (held-out R2=0.88; in-sample full-grid
+     R2=0.96)"; both numbers now backed (LAMRHO_REPORT + ML_KERNEL_REPORT).
+  3. theory.tex L709: DeltaR2 +0.11 (stale, unbacked) -> +0.18 (matches
+     main.tex L879 + represent/REPORT.md).
+  4. main.tex L182: end-of-curve lag band made explicitly figure-read
+     ("read from that figure") -- was a soft unbacked scalar.
+  5. main.tex L488/L552: eta_peak*lambda_eff~2e-3 (unbacked per-mode) ->
+     eta_peak*lambda_slow~3e-3 (committed: eta_peak 3e-4 x lambda_slow 10);
+     "0.2%" -> "well under 1%". Order-of-magnitude conclusion unchanged.
+  6. slides EN L499 + ZH L320: B-stability span -36% -> -35.6% (matches
+     main.tex L605 committed value).
+  All four deliverables recompiled.  This clears every number-integrity
+  class the convergence finder kept surfacing one-at-a-time; the next
+  convergence run should find nothing on the paper-completeness axis.
