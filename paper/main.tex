@@ -969,8 +969,15 @@ the floor \emph{level} down substantially (consistent with a noise-floor amplitu
 $\propto\eta/B$) while leaving the exponent unchanged ($p=0.61$ $[0.58,0.65]$) --- the
 floor's $\eta$-exponent is invariant to the gradient-noise scale on this bed. Whatever
 switches the floor superlinear between these beds (data, recipe, horizon, schedule
-family, or floor protocol) is neither model size nor batch size alone, and we
-deliberately leave the source unlocalized rather than overclaim. Two
+family, or floor protocol) is neither model size nor batch size alone --- and we have a
+primary suspect: re-running the \emph{public} floor protocol (settled fixed-length
+\code{wsdcon} probes, three-point fit) on our own beds manufactures strongly superlinear
+readings ($p$ pinned at the fit bound ${\approx}3.5$ in the public three-point window)
+from the same models whose equal-$S$ ladders measure $0.65$, because fixed-stage-2 probes
+re-introduce the cumulative-$S$ confound (their floors are U-shaped in $\eta_2$) that the
+equal-$S$ design removes. The public $1.06/1.49/1.25$ exponents therefore carry a
+demonstrated mechanism-level protocol caveat, and we leave the bed-level source formally
+unlocalized rather than overclaim. Two
 consequences stand: the $\delta\!>\!0$ transfer gains on this model cannot be attributed
 to floor curvature at either scale and must come from the concentration-dependent visible
 amplitude (\S\ref{sec:disc}); and any universality claim for $\delta$ across beds remains
@@ -1032,7 +1039,11 @@ at these margins. The $\kappa$ transfer test at $25$M
 (zero-measurement B-identity $\kappa_l=\kappa_m B_l/B_m$ vs.\ naive carry-over, both
 pre-registered) is closure-dependent --- B-identity wins at $\delta\in\{0,0.5\}$, naive at
 $\delta=0.75$ --- so the B-identity chain remains supported for curve-shape transfer
-(Table~\ref{tab:xscale}) but is \emph{not separated} for final-loss gap pricing.
+(Table~\ref{tab:xscale}) but is \emph{not separated} for final-loss gap pricing. A
+split-free anchor settles why: measuring $\partial L_{\mathrm{eq}}/\partial\eta$ directly
+from the equal-$S$ ladder floors gives $B_l/B_m=1.10$, exposing the committed ensemble
+mean ($1.80$) as inflated by one unstable backbone fit; at the anchored ratio the
+B-identity and naive transfers are indistinguishable on these gaps at every closure.
 
 \textbf{Is the slow-mode clock the optimizer-noise clock?} A batch-size ladder
 ($B_2\in\{12,24,48,96,192\}\times\eta_2\in\{1,4\}\times10^{-4}$, seed-paired drop/control
@@ -1043,7 +1054,14 @@ common window ($b_B\in[-0.02,+0.12]$, all CIs excluding $-0.5$): the $10.7$M slo
 \emph{not} optimizer-noise relaxation, and the deployed step/$S$-clock kernel is the right
 default. One robust novel observation rides along: at $\eta_2=10^{-4}$ the benefit of
 dropping the LR \emph{inverts} at large batch (paired gap $+0.03$ at $B_2{=}192$ vs.\
-$-0.11$ at $B_2{=}12$ at a common horizon; single-seed, reported as such).
+$-0.11$ at $B_2{=}12$ at a common horizon; the \emph{sign} replicates across two seeds at
+both $B_2\in\{96,192\}$, magnitudes seed-dependent at $B_2{=}96$). The inversion is
+quantitatively priced as a horizon-indexed \emph{level} crossing --- the drop arm's fitted
+asymptote crosses above the still-descending control at $B^\ast\!\approx\!80$--$86$
+(measured interpolated flip $B^\ast{=}86$); a free-exponent law
+$\mathrm{gap}(B)=a-b\,B^{-0.20}$ fits all five batches within $0.7\times10^{-3}$, while
+$\eta/B$ and $B^{-1/2}$ forms are rejected --- so the benefit of cooling shrinks slowly
+with batch, not like the noise variance.
 
 \textbf{Is the slow mode spectral edge re-pinning?} Direct Hessian spectroscopy across
 the drop (top-$16$ Lanczos with full reorthogonalization on the AdamW-preconditioned
