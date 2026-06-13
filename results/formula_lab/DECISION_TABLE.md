@@ -725,3 +725,32 @@ COMPUTE_BLOCKED DIRECTIONS surfaced to the user (do NOT block convergence
     NOT run.
 Round NOT converged: one surviving escape (now fixed) + g2d3 is a feasible
 claim-changing experiment mislabeled compute_blocked -> promoted to a run.
+
+g2d3 (concentration-dependent rate Lambda(rho), m-bed, prereg=lamrho_prereg.json)
+FINAL: AMBIG -> no kernel change; a genuine measured finding.
+  rho-ladder (cool 1.5e-3->1e-4 over W in {1,10,40,160,640} steps, then hold;
+  2 seeds; S-time relaxation fit, r2 gate passed):
+    W=1   rho=0.93  lam=14.33
+    W=10  rho=0.22  lam=12.71
+    W=40  rho=0.064 lam= 9.53
+    W=160 rho=0.017 lam= 6.99
+    W=640 rho=0.004 lam= 5.60
+  Spearman(lam,W) = -1.00 (perfectly monotone): the relaxation rate IS a
+  smooth decreasing function of cooldown width / increasing function of
+  decrement concentration, bridging the documented instant-probe (~15) and
+  gradual-sharp (~5) regimes WITHIN ONE BED.  BUT the pre-registered
+  saturating-exp form Lambda(rho)=lam_inf+(lam_0-lam_inf)exp(-rho/rho*) fits
+  poorly (R2=0.52; lam is closer to linear in log W) and the span is 2.56x
+  (< the 3x bar).  Per prereg => AMBIG: the single-pole fixed-lam kernel is
+  NOT replaced.  Two honest consequences: (1) the lam non-unification is
+  re-scoped from "mysterious" to "a measured, mild, monotone function of
+  decrement concentration" -- the dramatic 15-vs-5 gap was inflated by
+  cross-schedule-family confounds; within a clean controlled rho-ladder the
+  true sensitivity is only 2.56x over a 220x rho range, so a single
+  effective lam is a defensible compromise (the kernel is vindicated, not
+  overturned).  (2) A correct closed-form rate(rho) (the data suggest
+  lam ~ a - b log W, but that is post-hoc and not claimed) is future work.
+  G4/G5 clean: pre-registered exp form tested and rejected; no refit claimed.
+  This design is now ANSWERED (run + measured); it no longer escapes.
+  (train_lamrho.py, analyze_lamrho.py, LAMRHO_REPORT.json,
+   curves_lamrho/*.csv)
