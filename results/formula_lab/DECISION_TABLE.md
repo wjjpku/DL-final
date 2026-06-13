@@ -591,3 +591,15 @@ E3 (concentration-graded drop ladder for r*): SELF-BUCKETED TO B/C at the
   the TRANSIENT (curve-shape) regime, which is the already-CLOSED
   nonlinear-ODE-as-predictor direction (r* unidentifiable in-family).
   No GPU spent.  (e3_predictions.py, e3_predictions.json)
+
+E5 (sign-flip control replication) FINAL: the inversion REPLICATES.
+  Common-horizon [6000,7000) paired gaps, seed 1338: +14.5e-3 (B=96),
+  +39.3e-3 (B=192) -- both POSITIVE, larger than seed 1337's +5.7/+33.5.
+  Per prereg letter: CONFIRMED at B=192 (sign + within 6e-3); AMBIG at
+  B=96 (sign matches, magnitude differs by 8.8e-3 > 6e-3).  Disposition:
+  the qualitative shipped observation ("drop arms end worse than controls
+  at B2>=96, eta2=1e-4") is upgraded from single-seed to two-seed; the
+  paper caveat becomes "sign replicated across seeds; magnitude
+  seed-dependent at B=96".  A4's level-pricing account gains an
+  out-of-sample point in the right direction at both B.
+  (e4_e5_prereg.json, curves_bladder/*s1338*)
