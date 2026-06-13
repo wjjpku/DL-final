@@ -581,3 +581,13 @@ E1 (backbone-null matched-S paired derby): SELF-BUCKETED TO B at the
   on this bed with this backbone family (the null cannot be pinned
   tightly enough), not merely unresolved.  (e1_certify.py,
   e1_designs.json)
+
+E3 (concentration-graded drop ladder for r*): SELF-BUCKETED TO B/C at the
+  pre-launch prediction stage (e3_predictions.py, committed).  At the
+  equal-S measurement point the deposit has fully relaxed (lam_slow*eta2*
+  hold >> 1), so all spreading widths k in {1,50,200,800} collapse to the
+  same floor: LINEAR D(k) <= 0.01e-3, and even r*=3 gives D(800) only
+  0.19e-3 -- ~10x below the 0.7e-3 paired SE.  r* is identifiable only in
+  the TRANSIENT (curve-shape) regime, which is the already-CLOSED
+  nonlinear-ODE-as-predictor direction (r* unidentifiable in-family).
+  No GPU spent.  (e3_predictions.py, e3_predictions.json)
