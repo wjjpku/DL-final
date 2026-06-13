@@ -64,7 +64,7 @@ def main():
     if len(es) >= 3:
         p, c_, r2 = fit_powerlaw(np.array(es), np.array(ts))
         out.update(p=float(p), c=float(c_), r2=float(r2), n=len(es))
-        print(f"\n>>> tau ~ eta^-{p:.3f}  (log-log r2={r2:.3f}, n={len(es)})  [paper: p=1.00+/-0.18]")
+        print(f"\n>>> tau ~ eta^-{p:.3f}  (log-log r2={r2:.3f}, n={len(es)})  [paper: pooled p=0.84+/-0.17]")
         # predicted lambda_slow = 1/(tau*eta)
         lam = [1.0/(t*e) for t, e in zip(ts, es)]
         print(f">>> implied lambda_slow=1/(tau*eta) = {np.round(lam,2)} (should be ~const if tau~1/eta)")

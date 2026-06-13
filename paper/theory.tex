@@ -39,7 +39,7 @@ faster than it can relax. From AdamW's preconditioned second-moment dynamics we 
 leading correction in closed form: the per-step LR decrements convolved with a cumulative-LR
 exponential kernel, whose amplitude is tied by linear response to an equilibrium-floor sensitivity
 and whose relaxation time is the classical $\tau\sim1/(\eta\lambda)$. On public LLM curves the
-residual indeed relaxes with $\tau\propto1/\eta$ ($p=1.00\pm0.18$); since the kernel's rate
+residual indeed relaxes with $\tau\propto1/\eta$ ($p=0.84\pm0.17$); since the kernel's rate
 constant is approximately scale-invariant, the correction can be \emph{predicted, not fitted},
 and transferred across model size, cutting held-out sharp-decay error by $44\%$ with no
 target-curve fitting. An independent reproduction---a separately-trained $\sim$10M transformer
@@ -86,7 +86,7 @@ equal, to leading order, to $dL_{\mathrm{eq}}/d\eta$ (\S\ref{sec:theory}). The r
 time it uses is the classical $\tau\sim1/(\eta\lambda)$; our point is that it governs the
 \emph{loss-curve-law residual}, not that the timescale is new.
 \item We confirm in LLM pretraining that the residual relaxes with $\tau\propto1/\eta$
-($p=1.00\pm0.18$), self-consistently establishing its noise-dominated regime
+($p=0.84\pm0.17$), self-consistently establishing its noise-dominated regime
 (\S\ref{sec:exp}).
 \item The kernel's rate constant is an approximately scale-invariant preconditioned curvature,
 enabling a \emph{parameter-free, cross-scale} prediction that improves held-out sharp-decay
@@ -607,7 +607,8 @@ the rate-dependent term. Unless noted $\lambda_{\mathrm{slow}}{=}10$.
 The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
 $\eta\!\in\!\{3,9,18\}\!\times\!10^{-5}$, giving a clean relaxation window. Fitting the
 residual transient $r(t)\propto e^{-(t-8000)/\tau}$ yields $\tau$ that scales as $\eta^{-p}$
-with \emph{pooled} $p=1.00\pm0.18$ (per scale $-1.06/-0.94/-0.51$ at $100/400/25$M). This is
+with \emph{pooled} $p=0.84\pm0.17$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M;
+\code{repro/deep\_tau\_pooled.py}). This is
 the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
 pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
 the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
@@ -619,7 +620,7 @@ slow regime, far from the edge of stability---unlike $\gamma$).
 \includegraphics[width=0.5\linewidth]{figs/fig_tau_scaling.png}
 \caption{Loss-relaxation time $\tau$ measured from \code{wsdcon} decay transients vs.\
 stage-2 LR. The $100/400$M curves track the predicted slope $-1$ ($\tau\propto1/\eta$);
-pooled $p=1.00\pm0.18$.}
+pooled $p=0.84\pm0.17$.}
 \label{fig:tau}
 \end{figure}
 
@@ -631,9 +632,13 @@ Regressing the well-fit MPL residual on $\Drop_{10}$ (through the origin) gives
 $R^2{=}0.40/0.80/0.87$ at $25/100/400$M (Fig.~\ref{fig:resid}); a 2-exponential kernel
 improves $R^2$ by $0.06\text{--}0.07$, confirming the predicted spectral mixture
 (Eq.~\ref{eq:mix}). The form is not arbitrary: in a fair few-shot comparison the derived
-S-time exponential of decrements beats a step-time kernel ($-21\%$ vs.\ $-11\%$ held-out MAE)
-and a memoryless floor ($-3\%$), confirming that the cumulative-LR ``time'' and the decaying
-memory both matter (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
+S-time exponential kernel cuts held-out MAE by $-15\%$, beating a step-time kernel
+($-7\%$, wrong ``time'' variable) and a memoryless floor ($-2\%$), so the cumulative-LR
+``time'' and the decaying memory both matter; an S-time kernel driven on the LR
+\emph{level} rather than on decrements ties the decrement-driven one ($-15\%$), so this
+comparison isolates the time variable and the presence of memory but does not by itself
+single out decrements as the drive---that choice is fixed by the LR-decrement response
+derivation, not by this test (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
 the finite-$\lambda_{\mathrm{slow}}$ kernel is numerically close to the $\lambda_{\mathrm{slow}}{\to}0$
 adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S\ref{sec:repro2}.)
 
@@ -701,7 +706,7 @@ law monotone in $S$ predicts the opposite (more LR $\Rightarrow$ lower loss). Wi
 this is the rate-dependent non-adiabatic lag, on a model and data we never used; the residual
 against a well-fit MPL is positive only for the sharp sweep and is captured by $\Drop$
 (Fig.~\ref{fig:real}). Across schedules a finite-$\lambda_{\mathrm{slow}}$ kernel beats the
-adiabatic ($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.11$ held out.
+adiabatic ($\lambda_{\mathrm{slow}}{\to}0$) baseline by $\Delta R^2\!\approx\!+0.18$ held out.
 
 \begin{table}[t]\centering\small
 \begin{minipage}[t]{0.46\linewidth}\centering
@@ -787,7 +792,7 @@ and characterising the precise relationship to $\gamma$, are the main open items
 \section{Conclusion}
 Existing loss-curve laws are adiabatic approximations. We identified, derived from AdamW's
 preconditioned dynamics, and validated the leading non-adiabatic correction: a rate-dependent
-term whose relaxation time follows the classical $\tau\propto1/\eta$ ($p=1.00\pm0.18$,
+term whose relaxation time follows the classical $\tau\propto1/\eta$ ($p=0.84\pm0.17$,
 confirmed for the loss-curve residual) and whose scale-invariant shape enables parameter-free
 cross-scale prediction ($-44\%$ on held-out sharp decays). The loss curve depends not only on
 how much LR has been spent, but on how fast it is being spent.

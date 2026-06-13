@@ -37,7 +37,7 @@
 \vfill
 \begin{block}{一句话摘要}
 现有最优的损失曲线律（Multi-Power Law / Functional Scaling Law）是\hl{绝热}的：它们预测的是调度在\hl{准静态平衡}下会达到的损失，忽略了当学习率衰减\emph{快于}系统弛豫时间时，损失会\hl{滞后}于平衡值——留下一个系统性的\hl{正残差}。\\[6pt]
-我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=1.00\pm 0.18$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
+我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=0.84\pm 0.17$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
 \end{block}
 \vfill
 \centering
@@ -226,8 +226,8 @@ $\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S
 \begin{column}{0.50\textwidth}
 \textbf{结果：}
 \begin{itemize}
-\item 合并 $100$M+$400$M：\hl{$p=1.00\pm 0.18$}
-\item 各尺度单独：$-1.06/-0.94/-0.51$（$100/400/25$M）
+\item 合并三尺度：\hl{$p=0.84\pm 0.17$}（\texttt{deep\_tau\_pooled.py}）
+\item 各尺度单独：$p=0.51/1.06/0.94$（$25/100/400$M）
 \item 受控 AdamW 模拟复现：\hl{$p=0.971$}，$R^2=0.9996$
 \item $\beta_2\in[0.9,0.9999]$ 扫描：$\tau$ 平坦，CV 仅 1.1\%
 \end{itemize}
@@ -247,7 +247,7 @@ $\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S
 \begin{itemize}
 \item $R^2 = 0.40/0.80/0.87$（$25/100/400$M），信号随模型规模增长。
 \item 双指数核替代单指数：$R^2$ 再提升 $0.06\text{--}0.07$，\hl{直接证实谱混合预言}。
-\item 公平对比：S-time 指数核胜 step-time 核（留出 MAE $-21\%$），胜无记忆地板（$-3\%$）。
+\item 公平对比：S-time 指数核削减留出 MAE $-15\%$，胜 step-time 核（$-7\%$，时间变量错）与无记忆地板（$-2\%$）；按 LR \emph{水平}（非降幅）驱动的 S-time 核打平派生核（$-15\%$）——此对比只隔离了时间变量与记忆的存在性，降幅驱动由推导确定而非此实验。
 \end{itemize}
 \vfill
 \textbf{关键控制。} 在\emph{单条}衰减曲线上，有限-$\lambda_{\rm slow}$ 核与绝热极限（$\lambda_{\rm slow}\to 0$）数值简并（corr$\approx 0.99$）。\hl{速率常数只能由跨调度的对比来约束}——这正是我们使用 wsdcon 系列（不同第二阶段 LR）的原因。
@@ -317,12 +317,12 @@ $\lambda_{\rm slow}$（经验稳定）+ $c$（留一校准）+ $dL_{\rm eq}/d\et
 \textbf{验证（可证伪）。} $B=363.8/437.9/523.4$ vs 独立探针测量 $381.7/499.3/561.5$（偏差 $5$--$15\%$，三个尺度全部成立）。
 \vfill
 \begin{block}{零额外测量迁移链}
-$\kappa = c''\,\eta_{\rm peak} B$（$c''$ 留一尺度平均，CV 14.7\%）→ 同协议 \hl{$-43\%$，6/6}，与探针链 $-44\%$ 持平，但\hl{不需要目标尺度的任何额外训练}。光滑-only 重拟合 $B$（漂移 $\le30\%$）仍保留 $-36\%\sim-40\%$。
+$\kappa = c''\,\eta_{\rm peak} B$（$c''$ 留一尺度平均，CV 14.7\%）→ 同协议 \hl{$-43\%$，6/6}，与探针链 $-44\%$ 持平，但\hl{不需要目标尺度的任何额外训练}。光滑-only 重拟合 $B$（漂移 $\le30\%$）仍保留 $-35.6\%\sim-40\%$。
 \end{block}
 \end{frame}
 
 \begin{frame}{升级 2：二阶幅度闭合 $\chi(\eta)\propto\eta^{\delta}$}
-\textbf{发现。} 平衡噪声地板\hl{超线性}：$F_{\rm eq}\propto\eta^{1+\delta}$，$1{+}\delta = 1.06/1.49/1.25$（25/100/400M 探针实测）。原闭合把 $\chi$ 冻结为常数，丢掉了推导中本来就有的 $\eta_k$ 依赖。
+\textbf{发现。} 公开沉降探针地板读数\hl{超线性}：$F_{\rm eq}\propto\eta^{1+\delta}$，$1{+}\delta = 1.06/1.49/1.25$（25/100/400M 三点拟合）——\hl{但这是协议依赖}（见下：无混淆等-$S$ 阶梯读出\emph{亚线性}），非床无关定律。原闭合把 $\chi$ 冻结为常数，丢掉了推导中本来就有的 $\eta_k$ 依赖。
 \[
 L(t)=L_{\rm MPL}(t)+\kappa\sum_{k<t}\Big(\tfrac{\eta_k}{\eta_{\rm peak}}\Big)^{\!\delta}
 e^{-\lambda_{\rm slow}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\rm peak}}
@@ -333,7 +333,7 @@ e^{-\lambda_{\rm slow}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\rm peak}}
 \item \hl{真实 10.7M 模型、从未用于选 $\delta$ 的界外调度}：sharp600 $-18\%\to-71\%$（$\delta{=}3/4$）；第二套 showcase 床 wsd\_sharp $-14\%\to-52\%$。
 \item 诚实拆分：部分增益来自幅度再校准（$\le1$ 权重抬高拟合 $\kappa$）；oracle 等幅度下族内形状仍以 $\delta{=}0$ 略优。
 \item 机制：NQM 仿射路线在量级上\hl{被证伪}（差 3 个量级）；bulk+edge 谱（追踪截断 $a_{\max}\!\propto\!1/\eta$）给出 $F=c_1\eta+c_2\eta^{\zeta}$——一致但边缘重适应步仍是 conjecture。
-\item 等-$S$ 阶梯（消除骨干混淆）：10.7M 的地板指数 $p=0.73\,[0.62,0.86]$ \hl{亚线性}——指数随尺度涌现（$0.73\to1.06\to1.49\to1.25$），10M 上 $\delta>0$ 的增益来自浓度依赖的可见幅度而非地板曲率；$\delta$ \hl{无跨尺度普适值}，按尺度实测是唯一可辩护路线。
+\item 等-$S$ 阶梯（消除骨干混淆，审计修正窗口）：10.7M 与 25M 匹配配方\hl{均亚线性}（$p=0.65/0.64$，CI 排除 1；视界拉到 24k 仍亚线性 $0.79$），bs192 亦然——\hl{无尺度涌现}（$\Delta p=-0.006$ vs 点火线 0.067）：公开 $1.06/1.49/1.25$ 是沉降探针\hl{协议}假象，既非参数量也非批大小效应，来源未定位。$\delta>0$ 增益来自浓度依赖可见幅度而非地板曲率；$\delta$ 无跨尺度普适值，按尺度实测。
 \end{itemize}
 \end{frame}
 
@@ -443,7 +443,7 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \begin{enumerate}
 \item 指出现有最优损失曲线律（MPL/FSL）皆为\hl{绝热近似}——预测准静态平衡值，忽略快速衰减时的弛豫滞后。
 \item 从 AdamW 预条件二阶矩动力学\hl{推导}出非绝热修正 \Drop，其幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$（在受控 NQM 中验证到 3\% 内）。
-\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=1.00\pm 0.18$），自洽验证噪声主导假设。
+\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=0.84\pm 0.17$），自洽验证噪声主导假设。
 \item 独立复现（真实 transformer + NQM 模拟）从两端确认机制，同时\hl{诚实标出边界}（$\tau$ 在 $\sim$10M 未复现、单曲线简并、$\eta_{\rm peak}$ 歧义）。
 \item 形状常数在公开同架构尺度上经验稳定 $\Rightarrow$ \hl{低校准跨尺度迁移}，陡降误差 $-$44\%、6/6 全胜。
 \item \hl{B-恒等式}：MPL 自带的 $B$ 即地板敏感度（$5$--$15\%$ 内验证）$\Rightarrow$ 零额外测量迁移 $-43\%$。
@@ -457,21 +457,21 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \textbf{本轮已完成（原优先级 1/2 中的三项）：}
 \begin{itemize}
 \item \sout{真实模型地板独立测量} → 等-$S$ 阶梯（6 条 constant 段、统一累计 LR）直接测 $F_{\rm eq}(\eta)$ 幂律。
-\item \sout{多段递减探针} → \texttt{twodrop} 叠加分解：低 $\eta$ 降的可见滞后 $A_2/A_1\le0.13$，比一切闭合预测更强的抑制。
+\item \sout{多段递减探针} → \texttt{twodrop} 叠加分解：沉积比 $A_2/A_1=0.86$–$0.92$（三种子最佳拟合族），与独立阶梯测得地板幂律预言的 $0.89$ 一致；强加权闭合（$0.30$–$0.38$）被排除。
 \item \sout{warmup 对称性} → \texttt{cyclic} 再升温：MPL 骨干自身先失效（残差 $+0.07$），滞后项无法在其上检验。
+\end{itemize}
+\vfill
+\textbf{第二轮（对抗审计）已关闭：}
+\begin{itemize}
+\item 慢模时钟\hl{对批大小不敏感}（bladder 阶梯；非优化器噪声弛豫）；地板指数对梯度噪声尺度不变（bs192，BS\_NULL）——原"S-time 操控"已做。
+\item 谱"边缘重钉扎"解释被\hl{直接证伪}（10.7M+25M 顶-Lanczos 锐度 OFF\_REGIME）：$\lambda_{\rm slow}$ 仍唯象。
+\item 速率 $\lambda$ 是真 $12\times$ 对数线性浓度效应（非分数记忆）；固定有效 $\lambda$ 平反。
 \end{itemize}
 \vfill
 \textbf{仍开放：}
 \begin{itemize}
-\item \hl{S-time 操控实验}：改 batch size 使 step-time profile 相同但 S-time 不同，直接检验记忆变量是 $S$ 而非 $t$。
-\item NQM 中换 SGD，检验效应是否不限于 AdamW。
-\item $c$ 的浓度依赖（瞬时降 $c\approx0.1$--$0.26$ vs 渐进降 $0.43$--$0.60$）的第一性原理解释。
-\item 识别性门槛的跨套件可移植性（invsqrt 过矫案例）。
-\end{itemize}
-\vfill
-\textbf{优先级 3（深入机理）：}
-\begin{itemize}
-\item 在 NQM 中强制 edge-of-stability 区域，检验是否能产生 MPL 经验指数 $\gamma$ 的行为。
+\item $c$ 的\emph{幅度}通道浓度依赖（瞬时降 $0.1$--$0.26$ vs 渐进 $0.43$--$0.60$）——需公开 $100/400$M 宽$\times$深探针阶梯（数百 GPU-时算力墙）。
+\item NQM 中换 SGD，检验是否不限于 AdamW；invsqrt 识别性门槛跨套件可移植性。
 \end{itemize}
 \end{frame}
 
@@ -483,7 +483,7 @@ wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
 \midrule
 MPL 复现（表 1） & \texttt{repro/reproduce\_cosine\_to\_wsd.py} \\
 残差结构、$R^2$、与 $\Drop$ 回归 & \texttt{repro/nonadiabatic\_theory.py} \\
-$\tau\propto 1/\eta$（$p=1.00\pm 0.18$） & \texttt{repro/deep\_tau.py} \\
+$\tau\propto 1/\eta$（$p=0.84\pm 0.17$） & \texttt{repro/deep\_tau\_pooled.py} \\
 S-time vs step-time 核对比 & \texttt{repro/deep\_stime.py}、\texttt{deep\_stime2.py} \\
 谱混合（双指数）与自洽性 & \texttt{repro/deep\_rigor.py} \\
 低校准跨尺度迁移 $-44\%$ & \texttt{repro/deep\_predict.py} \\

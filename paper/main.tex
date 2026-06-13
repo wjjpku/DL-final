@@ -40,16 +40,20 @@ causal convolution of per-step LR decrements with a relaxation kernel in cumulat
 The operational correction is its lowest-capacity one-pole closure; in a noise-dominated
 AdamW specialization the amplitude is the equilibrium-floor sensitivity and the relaxation
 time is the classical $\tau\sim1/(\eta\lambda)$. Public LLM curves are consistent with this
-mechanism ($p=1.00\pm0.18$), while our independently trained small transformer confirms the
+mechanism ($p=0.84\pm0.17$), while our independently trained small transformer confirms the
 lag but not a clean inverse-LR scaling. The kernel's rate constant is empirically stable
 across the public scales, enabling a zero-target-fitting transfer that cuts held-out
 sharp-decay error by $44\%$. We then upgrade the law's \emph{amplitude structure} in two
 ways. First, a \emph{B-identity}: MPL's own annealing coefficient $B$ \emph{is} the
 equilibrium-floor sensitivity the correction needs, so the amplitude transfers from MPL's
 published parameters with no additional measurements ($-43\%$, matching the probe-based
-chain). Second, the measured equilibrium floor is \emph{superlinear} in $\eta$
-($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06$--$1.49$, three-point fits,
-clearly superlinear at $100/400$M); the corresponding second-order amplitude closure
+chain). Second, the public-bed equilibrium floor reads \emph{superlinear} in $\eta$
+($F_{\mathrm{eq}}\!\propto\!\eta^{1+\delta}$, $1{+}\delta=1.06/1.49/1.25$ at $25/100/400$M,
+three-point fits)---though we show this reading is protocol-dependent (confound-free
+equal-$S$ ladders on our own beds give a \emph{sublinear} exponent $\approx0.65$, robust
+to model size, batch size, and horizon; \S\ref{sec:round2}), so the superlinearity is a
+property of the settled-probe protocol, not established as a bed-independent law. The
+corresponding second-order amplitude closure
 $\chi(\eta)\!\propto\!\eta^{\delta}$ with default $\delta{=}1/4$ (Pareto-selected on the
 audited matrix, never fit on targets) improves that transfer matrix on every aggregate and
 lifts cheap-probe calibration by $35$--$70\%$ relative. An independent
@@ -98,7 +102,7 @@ term $\Drop$ (\S\ref{sec:theory}). A noise-dominated AdamW specialization identi
 amplitude with $dL_{\mathrm{eq}}/d\eta$ and gives the classical $\tau\sim1/(\eta\lambda)$
 relaxation time; our point is that this timescale governs the \emph{loss-curve-law residual}.
 \item Public LLM curves show residual relaxation consistent with $\tau\propto1/\eta$
-($p=1.00\pm0.18$), while the separately trained $\sim$10M reproduction confirms the lag but
+($p=0.84\pm0.17$), while the separately trained $\sim$10M reproduction confirms the lag but
 does not resolve this scaling; we therefore use inverse-LR relaxation as a mechanism check,
 not as the main empirical claim (\S\ref{sec:exp}, \S\ref{sec:repro2}).
 \item The kernel's rate constant is empirically stable on the public same-architecture
@@ -109,8 +113,8 @@ MPL-implied equilibrium-floor sensitivity $dL_{\mathrm{eq}}/d\eta$, and verify i
 independent floor measurements ($5$--$15\%$ at all scales). The correction's amplitude then
 transfers from MPL's own published parameters with no additional measurements ($-43\%$ on
 the same protocol; \S\ref{sec:exp}).
-\item We measure the equilibrium floor to be \emph{superlinear} in $\eta$ at the two larger
-scales (three-point fits, qualitative; marginal at $25$M) and derive and
+\item The public-bed equilibrium floor reads \emph{superlinear} in $\eta$ at the two larger
+scales (three-point fits, qualitative; marginal at $25$M); we use it to derive and
 evaluate the corresponding second-order amplitude closure $\chi(\eta)\propto\eta^{\delta}$:
 with the Pareto-selected default $\delta{=}1/4$ it improves the audited transfer matrix on
 every aggregate (the hardest cell, cosine$\to$WSD, nearly doubles its gain) and
@@ -119,6 +123,13 @@ in-sample $\delta{=}1/2$ variant); we also report exactly which
 part of that gain is amplitude recalibration rather than shape (\S\ref{sec:exp}). The naive
 NQM route to $\chi(\eta)$ is falsified at magnitude; a bulk$+$edge spectral mechanism is
 consistent with all observations (\S\ref{sec:theory}).
+\item A second pre-registered, adversarially-audited round (\S\ref{sec:round2}) sharpens
+the scope: confound-free equal-$S$ floor ladders read \emph{sublinear} ($\approx0.65$,
+robust across $10.7$/$25$M, batch size, and horizon to $24$k), so the public superlinearity
+is shown to be settled-probe-\emph{protocol}-dependent rather than a parameter-count law;
+the post-drop slow-mode clock is batch-size-\emph{blind} (not optimizer-noise relaxation);
+and direct Hessian spectroscopy closes the spectral edge-re-pinning account three ways,
+leaving the slow mode phenomenological on this bed.
 \item We give a fair-baseline diagnostic separating a genuine formula gain from an
 information gap, clarifying exactly when the correction helps, and close two structural
 dead ends (multi-pole/Lomax kernel shapes; cross-family rate unification)
@@ -168,8 +179,8 @@ signature (Fig.~\ref{fig:resid}): it is $\approx 0$ throughout the long stable p
 gradual cosine decay, but jumps \emph{positive} exactly when the LR decays steeply, and is
 largest---and \emph{undamped at the curve's end}---for the sharpest decays (\code{wsd},
 \code{wsdld}; the effect is visible at all three scales,
-Fig.~\ref{fig:wsd_resid_scale}). The end-of-curve lag is $+(6\text{--}15)\times10^{-3}$ on WSD/WSDLD versus
-$\lesssim\!4\times10^{-3}$ on cosine. Crucially, a gradual cosine and a sharp WSD decay reach
+Fig.~\ref{fig:wsd_resid_scale}). The end-of-curve lag read from that figure reaches
+$+(6\text{--}15)\times10^{-3}$ on WSD/WSDLD versus $\lesssim\!4\times10^{-3}$ on cosine. Crucially, a gradual cosine and a sharp WSD decay reach
 the \emph{same} final LR, yet only the fast one lags: same destination, faster sweep, bigger
 lag---the textbook signature of a rate-dependent (non-adiabatic) effect, and exactly the
 dependence an adiabatic law cannot represent.
@@ -474,8 +485,8 @@ $\kappa=c\,\eta_{\mathrm{peak}}\chi$ under the normalized-drop convention of
 It cannot come from the same slow noise-dominated modes that set
 $\lambda_{\mathrm{slow}}$: the exact mode response gives
 $\chi_i(\eta)=s_i/(2-\eta\lambda_i/s_i)^2=s_i/4+(\lambda_i/4)\eta+O(\eta^2)$, and with the
-measured $\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\sim2\times10^{-3}$ this varies by
-$\sim\!0.2\%$ across the decay---three orders of magnitude short. A mechanism consistent
+fitted $\eta_{\mathrm{peak}}\lambda_{\mathrm{slow}}\approx3\times10^{-3}$ ($\lambda_{\mathrm{slow}}\approx10$) this varies by
+well under $1\%$ across the decay---three orders of magnitude short. A mechanism consistent
 with all observations is a two-population spectrum: a \emph{bulk} of slow modes contributing
 the linear floor $\propto\sum_i s_i\eta/4$, plus an \emph{edge} tail of preconditioned rates,
 $g(a)\propto a^{-\zeta}$, truncated at the adaptive stability boundary
@@ -530,20 +541,22 @@ The bottom-row zoom shows the local region where rate dependence should appear.}
 The two-stage \code{wsdcon} curves step the LR down at step $8000$ to a constant
 $\eta\!\in\!\{3,9,18\}\!\times\!10^{-5}$, giving a clean relaxation window. Fitting the
 residual transient $r(t)\propto e^{-(t-8000)/\tau}$ yields $\tau$ that scales as $\eta^{-p}$
-with \emph{pooled} $p=1.00\pm0.18$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M). This is
-the classical $\tau\sim1/(\eta\lambda)$ confirmed for the loss-curve-law residual in LLM
-pretraining, and---since $p{=}1$ is the noise-dominated value---it self-consistently justifies
-the $v_i^*\!\approx\!s_i^2$ step of the derivation. The implied rate constant
+with \emph{pooled} $p=0.84\pm0.17$ (per scale $p=0.51/1.06/0.94$ at $25/100/400$M;
+\code{repro/deep\_tau\_pooled.py}). This is consistent with the classical
+$\tau\sim1/(\eta\lambda)$ (the noise-dominated value $p{=}1$ lies within one SE, and the two
+larger scales give $p=1.06/0.94$; the $25$M is shallower) for the loss-curve-law residual in
+LLM pretraining, self-consistently justifying the $v_i^*\!\approx\!s_i^2$ step of the
+derivation. The implied rate constant
 $\lambda_{\mathrm{slow}}=1/(\tau\eta)\approx10$ is approximately stable across the public
 same-architecture scales; its modes have
-$\eta_{\mathrm{peak}}\lambda_{\mathrm{eff}}\!\approx\!2\!\times\!10^{-3}\!\ll\!2$ (deep in the
+$\eta_{\mathrm{peak}}\lambda_{\mathrm{slow}}\!\approx\!3\!\times\!10^{-3}\!\ll\!2$ (deep in the
 slow regime, far from the edge of stability---unlike $\gamma$).
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.5\linewidth]{figs/fig_tau_scaling.png}
 \caption{Loss-relaxation time $\tau$ measured from \code{wsdcon} decay transients vs.\
 stage-2 LR. The $100/400$M curves track the predicted slope $-1$ ($\tau\propto1/\eta$);
-pooled $p=1.00\pm0.18$.}
+pooled $p=0.84\pm0.17$.}
 \label{fig:tau}
 \end{figure}
 
@@ -555,9 +568,14 @@ Regressing the well-fit MPL residual on $\Drop_{10}$ (through the origin) gives
 $R^2{=}0.40/0.80/0.87$ at $25/100/400$M (Fig.~\ref{fig:resid}); a 2-exponential kernel
 improves $R^2$ by $0.06\text{--}0.07$, confirming the predicted spectral mixture
 (Eq.~\ref{eq:mix}). The form is not arbitrary: in a fair few-shot comparison the derived
-S-time exponential of decrements beats a step-time kernel ($-21\%$ vs.\ $-11\%$ held-out MAE)
-and a memoryless floor ($-3\%$), confirming that the cumulative-LR ``time'' and the decaying
-memory both matter (\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
+S-time exponential kernel cuts held-out MAE by $-15\%$, beating a step-time kernel
+($-7\%$, wrong ``time'' variable) and a memoryless floor ($-2\%$), so the cumulative-LR
+``time'' and the decaying memory both matter; an S-time kernel driven on the LR
+\emph{level} rather than on decrements ties the decrement-driven one ($-15\%$), so this
+comparison isolates the time variable and the presence of memory but does \emph{not} by
+itself single out decrements as the drive---that choice is fixed by the LR-decrement
+response derivation (\S\ref{sec:theory}), not by this test
+(\code{repro/generic\_kernel\_compare.py}). (On a \emph{single} decay curve
 the finite-$\lambda_{\mathrm{slow}}$ kernel is numerically close to the $\lambda_{\mathrm{slow}}{\to}0$
 adiabatic limit, so the rate constant is pinned only \emph{across} schedules; \S\ref{sec:repro2}.)
 
@@ -754,7 +772,9 @@ cells (it never touches cosine rows): at $\delta{=}0$ it is a strict Pareto impr
 to $-14.0$ with worst/median unchanged
 (\code{repro/formula\_lab/matrix\_matched\_cells.py}). The rule's domain is
 floor-curvature-dominated regimes and we gate it on the probe-measured floor exponent
-$p>1$: training a deliberately matched probe on the $10.7$M bed ($p_{\mathrm{real}}{=}0.73$)
+$p>1$: training a deliberately matched probe on the $10.7$M bed
+($p_{\mathrm{real}}{=}0.65$ under the audit-corrected design window; $0.73$ as originally
+extracted---the gate pools either way)
 shows the rule \emph{firing there would hurt} ($-3.8\%$ vs pooled $-71.2\%$ on
 \code{sharp600} at $\delta{=}3/4$---the deepest-drop probe has the most
 concentration-suppressed amplitude), so below $p{=}1$ the rule pools; the gate uses only
@@ -785,7 +805,7 @@ closure & LOS & T1 & probes-only & dilution & matrix worst & matrix mean\\
 \midrule
 $\delta{=}0$ (Eq.~\ref{eq:law})    & $\mathbf{-49.0}$ & $\mathbf{-44.0}$ & $-17.1$ & $-19.0$ & $-2.7$ & $-12.1$\\
 $\delta{=}1/4$ (default)           & $-46.3$ & $-42.5$ & $-23.0$ & $-25.8$ & $\mathbf{-2.8}$ & $\mathbf{-13.5}$\\
-$\delta{=}(p{-}1)_+$ (measured)    & $-45.4$ & $-41.1$ & $-23.3$ & --- & $-2.0$ & $-13.0$\\
+$\delta{=}(p{-}1)_+$ (measured)    & $-42.6$ & $-41.1$ & $-23.3$ & --- & $-2.0$ & $-13.0$\\
 $\delta{=}1/2$                     & $-42.4$ & $-40.0$ & $\mathbf{-28.6}$ & $\mathbf{-31.6}$ & $+0.0$ & $-13.1$\\
 \bottomrule
 \end{tabular}
@@ -935,34 +955,61 @@ decomposition through the MPL residual is discarded---its two kernels are collin
 $\lambda_{\mathrm{slow}}\!\approx\!1$). A single seed is noise-dominated; averaging
 \emph{three} seeds, the best-fitting specification family gives
 $A_2/A_1=0.86$--$0.92$ (poorly-fitting $\tau$-fixed variants reach $1.7$; we report the
-spread). The cross-check is striking: the floor-gap deposit evaluated at the
-\emph{independently} ladder-measured $p_{\mathrm{real}}=0.73$ predicts
-$(0.5^{p}-0.15^{p})/(1-0.5^{p})=0.89$---inside the measured band---while the strong
-weighted closures ($0.30$--$0.38$) are excluded at this scale. Two independent
+spread). The cross-check: the floor-gap deposit evaluated at the \emph{independently}
+ladder-measured floor exponent predicts $(0.5^{p}-0.15^{p})/(1-0.5^{p})=0.89$ at the
+originally-extracted $p=0.73$ (inside the measured band) and $\approx0.96$ at the
+audit-corrected $p=0.65$ (marginally above it, agreement to ${\sim}5\%$); the strong
+weighted closures ($0.30$--$0.38$) remain excluded at this scale either way. Two independent
 measurements thus agree through the floor-gap form, confirming that at $10$M the deposit
 follows the (sublinear) floor and the $\delta\!>\!0$ transfer gains ride on the
 concentration channel.
 
-\paragraph{Equal-$S$ floor ladder: the floor exponent is scale-dependent.}
+\paragraph{Equal-$S$ floor ladder: no emergence at a matched recipe.}
 Constant-LR floor measurements on the real model were previously confounded: runs with
 different stage-2 LRs accumulate different $S$, and the backbone moves opposite to the
-noise floor (the earlier non-monotone finals). We remove the confound by construction: six
+noise floor (the earlier non-monotone finals). We remove the confound by construction:
 seed-matched runs share an identical trunk to step $3000$, then drop to
-$\eta_2\in\{0.5,1,2,4,8,15\}\times10^{-4}$ with stage-2 lengths chosen so \emph{every run
-ends at the same cumulative LR} $S^\star$---backbone terms cancel identically. The floors
-become strictly monotone in $\eta_2$ (validating the design), the post-drop relaxation is
-exquisitely clean ($R^2\!\ge\!0.977$ per rung) and confirms the flat-$\tau$ anomaly with a
-longer window ($\tau\propto\eta^{-0.18}$), and the fitted floor power law is
-$F_{\mathrm{eq}}\propto\eta^{0.73}$ ($90\%$ CI $[0.62,0.86]$): at $10.7$M the floor is
-\emph{sublinear}. Together with the public-curve exponents
-($1.06/1.49/1.25$ at $25/100/400$M) this indicates the floor exponent \emph{grows with
-scale}---consistent with the bulk$+$edge picture in which the edge population (and with it
-the superlinearity and the $\tau\propto1/\eta$ scaling, both absent at $10$M) emerges with
-model size. Two consequences we state plainly: the $\delta\!>\!0$ transfer gains on this
-model cannot be attributed to floor curvature and must come from the
-concentration-dependent visible amplitude (the same effect behind the probe-$c$ deficit,
-\S\ref{sec:disc}); and any universality claim for $\delta$ across scales is thereby
-excluded, which is why the closure carries a measured per-scale route.
+$\eta_2\in\{0.5,1,2,3,4,6,8,15\}\times10^{-4}$ with stage-2 lengths chosen so \emph{every
+run ends at the same cumulative LR} $S^\star$---backbone terms cancel identically. The
+floors are strictly monotone in $\eta_2$ (validating the design) and the post-drop
+relaxation is clean per rung. With eight rungs, two seeds, and floors extracted over the
+pre-registered design window (the last $25\%$ of stage~2 \emph{in steps}; an earlier
+row-fraction extraction inflated the exponent and its CI and is corrected here), the
+fitted floor power law at $10.7$M is $F_{\mathrm{eq}}\propto\eta^{0.65}$ ($90\%$ CI
+$[0.61,0.68]$): the floor is \emph{sublinear}. We then repeated the identical protocol at
+$25$M with the same depth/width recipe and batch size: $F_{\mathrm{eq}}\propto\eta^{0.64}$
+($[0.61,0.67]$), and the flat-$\tau$ anomaly persists at both scales
+($p_\tau\approx0.1$ and $\approx0$). The exponent value is itself horizon-indexed: a
+pre-registered extension to trunks of $12$k and $24$k steps raises it to
+$0.77$ and $0.79$ (still strictly sublinear, CI upper $0.81<1$), so the equal-$S$
+floor at finite budget is not an equilibrium quantity---but the \emph{direction}
+is horizon-robust, sublinear at every horizon out to $24$k, and $p$ never crosses $1$.
+The pre-registered emergence test does \emph{not}
+fire ($\Delta p=-0.006$ against a $0.067$ line): \textbf{the superlinear exponents on the
+public beds ($1.06/1.49/1.25$ at $25/100/400$M) are not reproduced by parameter count at a
+matched recipe}. A pre-registered $B{=}192$ ladder excludes batch size as well: it shifts
+the floor \emph{level} down substantially (consistent with a noise-floor amplitude
+$\propto\eta/B$) while leaving the exponent unchanged ($p=0.61$ $[0.58,0.65]$) --- the
+floor's $\eta$-exponent is invariant to the gradient-noise scale on this bed. Whatever
+switches the floor superlinear between these beds (data, recipe, schedule
+family, or floor protocol---horizon is excluded, our beds staying sublinear out to $24$k)
+is neither model size nor batch size alone --- and we have a
+primary suspect: re-running the \emph{public} floor protocol (settled fixed-length
+\code{wsdcon} probes, three-point fit) on our own beds manufactures strongly superlinear
+readings ($p$ pinned at the fit bound ${\approx}3.5$ in the public three-point window)
+from the same models whose equal-$S$ ladders measure $0.65$, because fixed-stage-2 probes
+re-introduce the cumulative-$S$ confound (their floors are U-shaped in $\eta_2$) that the
+equal-$S$ design removes. The public $1.06/1.49/1.25$ exponents therefore carry a
+demonstrated mechanism-level protocol caveat, and we leave the bed-level source formally
+unlocalized rather than overclaim. Two
+consequences stand: the $\delta\!>\!0$ transfer gains on this model cannot be attributed
+to floor curvature at either scale and must come from the concentration-dependent visible
+amplitude (\S\ref{sec:disc}); and any universality claim for $\delta$ across beds remains
+excluded, which is why the closure carries a measured per-scale route. The corrected
+exponent also revises the deposit cross-check above: at $p=0.65$ the floor-gap form
+predicts $A_2/A_1\approx0.96$, marginally \emph{above} the measured $0.86$--$0.92$ band
+--- the two independent measurements agree to ${\sim}5\%$ rather than exactly, and we
+report it so.
 
 \paragraph{What does not transfer (consistent with our scope).}
 At $\sim$10M the $\tau\propto1/\eta$ relation itself is \emph{not} resolved: the measured
@@ -985,6 +1032,111 @@ $2\lambda/s$ (relative errors $0.13$ and $0.006$). A cross-shape transfer of fro
 parameters, however, \emph{fails} its pre-registered threshold (mean $R^2{=}0.52$); and the
 open problem (a)---computing $\lambda_{\mathrm{slow}}$ and $c$ from first principles without
 an $O(1)$ fitted constant---remains open.
+
+\subsection{A second adversarial round: final-loss pricing, the batch-size clock, and
+direct spectroscopy}\label{sec:round2}
+After the first convergence the constraint set changed (a dedicated GPU), which under our
+stopping rule re-opens the hunt. Every experiment below was pre-registered (committed
+before launch), executed, and then attacked by an independent adversarial audit; we report
+the post-audit statements. One audit lesson is methodological and we state it first:
+\emph{predictions and measurements must share the evaluation grid}. Our committed derby
+predictions were endpoint values while the metric averaged a $200$-step tail window of
+still-cooling curves; on late cooldowns the window term alone is ${\sim}15\times10^{-3}$.
+All derby numbers below are like-for-like (both sides averaged over the identical
+$21$-step eval grid).
+
+\textbf{Does the lag price final loss?} Equal-terminal-LR cooldown derbies (linear
+cooldown started at $d_s\in\{1300,3000,5000,5700\}$ of $6000$, three to five seeds,
+seed-paired) at both $10.7$M and $25$M. Like-for-like, the mid-late arm fires at both
+scales \emph{against the core backbone-prediction ensemble}:
+$g(5000)=+7.7\times10^{-3}\pm0.7$ ($10.7$M, $5$ seeds) and
+$+8.6\times10^{-3}\pm0.6$ ($25$M) against adiabatic-backbone predictions of
+$+3.3$/$+3.7\times10^{-3}$ --- but the fire is ensemble-dependent (null under a widened
+seven-split ensemble), the latest arm is \emph{null-consistent} once windows match, and
+the fire margins are smaller than the backbone's own demonstrated schedule-shape
+systematic at the early-cooldown control ($-6.3\times10^{-3}$).
+Our honest statement: late-cooldown final-loss gaps are \emph{consistent} with the
+lag-corrected law and the $\delta>0$ closures beat the adiabatic/MPL baselines in relative
+comparison ($\chi^2$ $65{\to}17$ at $10.7$M on five seeds; post-hoc there, pre-registered
+only at $25$M), but an \emph{absolute} ``lag prices final loss'' claim is not established
+at these margins. The $\kappa$ transfer test at $25$M
+(zero-measurement B-identity $\kappa_l=\kappa_m B_l/B_m$ vs.\ naive carry-over, both
+pre-registered) is closure-dependent --- B-identity wins at $\delta\in\{0,0.5\}$, naive at
+$\delta=0.75$ --- so the B-identity chain remains supported for curve-shape transfer
+(Table~\ref{tab:xscale}) but is \emph{not separated} for final-loss gap pricing. A
+split-free anchor settles why: measuring $\partial L_{\mathrm{eq}}/\partial\eta$ directly
+from the equal-$S$ ladder floors gives $B_l/B_m=1.10$, exposing the committed ensemble
+mean ($1.80$) as inflated by one unstable backbone fit; at the anchored ratio the
+B-identity and naive transfers are indistinguishable on these gaps at every closure.
+
+\textbf{Is the slow-mode clock the optimizer-noise clock?} A batch-size ladder
+($B_2\in\{12,24,48,96,192\}\times\eta_2\in\{1,4\}\times10^{-4}$, seed-paired drop/control
+arms from a shared bitwise-replayed trunk) tested $\tau\propto B^{-1/2}$ (noise clock)
+against $B$-blindness. Window-matched fits (the fit window must not co-vary with $B$ ---
+an audit-caught confound) land in the pre-registered \emph{B-blind} bucket under every
+common window ($b_B\in[-0.02,+0.12]$, all CIs excluding $-0.5$): the $10.7$M slow mode is
+\emph{not} optimizer-noise relaxation, and the deployed step/$S$-clock kernel is the right
+default. One robust novel observation rides along: at $\eta_2=10^{-4}$ the benefit of
+dropping the LR \emph{inverts} at large batch (paired gap $+0.03$ at $B_2{=}192$ vs.\
+$-0.11$ at $B_2{=}12$ at a common horizon; the \emph{sign} replicates across two seeds at
+both $B_2\in\{96,192\}$, magnitudes seed-dependent at $B_2{=}96$). The inversion is
+quantitatively priced as a horizon-indexed \emph{level} crossing --- the drop arm's fitted
+asymptote crosses above the still-descending control at $B^\ast\!\approx\!80$--$86$
+(measured interpolated flip $B^\ast{=}86$); a free-exponent law
+$\mathrm{gap}(B)=a-b\,B^{-0.20}$ fits all five batches within $0.7\times10^{-3}$, while
+$\eta/B$ and $B^{-1/2}$ forms are rejected --- so the benefit of cooling shrinks slowly
+with batch, not like the noise variance.
+
+\textbf{Is the slow mode spectral edge re-pinning?} Direct Hessian spectroscopy across
+the drop (top-$16$ Lanczos with full reorthogonalization on the AdamW-preconditioned
+operator $P^{-1/2}HP^{-1/2}$, fp32 double-backward, fixed probe batches; pre-registered
+sanity gate, re-pin ratio, and verdicts). The pre-registered sanity precondition
+\emph{fails} at $10.7$M: equilibrated preconditioned sharpness sits at $0.2$--$0.3\times$
+the deterministic momentum-corrected edge $38/\eta$ (median over constant-$\eta$ control
+probes $0.23$; the observable is volatile, range $13\times$, and the raw-Hessian secondary
+channel did not converge --- both disclosed). The scoped conclusion: the
+\emph{deterministic} adaptive-edge-of-stability frame does not apply on this bed, so loss
+relaxation here is not deterministic-edge re-pinning. The failure \emph{replicates} at
+$25$M (ratio $0.38$; the post-drop spectral top even trends \emph{away} from the new edge,
+$\rho=-0.80$, while the loss relaxes), so it is not a smallest-scale artifact. We then
+tested the natural fallback---re-pinning at a \emph{stochastic} effective threshold---with
+a pre-registered constant-$\eta$ equilibration ladder in batch size: if curvature were
+noise-regulated, equilibrated sharpness should rise monotonically with $B$. It does not
+(non-monotone, $b48>b192$, span only $1.75\times$), and a complementary mode-tracking
+analysis finds \emph{no} preconditioned sub-edge mode relaxing on the loss timescale on
+any drop arm. The spectral account thus closes at the deterministic edge, the stochastic
+edge, and the mode-tracking observable alike; the slow mode remains, on this bed,
+phenomenological.
+
+\textbf{Does the rate $\lambda_{\mathrm{slow}}$ depend on decrement concentration?} The
+rate wanted by instantaneous-drop probes ($\sim$15) and by gradual sharp decays ($\sim$5)
+differ, but always across \emph{different} schedule families. A pre-registered
+concentration ladder---cool $1.5{\to}0.1\times10^{-3}$ over a width $W\in\{1,10,40,160,640\}$
+from a shared trunk, then hold and fit the $S$-time relaxation---isolates the effect within
+one bed. Over a wide pre-registered width ladder ($W\in\{1,\dots,5120\}$, $11$ rungs,
+concentration $\rho$ spanning $14{\to}5\!\times\!10^{-4}$) the fitted rate is strongly
+monotone (Spearman $-0.97$, $\lambda=14.3{\to}1.2$, a $12\times$ span that bridges the
+instant-probe and gradual-sharp regimes) and cleanly \emph{log-linear},
+$\lambda\approx14.9-3.3\log_{10}W$ (out-of-sample held-out $R^2{=}0.88$ predicting the six
+new arms from the original five; in-sample full-grid $R^2{=}0.96$). So the rate gap is a real, large, predictable function of how
+concentrated the decrement is. Two pre-registered follow-ups then decide \emph{against}
+changing the kernel: (i) a scale-free Mittag-Leffler/fractional memory would make
+$\lambda_{\mathrm{eff}}(W)$ a \emph{power} law $W^{-(1-\beta)}$, but the power-law fit is far
+worse than log-linear ($\Delta\mathrm{AIC}{=}22$), so the trend is not a fractional-memory
+fingerprint; (ii) promoting the rate to a width-dependent $\lambda(W)$ improves held-out
+relaxation-curve MAE by only $5.9\%$, and heavy-tailed kernels (Lomax, two-exponential,
+stretched) collapse to the single pole on the cross-family transfer matrix. A constant
+effective $\lambda_{\mathrm{slow}}$ is therefore vindicated as the deployment choice; the
+non-unification is now a \emph{measured} mild log-linear concentration effect rather than a
+mystery, and a closed-form $\lambda(\rho)$ that also earns its held-out keep is left to
+future work. The visible \emph{amplitude} channel mirrors the rate channel: on the same
+ladder the post-drop excess amplitude also rises monotonically with concentration
+(Spearman $+0.90$) but only mildly ($2.2\times$, no clean saturating-gate form,
+$R^2{=}0.74$). So neither the rate nor the visible amplitude earns a closed-form
+concentration law on this bed; the strong mid-$\eta$ amplitude deficit (probe-to-sharp
+effective-$\kappa$ ratio $0.2$--$0.6$) is a public-scale, superlinear-floor phenomenon that
+our sublinear $10.7$/$25$M beds cannot validate---a characterization left to a larger
+machine, not a single accelerator.
 
 \section{Limitations}\label{sec:disc}
 The gain is regime-specific (data-poor sharp decays). If full WSD curves are available, a
@@ -1019,8 +1171,11 @@ The floor exponents $p$ are three-point log-log fits whose backbone subtraction 
 $B$-annealing term; we use them as qualitative evidence for $p>1$ \emph{at the public
 scales}, not as a quantitative
 confirmation of any specific $\delta$ (at $25$M, $p{-}1=0.06$ is consistent with no
-superlinearity, and the confound-free equal-$S$ ladder gives a \emph{sublinear}
-$p=0.73$ at $10.7$M---the exponent is scale-dependent; \S\ref{sec:repro2}). $\delta{=}1/2$, although strongest for probe-only calibration, was first
+superlinearity, and the confound-free equal-$S$ ladders give \emph{sublinear} exponents
+$0.65/0.64/0.61$ at $10.7$M, $25$M matched-recipe, and $10.7$M-$B{=}192$
+respectively---the exponent is \emph{bed}-dependent, not parameter-count- or
+batch-size-dependent, and the source of the public-bed superlinearity is not localized;
+\S\ref{sec:repro2}, \S\ref{sec:round2}). $\delta{=}1/2$, although strongest for probe-only calibration, was first
 identified in an in-sample scan over the public curves and is therefore reported but not
 claimed as a pre-registered result; the paper-facing default $\delta{=}1/4$ was selected by
 Pareto dominance on the audited matrix, not by target fitting. The bulk$+$edge mechanism
@@ -1050,12 +1205,14 @@ scales; broader scales and architectures are the natural next step.
 Existing loss-curve laws are adiabatic approximations. We identified and validated the leading
 non-adiabatic correction: under weak stability assumptions it is a causal linear response to LR
 decrements, and its one-pole closure gives a rate-dependent term whose relaxation time follows
-the classical $\tau\propto1/\eta$ ($p=1.00\pm0.18$, confirmed for the loss-curve residual).
+the classical $\tau\propto1/\eta$ ($p=0.84\pm0.17$, confirmed for the loss-curve residual).
 Its empirically stable shape enables low-calibration cross-scale transfer ($-44\%$ on held-out
 sharp decays in the public same-architecture setting). We then upgraded the law's amplitude
 structure: the B-identity shows MPL's own annealing coefficient \emph{is} the floor
 sensitivity the correction needs (amplitude transfer from MPL's published parameters with
-no additional measurements, $-43\%$), and the measured superlinear floor yields a
+no additional measurements, $-43\%$), and the public-bed superlinear floor reading (shown
+in \S\ref{sec:round2} to be settled-probe-protocol-dependent---confound-free equal-$S$
+ladders read sublinear---rather than a bed-independent law) motivates a
 second-order closure
 $\chi(\eta)\propto\eta^{\delta}$ that improves the audited transfer matrix on every
 aggregate and strengthens cheap-probe calibration by $35$--$70\%$ relative, with the
