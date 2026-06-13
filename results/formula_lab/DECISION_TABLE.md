@@ -1044,3 +1044,25 @@ bearing ones in one batch:
   correctly RETAIN the retracted values as the documented correction record.
   Final repo-wide sweep: zero retracted numbers remain outside the audit
   trail.  This closes the file-set gap that the per-deliverable audits missed.
+
+## Round-convergence review #13: CONTINUE (design escape g1d1) -> zero-GPU FALSIFIED
+
+R1 (deterministic verdict, no hang): genCount=9, padding 7/9, 1 design
+escape g1d1 -- an additive batch-clocked noise-floor term N(eta,B)=
+c_N*eta/(1+B/B0) to give the large-B sign-flip a batch-axis mechanism +
+a falsifiable affine-in-depth crossover law B*(depth).  The judge marked it
+escaping (feasible ~1-2 GPU-h for a 3rd drop-depth rung) BUT its own freebie
+check warned the eta/B saturating family is the one A4 already rejected and
+underperforms ~10x.  Per "no money / release the 5090", I resolved it
+ZERO-GPU instead of training the rung (analyze_noisefloor.py): fit the
+unified one-(c_N,B0,D_dep0) noise-floor form to the committed 10 bladder
+paired gaps (both depths) vs A4's per-depth B^-0.20 law.
+  RESULT: unified noise-floor MAE 0.0359 vs A4 0.00049 = 73x WORSE; the fit
+  degenerates (c_N->0).  NOISE_FLOOR_REJECTED -- the eta/B family gains no
+  batch-axis mechanism; no GPU rung warranted.  g1d1 now bucket A (answered).
+PATTERN (now 4/4): every structural redesign the generators surface --
+g2d3 (rate), g4 (amplitude), g3d2 (aging floor), g1d1 (noise floor) -- is
+falsified or WEAK on committed data WITHOUT GPU.  The four shipped formulae
+are at a local optimum on this bed; the only claim-moving direction is the
+public-100M/400M chi-amplitude wall (~200-400 GPU-h, ruled out: no bigger
+machine).  (analyze_noisefloor.py)
