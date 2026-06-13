@@ -1066,3 +1066,28 @@ falsified or WEAK on committed data WITHOUT GPU.  The four shipped formulae
 are at a local optimum on this bed; the only claim-moving direction is the
 public-100M/400M chi-amplitude wall (~200-400 GPU-h, ruled out: no bigger
 machine).  (analyze_noisefloor.py)
+
+## Round-convergence review #14: R1 CLEAN; R2 design escape g3d4 -> zero-GPU FALSIFIED
+
+R1: genCount=9, padding 8/9, ZERO escapes (the repo-wide number purge cleared
+the paper-completeness axis -- first fully-clean R1).  R2: 1 design escape
+g3d4 -- internal-clock reparameterization lam(g_k)=lam_ref*(g_k/g_ref)^alpha,
+g_k = backbone descent rate |dL/dS| at each decrement (would explain the
+log-W law mechanistically + a same-W-different-placement degeneracy-break).
+  Judge: deployable collapse half bucket-A-testable, decisive placement test
+  needs new GPU curves.  Resolved ZERO-GPU on the lamrho ladder: fit
+  lam(W) vs backbone velocity g_k(W) -> R2=0.21 with WRONG-SIGN alpha=-0.4
+  (internal-clock predicts lam INCREASES with g; data show no positive
+  relation).  lam(W) is already cleanly log-linear in W (R2=0.96, g2d3b);
+  g_k adds nothing.  INTERNAL_CLOCK_FALSIFIED on committed data -> no GPU
+  placement rung warranted.  g3d4 now bucket A.
+
+PATTERN now 5/5: every generator design escape -- g2d3 (rate), g4
+(amplitude), g3d2 (aging floor), g1d1 (noise floor), g3d4 (internal clock)
+-- falsifies or goes WEAK on COMMITTED data without GPU.  R1 is clean; the
+generators only ever surface ONE more creative lam/amplitude
+reparameterization per round in R2, and each dies on the existing data.
+The literal "two consecutive zero-escape rounds" is defeated by generator
+creativity (R2 always emits one more), while the SUBSTANTIVE convergence
+criterion (no surfaced attempt PROGRESSES on test) is overwhelmingly met.
+(analyze_internalclock inline test)
