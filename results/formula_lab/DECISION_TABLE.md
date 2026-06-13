@@ -569,3 +569,15 @@ A5 (split-free B anchor): direct ladder-floor dL_eq/deta gives an
   +1.6/+3.2/-0.8).  "Closure-dependent; not separated" is now confirmed
   split-free; B-identity's curve-shape support unaffected.
   (a5_B_anchor.py, sensitivity-only per G5)
+
+E1 (backbone-null matched-S paired derby): SELF-BUCKETED TO B at the
+  pre-stated certification stage, before any GPU.  17 S-matched pairs
+  searched (sharp-vs-linear, two-phase, fast-window, concave-vs-convex):
+  the MPL backbone difference does NOT cancel under fit uncertainty --
+  the 7-backbone ensemble spread on the predicted pair difference is
+  5.3-19.7e-3 while the lag-predicted differences are 0.1-5.3e-3; best
+  margin 0.06x vs the required 3x.  Certified pairs: 0/17.  Consequence:
+  "absolute lag pricing not established" is now known to be UNRESOLVABLE
+  on this bed with this backbone family (the null cannot be pinned
+  tightly enough), not merely unresolved.  (e1_certify.py,
+  e1_designs.json)
