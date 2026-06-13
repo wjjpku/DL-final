@@ -783,3 +783,39 @@ machine; do not block convergence, never swallowed):
   - g1d4 / g2d2 two-channel & rho-gated amplitude for the mid-eta uniform
     deficit: to MOVE the chi claim needs a width-x-depth probe ladder at
     public 100M/400M (hundreds of GPU-h; the documented bucket-B wall).
+
+g2d3b (wider+denser rho ladder, prereg=lamrho_b_prereg.json) FINAL:
+RATE_READS_RHO_WEAK.  Full 11-width grid (W=1..5120, rho 14->0.0005):
+  lam = 14.33,13.16,12.71,9.53,6.96,6.99,5.26,5.60,2.23,3.44,1.17
+  Spearman(lam,W) = -0.97; span = 12.2x (>> 3x bar -- the wide range
+  resolves what g2d3's 2.56x could not).  Out-of-sample log-law (fit on the
+  original 5 arms, predict the 6 new): lam = 14.92 - 3.34 log10 W,
+  held-out R2 = 0.88 (>= 0.8).  BUT the kernel-MAE predictive margin is only
+  +5.9% (<< 20% bar): promoting the rate to lam(W) barely improves held-out
+  relaxation-curve fit.  => the concentration dependence is REAL, LARGE, and
+  predictable, but does not earn a kernel swap; keep fixed effective lam.
+
+g2d3c (Mittag-Leffler / fractional kernel, prereg=ml_kernel_prereg.json)
+FINAL: FRACTIONAL_REJECTED.
+  T1 ladder signature (full grid): the data are cleanly LOG-LINEAR in W
+  (lam = 15.13 - 3.72 log10 W, R2 = 0.962) and the power-law / fractional
+  form lam ~ W^-(1-beta) fits FAR worse (lam=20.6 W^-0.262, beta=0.738,
+  R2=0.730); delta-AIC = -21.7 strongly DISFAVORS the power law.  So the
+  apparent lam(W) is NOT the fingerprint of a scale-free Mittag-Leffler
+  memory -- it is a genuine log-linear concentration effect.
+  T2 held-out kernel MAE (explore_kernels.py): heavy-tailed kernels
+  (lomax shape -> 1e10, exp2 lam1=lam2, stretched) COLLAPSE to the single
+  pole on the cross-family transfer matrix and do not beat exp1@10 held-out
+  -- the closed "Lomax/2-exp/stretched collapse" direction EXTENDS to the
+  new ladder data.  Combined verdict: no fractional/scale-free account;
+  the single-pole exp kernel with a fixed effective lam stands.
+  THREAD CLOSED: the lam non-unification is fully characterized as a real
+  ~12x log-linear-in-log-W concentration effect that (a) is not scale-free
+  memory and (b) yields negligible (5.9%) held-out gain if promoted to a
+  varying-rate kernel -- so the shipped fixed-lam single pole is vindicated,
+  and the limitation is now measured rather than mysterious.  No further
+  feasible m/l-bed experiment would change this (cross-scale 25M would only
+  re-confirm the same log-linear trend); the chi-amplitude saturation
+  (g3d4/g1d4/g2d2) remains the only open mechanistic axis and is a public-
+  100M/400M compute wall.  (analyze_lamrho.py, analyze_ml.py,
+   explore_kernels.py, LAMRHO_REPORT.json, ML_KERNEL_REPORT.json)
