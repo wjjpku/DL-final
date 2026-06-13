@@ -909,3 +909,32 @@ All FOUR compiled deliverables (paper main.tex/theory.tex, slides EN/ZH)
 now consistently reflect the full round-2 + g2d3/g4 results.  R1-clean is
 the FIRST half of the two-dry requirement; the R2 fix resets the counter ->
 one more fan-out needed for two consecutive clean rounds.
+
+## Round-convergence review #9 (gen-split fan-out): CONTINUE -> remediated + g3d2 tested
+
+R1: genCount=9, padding 5/9 (exhaustion), 1 surviving escape + 1 compute_blocked.
+  ESCAPE (blocking, zero-GPU, FIXED): main.tex L806 Table 2 closure row
+  "delta=(p-1)_+ (measured)" LOS cell = -45.4 contradicts the committed
+  run_candidates.json (-42.6) and DECISION_TABLE L24 (~-44).  Sibling of the
+  generic_kernel_compare transcription error.  Fixed to -42.6 (run output),
+  recompiled (946dc9e).
+  COMPUTE_BLOCKED -> TESTED ZERO-GPU (g3d2 aging two-clock floor):
+  the judge marked it compute_blocked (~8-20 GPU-h GPU version), but its
+  CORE claim is testable free on the existing E4 horizon ladder.  Fit
+  F_eq(eta,H)=L0+a*eta^zeta-b_sec*log(1+H/(tau0*eta)) jointly to 24 floor
+  points (8 rungs x horizons 3k/12k/24k): AGING_WEAK -- R2=0.85 (<0.9) with
+  zeta/b_sec/tau0 pinned at bounds (degenerate).  The aging form does NOT
+  reconcile the sublinear endpoint (p~0.65) with the superlinear asymptote
+  (A3 p_Finf~1.0) via a single closed form.  No formula term earned; per
+  prereg the GPU 48k-96k extension is NOT warranted (gated on
+  AGING_SUPPORTED).  Zero GPU spent.  (analyze_aging.py, aging_prereg.json)
+
+PATTERN (strong convergence signal): all THREE secondary-mechanism
+redesigns the generators proposed have now been tested and come back
+WEAK/rejected -- g2d3 (concentration rate: real 12x but log-linear-not-
+fractional, +5.9% no kernel gain), g4 (visible amplitude: real but mild
+2.2x, no clean gate), g3d2 (aging floor: degenerate fit).  Every structural
+redesign fails to beat the shipped four formulae on held-out fit; the
+formula structure is at a local optimum for this bed.  The ONLY genuinely
+claim-moving direction left is the public-100M/400M chi-amplitude ladder
+(~200-400 GPU-h), a bigger-machine wall the user has ruled out.
