@@ -2,50 +2,60 @@
 
 **From Cosine to WSD: Identifying Transferable LR-Drop Response in MPL Residuals**
 
-This repository contains the minimal code, public CSV data, slides, and
-release-facing audit artifacts needed to reproduce the slides' core experiments
-for a deep-learning course project on loss-curve prediction under learning-rate
-schedule changes.
+This repository is a compact reproduction package for the slides' core
+experiments.  It contains the public CSV loss curves, the minimal reproduction
+scripts, the slide decks, and the small set of reports / figures needed to
+verify the result.
 
-## Project Thesis
+## What This Project Studies
 
-The main question is:
+Learning-rate schedules change the shape of a training loss curve.  The
+question here is deliberately concrete:
 
-> Given a source cosine training loss curve and a target WSD-family learning-rate
-> schedule, can we predict the target WSD loss curve without using any target
-> WSD loss for calibration?
+> Given a source cosine loss curve and a target WSD-family learning-rate
+> schedule, can we predict the target WSD loss curve without using target WSD
+> loss for calibration?
 
-The key observation is that a strong MPL baseline still leaves structured
-residuals near WSD transition / tail regions.  However, the source cosine
-residual is not a pure schedule response.  It mixes two components:
+The baseline is MPL.  MPL is already strong, but it leaves systematic residuals
+near WSD transition and tail regions.  The key difficulty is that the cosine
+residual is not a pure schedule-response signal.  It mixes:
 
 ```text
 transferable LR-drop response
 + non-transferable MPL-LD parameter drift
 ```
 
-The current method treats cosine-to-WSD transfer as a residual identification
-problem.  It projects out the MPL learning-rate-dependent tangent nuisance and
-only transfers the remaining LR-drop response component:
+The project treats cosine-to-WSD transfer as an **identification problem**:
+remove the MPL-LD nuisance component first, then transfer only the identified
+LR-drop response.
+
+<p align="center">
+  <img src="slides/figs/fig_mpl_residual_anomaly_100M.png" width="47%" alt="MPL residual anomaly near WSD transition and tail">
+  <img src="slides/figs/fig_projection_decomposition_cosine_100M.png" width="47%" alt="Projection decomposition of cosine residual">
+</p>
+
+The prediction rule is intentionally low capacity:
 
 ```text
 L_hat_s(t) = L_MPL,s(t) + kappa_hat_s * phi_{lambda_s,s}(t)
 ```
 
-where:
-
 - `L_MPL,s(t)` is the frozen MPL baseline.
-- `phi_{lambda_s,s}(t)` is a causal LR-drop response shape computed only from
-  the target LR schedule.
-- `lambda_s` is fixed by a schedule-only `q2` half-life rule.
-- `kappa_hat_s` is the only residual-fitted scalar, estimated from source
+- `phi_{lambda_s,s}(t)` is a causal LR-drop response feature computed from the
+  target LR schedule.
+- `kappa_hat_s` is the only residual-fitted scalar, estimated from the source
   cosine residual after MPL-LD projection.
 - Target WSD loss is used only for evaluation and oracle diagnostics.
 
-## Headline Evidence
+## Main Evidence
 
-Main deployable setting: same-scale cosine source to WSD-family targets across
-`25M`, `100M`, and `400M`.
+The main deployable setting is same-scale cosine source to WSD-family targets
+across `25M`, `100M`, and `400M`.
+
+<p align="center">
+  <img src="slides/figs/fig_schedule_response_mae_heatmap.png" width="47%" alt="MAE improvement heatmap">
+  <img src="slides/figs/fig_kappa_clean_scatter.png" width="47%" alt="Source kappa versus target oracle kappa">
+</p>
 
 | Evidence | Result |
 |---|---:|
@@ -56,30 +66,21 @@ Main deployable setting: same-scale cosine source to WSD-family targets across
 | No-projection negative control | `+625.92%`, `0/15` wins |
 | Leave-one-scale-out mean-kappa transfer | `-25.62%`, `15/15` wins |
 
-The negative control is central: directly fitting cosine residual without
-MPL-LD projection catastrophically over-transfers low-frequency MPL drift.  The
-project is therefore not just adding a correction term; it identifies which part
-of the residual is transferable.
+The negative control is important: directly fitting the raw cosine residual
+without MPL-LD projection over-transfers low-frequency MPL drift.  The result is
+not just "add one correction term"; the useful part is identifying which
+residual component can transfer.
 
-## What To Read First
+## How To Use This Repository
 
-1. `slides/main_zh.pdf`  
-   Chinese standalone presentation of the current story.
-2. `results/schedule_response_robustness/REPORT.md`  
-   Main tables for lambda sensitivity, kernel ablation, cross-scale transfer,
-   calibration window audit, and WSD-con failure mode.
-3. `results/schedule_response_robustness/LEAKAGE_AUDIT.md`  
-   Checklist of which quantities use target WSD loss.
-4. `REPRODUCIBILITY.md`  
-   Exact commands, data boundary, generated outputs, and expected checks.
-5. `DATA_MANIFEST.md`  
-   Included public-curve data and generated-result boundary.
-6. `RELEASE_CHECKLIST.md`  
-   Final commit / push gate for the minimal release package.
-7. `FINAL_DELIVERABLES.md`  
-   Current package checklist and verification commands.
+Start with the slides:
 
-## Quick Reproduction
+1. `slides/main_zh.pdf` is the Chinese standalone presentation.
+2. `slides/main.pdf` is the English version with the explicit Tissue/Momentum
+   baseline reproduction section.
+3. `results/schedule_response_robustness/REPORT.md` contains the main tables.
+4. `results/schedule_response_robustness/LEAKAGE_AUDIT.md` states what does and
+   does not read target WSD loss.
 
 Install dependencies:
 
@@ -87,7 +88,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Regenerate the main robustness audit, CSVs, reports, and figures:
+Regenerate the main projected-kappa audit:
 
 ```bash
 python3 repro/schedule_response_robustness_audit.py
@@ -109,13 +110,15 @@ pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 ```
 
-These commands do not rerun expensive transformer training.  They reproduce the
-main public-curve analysis from committed data and regenerate the presentation
-figures used by the current slides.
+Verify that the repository is still the minimal release package:
+
+```bash
+python3 repro/verify_release.py --require-index
+```
 
 ## Data Included
 
-The core public-curve data needed for the main results is vendored in:
+The public-curve CSV data used by the slides is vendored under:
 
 ```text
 external/MultiPowerLaw/loss_curve_repo/csv_25/
@@ -123,44 +126,35 @@ external/MultiPowerLaw/loss_curve_repo/csv_100/
 external/MultiPowerLaw/loss_curve_repo/csv_400/
 ```
 
-Each scale contains the cosine source and WSD-family target curves used in the
-main audit:
+Each scale contains:
 
-- `cosine_72000.csv`
-- `wsd_20000_24000.csv`
-- `wsdld_20000_24000.csv`
-- `wsdcon_3.csv`
-- `wsdcon_9.csv`
-- `wsdcon_18.csv`
+- `cosine_72000.csv`: source curve for projected residual calibration;
+- `wsd_20000_24000.csv`: WSD sharp cooldown target;
+- `wsdld_20000_24000.csv`: WSD linear decay target;
+- `wsdcon_3.csv`, `wsdcon_9.csv`, `wsdcon_18.csv`: WSD-con targets;
+- `cosine_24000.csv`, `constant_24000.csv`, `constant_72000.csv`: auxiliary
+  public curves used by baseline scripts.
 
-Only the public CSV curves needed for the slides' core experiments are part of
-the release package.  Raw transformer-training bytes and historical search
-outputs are intentionally not committed.
+No expensive transformer training is required for the public reproduction path.
 
-## Repository Layout
+## Minimal Release Layout
 
 | Path | Purpose |
 |---|---|
-| `slides/` | Chinese and English Beamer slide decks; `main_zh.pdf` is the current presentation. |
+| `slides/` | Chinese and English Beamer slide decks plus the figures used in them. |
 | `repro/` | Minimal scripts needed to reproduce the baseline and projected-kappa audit. |
-| `results/schedule_response_robustness/` | Current main audit report, leakage audit, and summary CSVs. |
+| `results/schedule_response_robustness/` | Main report, leakage audit, and summary CSVs. |
 | `results/tables/`, `results/figures/` | Baseline reproduction metrics and small summary plots. |
-| `external/MultiPowerLaw/loss_curve_repo/` | Vendored public CSV loss curves used by the scripts. |
-| `DATA_MANIFEST.md` | Data boundary for GitHub reproduction. |
-| `RELEASE_CHECKLIST.md` | Final push checklist and required file set. |
+| `external/MultiPowerLaw/loss_curve_repo/` | Public CSV loss curves used by the scripts. |
+| `REPRODUCIBILITY.md` | Command-level reproduction guide. |
+| `DATA_MANIFEST.md` | Exact data boundary. |
+| `RELEASE_CHECKLIST.md` | Minimal push checklist and release allowlist. |
 
-## Main Generated Figures
+This repository intentionally excludes exploratory result dumps, paper drafts,
+independent training branches, and old search scripts.  The release verifier
+fails if those files are still tracked.
 
-The current slides use these regenerated figures:
-
-- `slides/figs/fig_mpl_residual_anomaly_100M.png`
-- `slides/figs/fig_projection_decomposition_cosine_100M.png`
-- `slides/figs/fig_projection_ablation_time_errors_100M.png`
-- `slides/figs/fig_schedule_response_mae_heatmap.png`
-- `slides/figs/fig_schedule_response_time_errors_100M.png`
-- `slides/figs/fig_kappa_clean_scatter.png`
-
-## Scope And Limitations
+## Scope
 
 Supported claim:
 
@@ -177,10 +171,3 @@ Not claimed:
 - A universal constant calibration window.
 - Fully solved WSD-con final-LR ranking.
 - Prospective validation on newly trained held-out WSD schedules.
-
-The most important next experiment is not another ablation on existing curves,
-but new WSD-family training runs after freezing the protocol:
-
-```text
-t >= 8000, q2 half-life, MPL-LD projection, 1/N_cal ridge floor, kappa >= 0
-```
