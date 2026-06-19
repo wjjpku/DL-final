@@ -1,0 +1,5 @@
+objective,variant
+0.00035866233182485686,shared_beta_gamma
+0.0003586911195514977,shared_c_beta_gamma
+0.000886284062616296,frozen_official
+0.000358463459403808,cosine_independent

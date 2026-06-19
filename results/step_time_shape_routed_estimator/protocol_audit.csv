@@ -1,0 +1,28 @@
+kappa,kappa_abs_diff,max_correction_abs_diff,nuisance,route,scale,scrambled_target_residual_kappa,status,target_curve,target_label,target_not_in_train,tau,train_curves
+0.017756741800537497,0.0,0.0,dct4,smooth_decay,25,0.017756741800537497,pass,cosine_72000.csv,Cosine,1,8192.0,wsdcon_3
+0.02832918972515193,0.0,0.0,dct4,smooth_decay,100,0.02832918972515193,pass,cosine_72000.csv,Cosine,1,8192.0,wsdcon_3
+0.04583514445743976,0.0,0.0,dct4,smooth_decay,400,0.04583514445743976,pass,cosine_72000.csv,Cosine,1,8192.0,wsdcon_3
+0.017661820970813195,0.0,0.0,none,finite_tail,25,0.017661820970813195,pass,wsd_20000_24000.csv,WSD sharp,1,5120.0,wsdld_20000_24000
+0.02722931495058765,0.0,0.0,none,finite_tail,100,0.02722931495058765,pass,wsd_20000_24000.csv,WSD sharp,1,5120.0,wsdld_20000_24000
+0.03539944906810893,0.0,0.0,none,finite_tail,400,0.03539944906810893,pass,wsd_20000_24000.csv,WSD sharp,1,5120.0,wsdld_20000_24000
+0.017299103194726963,0.0,0.0,none,finite_tail,25,0.017299103194726963,pass,wsdld_20000_24000.csv,WSD linear,1,5120.0,wsd_20000_24000
+0.027361447541414962,0.0,0.0,none,finite_tail,100,0.027361447541414962,pass,wsdld_20000_24000.csv,WSD linear,1,5120.0,wsd_20000_24000
+0.03694554593362135,0.0,0.0,none,finite_tail,400,0.03694554593362135,pass,wsdld_20000_24000.csv,WSD linear,1,5120.0,wsd_20000_24000
+0.025483621345232913,0.0,0.0,dct2,full_step_drop,25,0.025483621345232913,pass,wsdcon_3.csv,WSD-con 3e-5,1,1536.0,wsd_20000_24000+wsdld_20000_24000
+0.037278701658680594,0.0,0.0,dct2,full_step_drop,100,0.037278701658680594,pass,wsdcon_3.csv,WSD-con 3e-5,1,1536.0,wsd_20000_24000+wsdld_20000_24000
+0.06494081529428139,0.0,0.0,dct2,full_step_drop,400,0.06494081529428139,pass,wsdcon_3.csv,WSD-con 3e-5,1,1536.0,wsd_20000_24000+wsdld_20000_24000
+0.02186087541729957,0.0,0.0,dct2,medium_step_drop,25,0.02186087541729957,pass,wsdcon_9.csv,WSD-con 9e-5,1,768.0,wsdcon_3+wsdcon_18
+0.026540932349003385,0.0,0.0,dct2,medium_step_drop,100,0.026540932349003385,pass,wsdcon_9.csv,WSD-con 9e-5,1,768.0,wsdcon_3+wsdcon_18
+0.0391354562845826,0.0,0.0,dct2,medium_step_drop,400,0.0391354562845826,pass,wsdcon_9.csv,WSD-con 9e-5,1,768.0,wsdcon_3+wsdcon_18
+0.02147010144323278,0.0,0.0,none,weak_step_drop,25,0.02147010144323278,pass,wsdcon_18.csv,WSD-con 18e-5,1,512.0,wsdcon_9
+0.024039524082155365,0.0,0.0,none,weak_step_drop,100,0.024039524082155365,pass,wsdcon_18.csv,WSD-con 18e-5,1,512.0,wsdcon_9
+0.039003369467519484,0.0,0.0,none,weak_step_drop,400,0.039003369467519484,pass,wsdcon_18.csv,WSD-con 18e-5,1,512.0,wsdcon_9
+0.0,0.0,0.0,none,short_smooth_no_transfer,25,0.0,pass,cosine_24000.csv,Cosine 24k,1,0.0,none
+0.0,0.0,0.0,none,short_smooth_no_transfer,100,0.0,pass,cosine_24000.csv,Cosine 24k,1,0.0,none
+0.0,0.0,0.0,none,short_smooth_no_transfer,400,0.0,pass,cosine_24000.csv,Cosine 24k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,25,0.0,pass,constant_24000.csv,Constant 24k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,100,0.0,pass,constant_24000.csv,Constant 24k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,400,0.0,pass,constant_24000.csv,Constant 24k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,25,0.0,pass,constant_72000.csv,Constant 72k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,100,0.0,pass,constant_72000.csv,Constant 72k,1,0.0,none
+0.0,0.0,0.0,none,no_lr_drop,400,0.0,pass,constant_72000.csv,Constant 72k,1,0.0,none

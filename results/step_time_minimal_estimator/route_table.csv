@@ -1,0 +1,7 @@
+attenuation,base_tau,mode,nuisance,rationale,route,target_curve,target_decay_span,target_drop_norm,target_label,tau,train_curves
+1.0,8192.0,minimal_target_holdout,none,very long smooth decay uses the slowest finite response; source is the strongest single-step full-drop probe,smooth_decay,cosine_72000.csv,69839.0,0.899999999544725,Cosine,8192.0,wsdcon_3
+1.0,5120.0,minimal_target_holdout,none,finite WSD tail uses its paired finite-tail schedule when available,finite_tail,wsd_20000_24000.csv,3999.0,0.8999424188010638,WSD sharp,5120.0,wsdld_20000_24000
+1.0,5120.0,minimal_target_holdout,none,finite WSD tail uses its paired finite-tail schedule when available,finite_tail,wsdld_20000_24000.csv,3999.0,0.899775,WSD linear,5120.0,wsd_20000_24000
+1.0,1536.0,minimal_target_holdout,none,full single-step drop borrows amplitude from finite-tail WSD curves and removes broad drift,full_step_drop,wsdcon_3.csv,1.0,0.8999999999999999,WSD-con 3e-5,1536.0,wsd_20000_24000+wsdld_20000_24000
+1.0,768.0,minimal_target_holdout,none,medium single-step drop uses neighboring step probes with a short response,medium_step_drop,wsdcon_9.csv,1.0,0.7,WSD-con 9e-5,768.0,wsdcon_3+wsdcon_18
+1.0,512.0,minimal_target_holdout,none,weak single-step drop uses the nearest stronger step probe and the shortest stable response,weak_step_drop,wsdcon_18.csv,1.0,0.3999999999999999,WSD-con 18e-5,512.0,wsdcon_9

@@ -1,0 +1,11 @@
+group,mean_delta,median_delta,nonharm,rows,split,variant,wins,worst_delta
+core_wsd,123.31819874492876,100.28989673841697,0,15,fit_start_5000,observation_bracket_mplld_neff,0,399.5158083207526
+extra_control,0.0,0.0,9,9,fit_start_5000,observation_bracket_mplld_neff,0,0.0
+core_wsd,11.876942044890912,5.012010335779071,5,15,fit_start_6500,observation_bracket_mplld_neff,5,90.38826930321449
+extra_control,0.0,0.0,9,9,fit_start_6500,observation_bracket_mplld_neff,0,0.0
+core_wsd,-29.87468874369102,-35.96635695800162,15,15,fit_start_8000,observation_bracket_mplld_neff,15,-4.665186792735431
+extra_control,0.0,0.0,9,9,fit_start_8000,observation_bracket_mplld_neff,0,0.0
+core_wsd,-8.533465099324172,-7.831010619086854,15,15,fit_start_10000,observation_bracket_mplld_neff,15,-1.3678095474313534
+extra_control,0.0,0.0,9,9,fit_start_10000,observation_bracket_mplld_neff,0,0.0
+core_wsd,-1.488171279887421,0.0,15,15,fit_start_12000,observation_bracket_mplld_neff,6,0.0
+extra_control,0.0,0.0,9,9,fit_start_12000,observation_bracket_mplld_neff,0,0.0

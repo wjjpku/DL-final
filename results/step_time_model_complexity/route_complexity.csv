@@ -1,0 +1,5 @@
+mode,nonzero_tau_values,nuisance_choices,route_classes,source_sets
+shape_routed_no_nuisance,5,1,5,6
+self_fit_no_nuisance,5,1,5,6
+cross_family_residualized,5,3,5,3
+cross_family_no_nuisance_p3,5,1,5,3

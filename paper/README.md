@@ -1,12 +1,34 @@
-# Overleaf 编译说明
+# Paper Build Notes
 
-1. 把本文件夹打包上传到 Overleaf(或直接上传 `main.tex` + `figs/`)。
-2. 编译器选 **pdfLaTeX**(默认即可),主文件 `main.tex`。
-3. 参考文献用内联 `thebibliography`,**无需 BibTeX**,一次编译即可出 PDF。
+主文件：`main.tex`
 
-## 提交前替换
-- 标题下方作者行里的 GitHub 链接 `https://github.com/wjjpku/DL-final` 改成你自己的仓库地址。
+编译器：`pdfLaTeX`
 
-## 文件
-- `main.tex` —— 论文正文(双栏 article)。
-- `figs/fig1_repro_invariance.png` —— 图1:复现对比 + 参数尺度不变性。
+```bash
+cd paper
+pdflatex -interaction=nonstopmode main.tex
+```
+
+本目录包含主论文源文件、已编译 PDF 和论文图。当前 `main.tex` 围绕
+MPL residual identification 组织：MPL 作为冻结 baseline，cosine residual
+先经过 MPL-LD projection 去除 nuisance drift，再估计一个非负 response
+amplitude；WSD-family loss 只用于评价和 oracle diagnostic。参考文献以内联
+`thebibliography` 形式写在 `main.tex` 中，不需要 BibTeX。
+
+## Files
+
+| 文件或目录 | 内容 |
+|---|---|
+| `main.tex` | 主论文正文，当前主线为 cosine-to-WSD residual identification。 |
+| `main.pdf` | 已编译论文 PDF。 |
+| `figs/` | 论文中使用的图，包含新公式 schedule feature、per-target、ablation 和 residual-curve 图。 |
+| `theory.tex` / `theory.pdf` | 当前公式的补充理论说明：linear response、`q2` half-life、support projection、MPL-LD projection。 |
+
+## Related Artifacts
+
+- Slides: `../slides/main_zh.pdf` and `../slides/main.pdf`.
+- Final checklist: `../FINAL_DELIVERABLES.md`.
+- Core documentation index: `../docs/README.md`.
+- Main robustness audit: `../results/schedule_response_robustness/REPORT.md`.
+- Target-loss leakage audit: `../results/schedule_response_robustness/LEAKAGE_AUDIT.md`.
+- Reproducibility guide: `../REPRODUCIBILITY.md`.

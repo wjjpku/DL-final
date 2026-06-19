@@ -15,9 +15,15 @@ import argparse
 import csv
 import json
 import math
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
+
+TMP_CACHE = Path(os.environ.get("TMPDIR", "/tmp")) / "dl-final-cache"
+TMP_CACHE.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(TMP_CACHE / "matplotlib"))
+os.environ.setdefault("XDG_CACHE_HOME", str(TMP_CACHE / "xdg"))
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -85,6 +85,10 @@ kappa_safe = a_target * kappa_transfer
 - Target-loss blindness audit replaces every target loss curve with fake
   losses and leaves `R_target`, the target gate, and `kappa_safe` unchanged
   across `1116` rows; target loss is used only for evaluation.
+- Scale-holdout constant audit holds out each model scale in turn; `0.01`
+  remains inside the two-scale target-retention margin in `3/3` splits,
+  selected `rho=0.50` stays on the safe side in `3/3` splits, and every
+  held-out scale is `372/372` non-harming with `186/186` main wins.
 - Raw next-gen transfer fails the same all-train-size audit with worst
   `+22.5%`, driven by diffuse `cosine_24000` targets.
 

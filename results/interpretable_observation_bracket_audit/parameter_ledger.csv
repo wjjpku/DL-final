@@ -1,0 +1,10 @@
+fitted_in_error_model,notes,quantity,role,source,uses_target_loss
+0,not introduced by the residual correction,MPL parameters,baseline predictor,precomputed MPL fit already used by baseline,outside_error_model
+0,max positive LR drop divided by total positive LR drop,drop concentration q_s,response-rate interpolation,target LR schedule,0
+0,log(2)/(eta_max * Delta_obs),lambda_obs,observation-scale response unit,modal logging interval and peak LR,0
+0,observation bracket between one and two logging intervals,lambda_s,target response rate,lambda_obs * (1 + q_s) / 2,0
+0,computed from source curve MPL formula; no residual coefficient,MPL-LD tangent projection,nuisance removal,"finite differences of MPL LR-dependent parameters B,C,beta,gamma",0
+0,selected value 8000,fit_start,calibration suffix boundary,earliest source-only lambda-bracket retention pass,0
+0,replaces fixed tau=0.05,1/N_cal ridge,finite-sample identifiability floor,number of source calibration points,0
+1,only residual-fitted scalar for each source scale / response operator,kappa_hat_s,response amplitude,one nonnegative projection from cosine residual,0
+0,not a learned gate; prevents full-horizon cosine decay from receiving local cooldown correction,locality factor a_s,schedule-boundary condition for controls,LR-drop support span,0

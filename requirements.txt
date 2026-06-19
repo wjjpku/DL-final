@@ -3,6 +3,7 @@
 numpy
 scipy
 matplotlib
+pandas
 torch
 tqdm
 scikit-learn

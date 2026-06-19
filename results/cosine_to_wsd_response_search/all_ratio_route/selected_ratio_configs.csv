@@ -1,0 +1,4 @@
+center,config_id,gate_sign,gate_tau,mean_delta,median_delta,nonharm,rows,shrink_gate,target,time_power,width,wins,worst_delta
+0.5,790,signed,0.01,-57.93438615330057,-59.471582918227604,3,3,1,wsdcon_3.csv,0.0,0.1,3,-48.91134932393009
+0.2,23,signed,0.001,-17.560997686564807,-18.66623834980201,3,3,0,wsdcon_9.csv,1.0,0.05,3,-11.80064391895933
+0.2,202,signed,0.001,-13.334903054534301,-13.682136577227766,3,3,1,wsdcon_18.csv,1.0,0.25,3,-12.263820039640983

@@ -1,0 +1,9 @@
+backbone_params,description,group,mean_base_vs_official_baseline,mean_corr_vs_official_baseline,mean_delta_vs_own_baseline,nonharm_vs_own_baseline,residual_params,rows,variant,wins_vs_own_baseline,worst_base_vs_official_baseline,worst_corr_vs_official_baseline,worst_delta_vs_own_baseline
+21,independent cosine-only MPL fits,core_wsd,55.04527052230417,37.341849560378016,-11.43718960362216,15,0,15,cosine_independent,15,106.80840626460855,79.98582517956044,-6.39525541592374
+21,independent cosine-only MPL fits,extra_control,79.78274516207723,79.78274516207723,0.0,9,0,9,cosine_independent,0,490.27031703608924,490.27031703608924,0.0
+21,official public-split MPL reference,core_wsd,0.0,-13.767399058963177,-13.767399058963177,15,0,15,frozen_official,15,0.0,-6.2920841828281056,-6.2920841828281056
+21,official public-split MPL reference,extra_control,0.0,0.0,0.0,9,0,9,frozen_official,0,0.0,0.0,0.0
+17,"beta,gamma shared by cosine-only cross-scale median; L0,A,alpha,B,C refit per scale",core_wsd,54.36567277464453,36.96425124720383,-11.327321698152149,15,0,15,median_beta_gamma_refit,15,97.69433798182749,78.76884479388396,-6.920163606061336
+17,"beta,gamma shared by cosine-only cross-scale median; L0,A,alpha,B,C refit per scale",extra_control,79.8983899243267,79.8983899243267,0.0,9,0,9,median_beta_gamma_refit,0,489.7158934027548,489.7158934027548,0.0
+15,"C,beta,gamma shared by cosine-only cross-scale median; L0,A,alpha,B refit per scale",core_wsd,54.242758437961925,36.887486344016786,-11.30892780228147,15,0,15,median_c_beta_gamma_refit,15,96.71195637795671,78.90680256175162,-6.949691605601527
+15,"C,beta,gamma shared by cosine-only cross-scale median; L0,A,alpha,B refit per scale",extra_control,79.88821316179684,79.88821316179684,0.0,9,0,9,median_c_beta_gamma_refit,0,489.5612745297601,489.5612745297601,0.0

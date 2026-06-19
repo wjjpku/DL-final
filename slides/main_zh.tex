@@ -1,522 +1,1097 @@
-% Chinese (中文) version — compile with XeLaTeX (ctexbeamer), NOT pdfLaTeX.
-%   xelatex main_zh.tex   (run twice for the table of contents)
-% Uses the Fandol fontset (ships with TeX Live), so it also compiles on Overleaf
-% (select the XeLaTeX compiler) without any system fonts.
-\documentclass[10pt,aspectratio=169,fontset=fandol]{ctexbeamer}
+% Chinese version -- compile with XeLaTeX.
+%   xelatex main_zh.tex && xelatex main_zh.tex
+\documentclass[9pt,aspectratio=169,fontset=fandol]{ctexbeamer}
 \usetheme{Madrid}
 \usecolortheme{seahorse}
 \useinnertheme{circles}
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{caption}{\insertcaption}
+
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage[normalem]{ulem}
+\usepackage{xcolor}
+\usepackage{array}
+
+\graphicspath{{figs/}}
 
 \newcommand{\hl}[1]{\textcolor{blue!60!black}{\textbf{#1}}}
-\newcommand{\Drop}{\ensuremath{\mathrm{DropRelaxS}}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\tightlist}{\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-\title[学习率调度不是绝热的]{学习率调度不是绝热的：\\损失曲线预测的一个变化率依赖修正}
-\author[吴家驹]{吴家驹 \quad (2400010711，本科生)}
-\institute[]{北京大学 \quad 深度学习 · Task 2 \quad\textbar\quad \texttt{github.com/wjjpku/DL-final}}
+\title[Residual identification in MPL residuals]{从 Cosine 到 WSD：\\在 MPL Residual 中识别可迁移的 LR-Drop Response}
+\subtitle[Source-only calibration]{Source-only calibration without target WSD loss}
+\author[吴家驹]{吴家驹 2400010711}
+\institute[]{北京大学 \quad 深度学习课程 Task 2\\
+\code{github.com/wjjpku/DL-final}}
 \date{}
 
 \begin{document}
 
 % =====================================================================
 \section{封面}
+
 {\setbeamertemplate{footline}{}
 \begin{frame}
-\vfill
-\begin{center}
-{\LARGE \textbf{学习率调度不是绝热的}}\\[8pt]
-{\Large 损失曲线预测的一个变化率依赖修正}\\[16pt]
-{\large 吴家驹 \quad 2400010711}\\[6pt]
-{\normalsize 北京大学 \quad 深度学习课程 · Task 2}
-\end{center}
-\vfill
-\begin{block}{一句话摘要}
-现有最优的损失曲线律（Multi-Power Law / Functional Scaling Law）是\hl{绝热}的：它们预测的是调度在\hl{准静态平衡}下会达到的损失，忽略了当学习率衰减\emph{快于}系统弛豫时间时，损失会\hl{滞后}于平衡值——留下一个系统性的\hl{正残差}。\\[6pt]
-我们从 AdamW 的预条件二阶矩动力学\hl{推导出}这个非绝热弛豫滞后项（\Drop），其弛豫时间服从经典关系 $\tau\propto 1/\eta$（LLM 数据实测 $p=0.84\pm 0.17$，AdamW 模拟复现 $p=0.971$），幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$。在公开同架构尺度上，形状常数经验上较稳定；用少量校准常数做\hl{跨尺度转移}，将留出陡降曲线的预测误差削减 \hl{44\%}（6/6 全胜）。
+\titlepage
+\vspace{-1.2em}
+\footnotesize
+\begin{block}{中心问题}
+给定 cosine 训练 loss curve 和目标 WSD-family schedule，
+能否在不读取目标 WSD loss 的情况下预测整条 WSD loss curve？
 \end{block}
-\vfill
-\centering
-{\footnotesize\itshape 本幻灯片为自洽书面报告：每页含完整的设定、结果与结论，无需口头讲解即可独立阅读。}
+\vspace{-0.45em}
+\begin{block}{核心观点}
+cosine residual 同时混有\hl{可迁移的 LR-drop response}
+和\hl{不可迁移的 MPL-LD 参数误差}。
+本文先识别二者，再只迁移前者。
+\end{block}
 \end{frame}}
 
-\begin{frame}{目录}
-\tableofcontents
-\end{frame}
-
-% =====================================================================
-\section{背景与问题}
-\begin{frame}{研究背景：为什么要预测损失曲线？}
-\textbf{大语言模型预训练极其昂贵。} 研究者希望在烧算力\emph{之前}就能比较不同学习率调度的效果，从而避免昂贵的试错。
-\vfill
-\textbf{核心问题——调度感知的损失曲线预测：}
-\begin{center}
-\hl{给定学习率调度 $\{\eta_t\}$，在训练开始前预测整条损失曲线 $L(t)$。}
-\end{center}
-\vfill
-\textbf{决定性的检验标准：跨调度泛化。}
-\begin{itemize}
-\item 仅在 cosine 上拟合模型，测试其能否预测从未见过的 WSD（warmup-stable-decay）族曲线。
-\item 这是区分"曲线拟合"与"真正理解调度动力学"的试金石。
-\end{itemize}
-\vfill
-\textbf{当前最优方法。} Multi-Power Law (MPL, Luo et al. 2025) 及其匹配理论 Functional Scaling Law (FSL, Li et al. 2025)。
-\end{frame}
-
-\begin{frame}{基线方法：Multi-Power Law (MPL)}
-\textbf{MPL 公式}（7 个参数）：
+\begin{frame}{如何阅读这份报告}
+\small
+这份报告不是从“加一个 \(\kappa\) 修正项”开始，而是从一个 residual identification 问题开始：
 \[
-L(t)=L_0+A\,S(t)^{-\alpha}+B\!\sum_{k\le t}\!\underbrace{(\eta_{k-1}-\eta_k)}_{\Delta\eta_k}\,\Big[1-\big(1+C\,\eta_k^{-\gamma}(S(t)-S(k))\big)^{-\beta}\Big]
+\text{MPL residual transfer is hard because residuals are confounded.}
 \]
-其中 $S(t)=\sum_{i\le t}\eta_i$ 为\hl{累积学习率}（ intrinsic time / 自然时间）。
-\vfill
-\textbf{各项含义：}
-\begin{itemize}
-\item $L_0 + A\,S^{-\alpha}$：主干幂律下降（偏置衰减）。
-\item $B\cdot\mathrm{LD}(t)$：退火奖励——每次 LR 下降带来的额外 loss reduction 的累积。
-\item $\eta_k^{-\gamma}$：MPL 唯一的"变化率"旋钮，凭经验拟合得到 $\gamma\approx 0.64$。
-\end{itemize}
-\vfill
-\textbf{关键观察（本工作的出发点）。} MPL \emph{确实}使用了 LR 下降量 $\Delta\eta_k$，且有一个变化率因子 $\eta_k^{-\gamma}$，\hl{但对"变化多快"只有一个经验指数}。它本质预测的是\hl{准静态（绝热）loss}——假设损失始终 instantaneous 地处于当前 LR 对应的平衡值。
-\end{frame}
-
-\begin{frame}{复现基线：忠实重现 MPL 官方结果}
-\textbf{数据来源。} MPL 官方公开损失曲线：Llama-2 风格解码器，$25/100/400$M 三个尺度，各 9 种调度（cosine, constant, WSD, WSDLD, WSDCon-3/9/18, cosine-72k, constant-72k）。
-\vfill
-\textbf{实验设置（遵循课程要求）。}
-\begin{itemize}
-\item \hl{训练集}：cosine\_24000.csv、cosine\_72000.csv（仅 cosine 调度）
-\item \hl{测试集}：wsd\_20000\_24000、wsdld\_20000\_24000、wsdcon\_3/9/18（完全外推）
-\item 目标函数：$\log L$ 残差上的 Huber 损失；优化器：L-BFGS-B，16 个随机起点取最优。
-\end{itemize}
-\vfill
-\begin{columns}
-\begin{column}{0.48\textwidth}
-\centering\small
-\begin{tabular}{lcc}
-\toprule
-规模 & Tissue (5p) & MPL (7p) \\
-\midrule
-25M  & 0.00783 & \textbf{0.00539}\\
-100M & \textbf{0.00486} & 0.00496\\
-400M & 0.00979 & \textbf{0.00852}\\
-\bottomrule
-\end{tabular}\\[4pt]
-{\footnotesize WSD 族平均测试 MAE}
-\end{column}
-\begin{column}{0.48\textwidth}
-我们的 MPL 测试 MAE（$0.0054/0.0050/0.0085$）与 Luo et al.\ 官方 README 值吻合到三位小数，复现忠实。
-\vspace{0.5em}
-
-\hl{这条拟合良好的 MPL 是后文全部分析的基线。}
-\end{column}
-\end{columns}
-\end{frame}
-
-% =====================================================================
-\section{核心发现}
-\begin{frame}{发现：绝热律在快速衰减上留下系统性正残差}
-\textbf{方法。} 用上述拟合良好的 MPL（全过程数据训练）预测留出曲线，观察预测残差 $r(t)=L_{\rm true}(t)-L_{\rm MPL}(t)$。
-\vfill
-\centering
-\includegraphics[width=0.82\linewidth]{figs/fig_residual_fit.png}
-\vfill
-\raggedright
-\textbf{残差的清晰特征：}
-\begin{enumerate}
-\item 稳定高 LR 段：残差 $\approx 0$（系统处于平衡）。
-\item 第 20000 步 LR \hl{陡降}处：残差突然\hl{跳为正}。
-\item 衰减越陡，残差越大：WSD/WSDLD 末段 $+(6\text{--}15)\times10^{-3}$，而 gradual cosine $\lesssim 4\times 10^{-3}$。
-\item \hl{关键判据：} 一个 gradual cosine 和一个 sharp WSD 到达\emph{同一}最终 LR（$3\times 10^{-5}$），\hl{只有陡降的产生滞后}——同终点、变化越快滞后越大，正是非绝热（变化率依赖）效应的教科书特征。
-\end{enumerate}
-\end{frame}
-
-\begin{frame}{物理解释：绝热极限 vs 非绝热滞后}
-\begin{columns}
-\begin{column}{0.56\textwidth}
-\textbf{绝热图像。}
-\begin{itemize}
-\item 固定 LR $\eta$ 时，损失会向一个准静态值 $L_{\rm eq}(\eta)$ 弛豫。
-\item cosine 衰减很缓慢 → 损失始终紧跟平衡值。
-\item \hl{在 cosine 上拟合的 MPL，学到的正是 $L_{\rm eq}$。}
-\end{itemize}
-\vspace{0.6em}
-
-\textbf{非绝热图像。}
-\begin{itemize}
-\item WSD 衰减\emph{太快}，损失\hl{来不及弛豫}到新的更低平衡值。
-\item 系统滞留在旧的更高损失状态 → 正残差。
-\item 当 LR 扫描速率 $|\dot{\eta}|$ 超过弛豫速率 $1/\tau$ 时，可观测量系统性落后于平衡值。
-\end{itemize}
-\end{column}
-\begin{column}{0.40\textwidth}
-\begin{block}{绝热律预测}
-\centering
-$L_{\rm pred} = L_{\rm eq}(\eta_t)$\\[4pt]
-\small 只依赖当前 LR 和累计进度
-\end{block}
-\vspace{0.6em}
-\begin{block}{真实损失}
-\centering
-$L_{\rm true} = L_{\rm eq}(\eta_t) + \underbrace{\Delta L_{\rm lag}}_{>0}$\\[4pt]
-\small 额外依赖 LR \emph{变化率}
-\end{block}
-\vspace{0.6em}
-\begin{alertblock}{核心问题}
-\centering
-$\Delta L_{\rm lag}$ 的结构是什么？能否从动力学\emph{推导}出来？
-\end{alertblock}
-\end{column}
-\end{columns}
-\end{frame}
-
-% =====================================================================
-\section{理论推导}
-\begin{frame}{推导：从 AdamW 预条件动力学出发}
-\textbf{模型设置。} 在 Hessian 特征基下展开，模 $i$ 具有：曲率 $\lambda_i$，梯度噪声标准差 $s_i$。
-\vfill
-\textbf{关键简化。} 当 $\beta_2\to 1$（实际训练中的典型值 0.95--0.999），Adam 的二阶矩预条件子收敛到 $v_i^*\approx \mathbb{E}[g_i^2] = \lambda_i^2 V_i + s_i^2$。在噪声主导的"山方向"，$v_i^*\approx s_i^2$ 为常数 → \hl{Adam 退化为预条件步长 $\eta_{\rm eff}=\eta/s_i$ 的 SGD}。
-\vfill
-\textbf{线性递推。} 二阶矩偏差 $\Delta_i = V_i - V_i^*(\eta_t)$ 满足精确线性递推。对慢模（$\eta\lambda_i/s_i \ll 1$，事后验证成立），$(1-\eta\lambda_i/s_i)^2\approx e^{-2\eta\lambda_i/s_i}$，解得：
-\[
-\Delta L(t)=\sum_i \underbrace{w_i}_{dV_i^*/d\eta}\Big[\underbrace{e^{-2(\lambda_i/s_i)(S-S')}}_{\text{S-time 指数核}}\circledast\underbrace{\mathrm{drop}}_{(\eta-\eta')_+}\Big](t)
-\]
-\vfill
-\textbf{精确恒等式。} 权重之和 $=\sum_i w_i = \sum_i \frac{dV_i^*}{d\eta}\cdot\frac{\lambda_i}{2} = \textcolor{blue!60!black}{\frac{dL_{\rm eq}}{d\eta}}$。
-\end{frame}
-
-\begin{frame}{可用修正律：DropRelaxS}
-将谱混合塌缩为最低容量的单极闭合（避免过拟合）：
 \vfill
 \begin{center}
-\fbox{\parbox{0.92\textwidth}{\centering
-\vspace{0.3em}
-$\displaystyle L(t)=L_{\rm MPL}(t)+c\,\chi\sum_{k<t}e^{-\lambda_{\rm slow}(S_t-S_k)}(\eta_k-\eta_{k+1})_+\quad(\chi=dL_{\rm eq}/d\eta)$\\[0.3em]
-\vspace{0.3em}
-}}
-\end{center}
-\vfill
-\textbf{各项含义：}
-\begin{itemize}
-\item $\chi = dL_{\rm eq}/d\eta$：平衡地板对 LR 的敏感度，\hl{独立可测}（见后）。
-\item $\lambda_{\rm slow}$：有效预条件曲率，控制弛豫速率；在公开同架构尺度上\hl{经验稳定}（见后）。
-\item $c\le 1$：将谱混合压缩为单极的校准因子，\hl{近似可迁移}。
-\item 记忆变量是累积学习率 $S_t-S_k$，而非步数 $t-k$。
-\end{itemize}
-\vfill
-\textbf{推出的六条可证伪预言：}
-\begin{enumerate}\small
-\item 符号为正；\item 因果依赖 LR decrements；\item 记忆在 S-time；\item 幅度 $=dL_{\rm eq}/d\eta$；\item noise-dominated 模：$\tau\propto 1/\eta$；\item 谱混合：双指数优于单指数。
-\end{enumerate}
-\end{frame}
-
-% =====================================================================
-\section{验证}
-\begin{frame}{验证 1：核心预言 $\tau\propto 1/\eta$ 成立}
-\textbf{实验设计。} 利用两段式 wsdcon 曲线（第 8000 步阶跃降到常数 LR），第二阶段 LR 分别取 $\eta\in\{3,9,18\}\times 10^{-5}$。拟合残差瞬态 $r(t)\propto e^{-(t-8000)/\tau}$ 提取弛豫时间 $\tau$。
-\vfill
-\begin{columns}
-\begin{column}{0.46\textwidth}
-\includegraphics[width=\linewidth]{figs/fig_tau_scaling.png}
-\end{column}
-\begin{column}{0.50\textwidth}
-\textbf{结果：}
-\begin{itemize}
-\item 合并三尺度：\hl{$p=0.84\pm 0.17$}（\texttt{deep\_tau\_pooled.py}）
-\item 各尺度单独：$p=0.51/1.06/0.94$（$25/100/400$M）
-\item 受控 AdamW 模拟复现：\hl{$p=0.971$}，$R^2=0.9996$
-\item $\beta_2\in[0.9,0.9999]$ 扫描：$\tau$ 平坦，CV 仅 1.1\%
-\end{itemize}
-\vspace{0.3em}
-\textbf{推论：} $p=1$ 正是\hl{噪声主导}的理论值 → \emph{自洽地}验证了推导中 $v_i^*\approx s_i^2$ 的关键简化步骤。
-\end{column}
-\end{columns}
-\vfill
-\centering
-\hl{经典弛豫时间 $\tau\propto 1/\eta$ 首次在 LLM 预训练的损失曲线残差上被实测确认。}
-\end{frame}
-
-\begin{frame}{验证 2：残差就是推出的项；谱混合确认}
-\textbf{方法。} 将拟合良好 MPL 的残差对 $\Drop_{\lambda_{\rm slow}=10}$ 做\hl{过原点回归}（只有一个斜率参数，防止过拟合）。
-\vfill
-\textbf{结果。}
-\begin{itemize}
-\item $R^2 = 0.40/0.80/0.87$（$25/100/400$M），信号随模型规模增长。
-\item 双指数核替代单指数：$R^2$ 再提升 $0.06\text{--}0.07$，\hl{直接证实谱混合预言}。
-\item 公平对比：S-time 指数核削减留出 MAE $-15\%$，胜 step-time 核（$-7\%$，时间变量错）与无记忆地板（$-2\%$）；按 LR \emph{水平}（非降幅）驱动的 S-time 核打平派生核（$-15\%$）——此对比只隔离了时间变量与记忆的存在性，降幅驱动由推导确定而非此实验。
-\end{itemize}
-\vfill
-\textbf{关键控制。} 在\emph{单条}衰减曲线上，有限-$\lambda_{\rm slow}$ 核与绝热极限（$\lambda_{\rm slow}\to 0$）数值简并（corr$\approx 0.99$）。\hl{速率常数只能由跨调度的对比来约束}——这正是我们使用 wsdcon 系列（不同第二阶段 LR）的原因。
-\end{frame}
-
-\begin{frame}{验证 3：幅度可独立预测}
-\textbf{方法。} 不依赖 DropRelaxS 的拟合，\hl{独立地}从两段式终值损失 vs 第二阶段 LR 的关系测 $dL_{\rm eq}/d\eta$（noise-floor 探针）。
-\vfill
-\textbf{结果。}
-\begin{itemize}
-\item 用独立探针预测的理论幅度 $\kappa_{\rm pred} = c\cdot dL_{\rm eq}/d\eta$。
-\item 与 DropRelaxS 回归拟合的幅度 $\kappa_{\rm fit}$ 比较：
-\[
-\frac{\kappa_{\rm fit}}{\kappa_{\rm pred}} = 0.43\, /\, 0.51\, /\, 0.60 \quad (25/100/400\text{M})
-\]
-\item 比值跨尺度 CV 仅 \hl{14\%} → $c\approx 0.5$ 在公开同架构尺度上近似可迁移。
-\item $<1$ 的物理原因：谱混合中快模贡献被单极压缩所忽略。
-\end{itemize}
-\vfill
-\begin{block}{至此}
-$\lambda_{\rm slow}$（经验稳定）+ $c$（留一校准）+ $dL_{\rm eq}/d\eta$（独立测量）= \hl{低校准跨尺度迁移。}
-\end{block}
-\end{frame}
-
-\begin{frame}{验证 4：低校准跨尺度迁移（$-$44\%，6/6 全胜）}
-\textbf{协议。} 对目标尺度\hl{不做任何拟合}：
-\begin{itemize}
-\item $\lambda_{\rm slow}=10$（固定常数）
-\item $c$ 取\emph{其他两个尺度}的留一法平均
-\item $dL_{\rm eq}/d\eta$ 从目标自身的两段式探针测量（与测试曲线不同）
-\end{itemize}
-\vfill
-\begin{columns}
-\begin{column}{0.54\textwidth}
-\centering\small
-\begin{tabular}{lcccc}
+\scriptsize
+\begin{tabular}{L{0.17\linewidth}L{0.51\linewidth}L{0.23\linewidth}}
 \toprule
- & \multicolumn{2}{c}{wsd} & \multicolumn{2}{c}{wsdld}\\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-规模 & MPL & +我们 & MPL & +我们\\
+环节 & 问题 & 证据\\
 \midrule
-25M  & 0.00341 & 0.00246 & 0.00314 & 0.00219\\
-100M & 0.00375 & \textbf{0.00164} & 0.00325 & \textbf{0.00161}\\
-400M & 0.00470 & 0.00236 & 0.00385 & 0.00212\\
-\bottomrule
-\end{tabular}\\[4pt]
-{\footnotesize 留出陡降曲线 MAE；目标测试曲线上\textbf{零新参数}}
-\end{column}
-\begin{column}{0.44\textwidth}
-\hl{总体 $-$44\%，6/6 全胜}（各 $-28\%$ 至 $-56\%$）。
-\vspace{0.5em}
-
-小模型常数 + 一个廉价 noise-floor 探针，把大模型陡降曲线预测得比 MPL 迁移好 $\sim 2\times$。
-\end{column}
-\end{columns}
-\vfill
-\textbf{诚实边界。} 若已有几条\emph{完整} WSD 曲线、直接重拟 MPL，MPL 自己就把残差吸收了（MAE $0.0037\to 0.0032$），显式项不再加分。\hl{价值在数据稀缺场景}：有 cosine + 廉价探针、但没有完整 WSD 曲线——正是"训练前预测"的真实用途。
-\end{frame}
-
-\begin{frame}{升级 1：B-恒等式——幅度本来就在 MPL 里}
-\textbf{命题。} 在固定 $S$ 下比较"保持 $\eta$"与"降到 $\eta-d\eta$ 并等饱和"：MPL 退火项变化 $-B\,d\eta\,G(\cdot)\to -B\,d\eta$（$G\to1$）。
-\[
-\left.\partial_\eta L^{\rm MPL}_{\rm eq}\right|_S = B
-\quad\Rightarrow\quad \text{MPL 自带的 } B \text{ 就是修正所需的地板敏感度 } dL_{\rm eq}/d\eta .
-\]
-\vfill
-\textbf{验证（可证伪）。} $B=363.8/437.9/523.4$ vs 独立探针测量 $381.7/499.3/561.5$（偏差 $5$--$15\%$，三个尺度全部成立）。
-\vfill
-\begin{block}{零额外测量迁移链}
-$\kappa = c''\,\eta_{\rm peak} B$（$c''$ 留一尺度平均，CV 14.7\%）→ 同协议 \hl{$-43\%$，6/6}，与探针链 $-44\%$ 持平，但\hl{不需要目标尺度的任何额外训练}。光滑-only 重拟合 $B$（漂移 $\le30\%$）仍保留 $-35.6\%\sim-40\%$。
-\end{block}
-\end{frame}
-
-\begin{frame}{升级 2：二阶幅度闭合 $\chi(\eta)\propto\eta^{\delta}$}
-\textbf{发现。} 公开沉降探针地板读数\hl{超线性}：$F_{\rm eq}\propto\eta^{1+\delta}$，$1{+}\delta = 1.06/1.49/1.25$（25/100/400M 三点拟合）——\hl{但这是协议依赖}（见下：无混淆等-$S$ 阶梯读出\emph{亚线性}），非床无关定律。原闭合把 $\chi$ 冻结为常数，丢掉了推导中本来就有的 $\eta_k$ 依赖。
-\[
-L(t)=L_{\rm MPL}(t)+\kappa\sum_{k<t}\Big(\tfrac{\eta_k}{\eta_{\rm peak}}\Big)^{\!\delta}
-e^{-\lambda_{\rm slow}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\rm peak}}
-\]
-\vfill
-\begin{itemize}
-\item 公开曲线：$\delta{=}1/4$（Pareto 选取，从不在目标上拟合）令审计迁移矩阵\hl{所有聚合指标占优}；纯探针校准 $-17\%\to-23\%\sim-29\%$。
-\item \hl{真实 10.7M 模型、从未用于选 $\delta$ 的界外调度}：sharp600 $-18\%\to-71\%$（$\delta{=}3/4$）；第二套 showcase 床 wsd\_sharp $-14\%\to-52\%$。
-\item 诚实拆分：部分增益来自幅度再校准（$\le1$ 权重抬高拟合 $\kappa$）；oracle 等幅度下族内形状仍以 $\delta{=}0$ 略优。
-\item 机制：NQM 仿射路线在量级上\hl{被证伪}（差 3 个量级）；bulk+edge 谱（追踪截断 $a_{\max}\!\propto\!1/\eta$）给出 $F=c_1\eta+c_2\eta^{\zeta}$——一致但边缘重适应步仍是 conjecture。
-\item 等-$S$ 阶梯（消除骨干混淆，审计修正窗口）：10.7M 与 25M 匹配配方\hl{均亚线性}（$p=0.65/0.64$，CI 排除 1；视界拉到 24k 仍亚线性 $0.79$），bs192 亦然——\hl{无尺度涌现}（$\Delta p=-0.006$ vs 点火线 0.067）：公开 $1.06/1.49/1.25$ 是沉降探针\hl{协议}假象，既非参数量也非批大小效应，来源未定位。$\delta>0$ 增益来自浓度依赖可见幅度而非地板曲率；$\delta$ 无跨尺度普适值，按尺度实测。
-\end{itemize}
-\end{frame}
-
-% =====================================================================
-\section{独立复现}
-\begin{frame}{独立复现 1：真实 $\sim$10M transformer}
-\textbf{动机。} 作者原始数据不再公开（仓库 404）。我们在\hl{不同硬件、不同模型、不同数据}上完全独立地重新训练模型，验证机制是否普适。
-\vfill
-\textbf{设置。} $\sim$10M 参数 Llama-2 风格 byte-level 解码器（RMSNorm + RoPE + SwiGLU），在 WikiText 上训练。AdamW：$\beta_1=0.9$，$\beta_2=0.95$，$\mathrm{wd}=0.1$。
-\vfill
-\textbf{三调度设计。} 到达\emph{同一}末端 LR（$2.5\times 10^{-3}\to 2.5\times 10^{-4}$），但扫到那里的速度不同：
-\vfill
-\begin{columns}
-\begin{column}{0.40\textwidth}
-\centering\small
-\begin{tabular}{lcc}
-\toprule
-调度 & 末端 loss & 累积 LR $S$\\
-\midrule
-cosine(渐进) & 1.0490 & 8.20\\
-wsd(渐进) & 1.0482 & 9.22\\
-wsd(\textbf{陡峭}) & \textbf{1.0593} & \textbf{12.59}\\
+Baseline & MPL 是否已经足够强？ & 官方公开实验复现。\\
+\addlinespace
+Obstacle & cosine residual 是否能直接迁移？ & direct kappa 负控失败。\\
+\addlinespace
+Identification & 如何分离 nuisance drift？ & MPL-LD projection。\\
+\addlinespace
+Prediction & 如何构造 target-free correction？ & schedule-only \(\phi\) + source-only \(\widehat\kappa\)。\\
+\addlinespace
+Validation & 识别出的成分是否可迁移？ & 15/15 WSD-family wins，\(\widehat\kappa\) 对齐 oracle。\\
 \bottomrule
 \end{tabular}
-\end{column}
-\begin{column}{0.56\textwidth}
-\hl{快扫末端最高，却累积 LR 最多（+37\%）。}\\[0.3em]
-任何对 $S$ 单调的损失曲线律（包括 MPL/FSL）都预测：更多累积 LR $\Rightarrow$ 更低损失。\\[0.3em]
-观测到\hl{相反}的排序，\emph{无需任何拟合}即证实速率相关滞后的存在。
-\end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{独立复现 1（续）：残差结构与 DropRelaxS}
-在留出曲线（constant + 两条 wsdcon）上拟合 MPL（MAE $\approx 0.005$），观察三条测试曲线的残差：
+\end{center}
 \vfill
-\begin{columns}
-\begin{column}{0.48\textwidth}
-\textbf{残差按扫描速度排序：}
-\begin{itemize}
-\item cosine（最缓）：$-0.011$
-\item wsd-渐进：$-0.004$
-\item wsd-陡峭（唯一为正）：\textbf{$+0.006$}
-\end{itemize}
-\vspace{0.3em}
-有限-$\lambda_{\rm slow}$ 的 DropRelaxS 核在\hl{跨调度联合}上胜过绝热基线：\hl{$\Delta R^2\approx +0.18$}（留出）。
-\end{column}
-\begin{column}{0.48\textwidth}
-\centering
-\includegraphics[width=0.92\linewidth]{figs/fig_real_transformer.png}\\[4pt]
-{\footnotesize 残差仅对陡峭扫描为正，被 DropRelaxS 捕获}
-\end{column}
-\end{columns}
-\vfill
-\textbf{重要说明。} 在\emph{单条}衰减曲线上，有限-$\lambda_{\rm slow}$ 核与绝热基线数值简并（corr$\approx 0.99$）。\hl{速率依赖只在跨调度对比中真实存在}——这与公开 LLM 数据上的观察一致。
-\end{frame}
-
-\begin{frame}{独立复现 2：从零 AdamW 模拟}
-\textbf{设置。} 噪声二次模型（NQM）：真实 AdamW 迭代（真实 $m,v$ EMA，真实 $m/(\sqrt{v}+\epsilon)$ 预条件器，真实高斯梯度噪声），Monte-Carlo 系综平均作为 ground truth。闭式线性理论\emph{仅}作独立基线，绝不既用来生成又用来拟合。
-\vfill
-\begin{columns}
-\begin{column}{0.48\textwidth}
-\textbf{定量复现：}
-\begin{itemize}
-\item $\tau\propto 1/\eta$：\hl{$p=0.971$}，$R^2=0.9996$
-\item 换种子、留一法均稳健
-\item $\beta_2\in[0.9,0.9999]$：$\tau$ 平坦，CV \hl{1.1\%}
-\item 幅度恒等：$dL_{\rm eq}/d\eta = 3.075$ vs 闭式 $\frac{1}{4}\sum_i s_i = 3.0$，\hl{误差 $<3\%$}
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{谱混合诊断：}
-\begin{itemize}
-\item 双峰谱上双指数核提升 $R^2$ 0.065
-\item 恢复两个注入速率 $\{1, 16\}$（拟合得 $\{0.87, 16.1\}$）
-\item \hl{机制在已知谱上被证实为真正的谱混合}
-\end{itemize}
-\vspace{0.3em}
-\textbf{可证伪性：} 信号主导谱\hl{破坏} $p=1$。
-\end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{诚实负结果与开放问题}
-\textbf{在 $\sim$10M transformer 上\emph{未}复现的：}
-\begin{itemize}
-\item \hl{$\tau\propto 1/\eta$ 在此尺度不成立}：$16\times$ LR 范围上测得 $\tau\approx 475$--$912$ 步（几乎平坦，$p\approx 0.18$）。审计（合成恢复测试 + profile-likelihood）明确排除窗口截断伪影——这是真实测量，与论文"信号随尺度增长"的声明一致。
-\item \hl{单曲线核简并}：有限-$\lambda_{\rm slow}$ 核与绝热基线 corr$\approx 0.99$；速率依赖只在\emph{跨调度}对比中可辨识。
-\end{itemize}
-\vfill
-\textbf{可复现的不一致性：}
-\begin{itemize}
-\item \hl{$\eta_{\rm peak}$ 归一化歧义}：若保留 Eq.(4) 中的 $\eta_{\rm peak}$ 因子，拟合得 $c\approx 60$--$86$；只有丢弃它才得 $c\approx 0.5$。论文的 $c\approx 0.5$ 绑定于特定（未声明的）归一化约定。
-\end{itemize}
-\vfill
-\textbf{开放问题仍开放：}
-\begin{itemize}
-\item 冻结参数的跨\emph{形状}迁移失败（平均 $R^2=0.52$，未达预注册门槛 0.6）
-\item 无 $O(1)$ 拟合常数地从第一性原理计算 $\lambda_{\rm slow}$ 和 $c$ —— 论文开放问题 (a) 未闭合
-\end{itemize}
+\textbf{读法。}
+先看 residual 为什么混淆，再看 projection 如何提供识别，最后看每个实验验证证据链中的哪一环。
 \end{frame}
 
 % =====================================================================
-\section{结论}
-\begin{frame}{结论}
-\textbf{核心贡献。}
-\begin{enumerate}
-\item 指出现有最优损失曲线律（MPL/FSL）皆为\hl{绝热近似}——预测准静态平衡值，忽略快速衰减时的弛豫滞后。
-\item 从 AdamW 预条件二阶矩动力学\hl{推导}出非绝热修正 \Drop，其幅度等于独立可测的平衡地板敏感度 $dL_{\rm eq}/d\eta$（在受控 NQM 中验证到 3\% 内）。
-\item 推出并\hl{实测确认}经典弛豫律 $\tau\propto 1/\eta$（$p=0.84\pm 0.17$），自洽验证噪声主导假设。
-\item 独立复现（真实 transformer + NQM 模拟）从两端确认机制，同时\hl{诚实标出边界}（$\tau$ 在 $\sim$10M 未复现、单曲线简并、$\eta_{\rm peak}$ 歧义）。
-\item 形状常数在公开同架构尺度上经验稳定 $\Rightarrow$ \hl{低校准跨尺度迁移}，陡降误差 $-$44\%、6/6 全胜。
-\item \hl{B-恒等式}：MPL 自带的 $B$ 即地板敏感度（$5$--$15\%$ 内验证）$\Rightarrow$ 零额外测量迁移 $-43\%$。
-\item \hl{二阶幅度闭合} $\chi(\eta)\propto\eta^{\delta}$：审计矩阵全指标占优；真实模型界外调度上探针校准 $-18\%\to-71\%$；核形状与速率统一两条死路诚实关闭。
-\end{enumerate}
+\section{问题与障碍}
+
+\begin{frame}{Problem setting：source cosine \(\rightarrow\) target WSD}
+\small
+\textbf{输入。}
+\begin{itemize}\tightlist
+\item source：cosine learning-rate schedule 及其训练 loss curve；
+\item baseline：MPL 对 source 和 target schedule 的 frozen prediction；
+\item target：WSD-family learning-rate schedule \(\{\eta_t\}_{t=1}^T\)。
+\end{itemize}
 \vfill
-\textbf{局限（诚实版）。} 增益限于数据稀缺的陡降；$\lambda_{\rm slow}, c$ 是测量值而非第一性原理计算；$\eta_{\rm peak}$ 归一化有歧义；$\tau\propto 1/\eta$ 在 $\sim$10M 未复现；跨形状迁移失败；单曲线上核简并；所有真实数据仅来自单一公开数据集的三个尺度。
+\textbf{输出。}
+\[
+\widehat L_s(t),\qquad t=1,\ldots,T.
+\]
+\vfill
+\textbf{限制。}
+\[
+\text{calibration uses cosine residual only,}
+\qquad
+\text{target loss is used only for evaluation.}
+\]
+\vfill
+\textbf{为什么不是普通 curve fitting。}
+cosine 和 WSD 的 decay geometry 不同。
+如果 source residual 中的某个成分能迁移到 WSD，
+它必须对应 schedule-response mechanism，而不能只是 source 曲线上的低频拟合误差。
 \end{frame}
 
-\begin{frame}{下一步工作}
-\textbf{本轮已完成（原优先级 1/2 中的三项）：}
-\begin{itemize}
-\item \sout{真实模型地板独立测量} → 等-$S$ 阶梯（6 条 constant 段、统一累计 LR）直接测 $F_{\rm eq}(\eta)$ 幂律。
-\item \sout{多段递减探针} → \texttt{twodrop} 叠加分解：沉积比 $A_2/A_1=0.86$–$0.92$（三种子最佳拟合族），与独立阶梯测得地板幂律预言的 $0.89$ 一致；强加权闭合（$0.30$–$0.38$）被排除。
-\item \sout{warmup 对称性} → \texttt{cyclic} 再升温：MPL 骨干自身先失效（残差 $+0.07$），滞后项无法在其上检验。
-\end{itemize}
+\begin{frame}{数据与实验划分}
+\footnotesize
+\textbf{模型尺度。}
+\[
+25\mathrm{M},\qquad 100\mathrm{M},\qquad 400\mathrm{M}.
+\]
 \vfill
-\textbf{第二轮（对抗审计）已关闭：}
-\begin{itemize}
-\item 慢模时钟\hl{对批大小不敏感}（bladder 阶梯；非优化器噪声弛豫）；地板指数对梯度噪声尺度不变（bs192，BS\_NULL）——原"S-time 操控"已做。
-\item 谱"边缘重钉扎"解释被\hl{直接证伪}（10.7M+25M 顶-Lanczos 锐度 OFF\_REGIME）：$\lambda_{\rm slow}$ 仍唯象。
-\item 速率 $\lambda$ 是真 $12\times$ 对数线性浓度效应（非分数记忆）；固定有效 $\lambda$ 平反。
-\end{itemize}
+\textbf{source curve。}
+\[
+\code{cosine\_72000.csv},\qquad
+r_{\cos}(t)=L_{\cos}(t)-L_{\mathrm{MPL},\cos}(t).
+\]
+本文使用 source suffix \(t\ge8000\) 做 residual calibration；
+窗口由 source-side identifiability 检查确定。
 \vfill
-\textbf{仍开放：}
-\begin{itemize}
-\item $c$ 的\emph{幅度}通道浓度依赖（瞬时降 $0.1$--$0.26$ vs 渐进 $0.43$--$0.60$）——需公开 $100/400$M 宽$\times$深探针阶梯（数百 GPU-时算力墙）。
-\item NQM 中换 SGD，检验是否不限于 AdamW；invsqrt 识别性门槛跨套件可移植性。
-\end{itemize}
-\end{frame}
-
-\begin{frame}{可复现性}
-\begin{center}\footnotesize
+\textbf{WSD-family targets。}
+\begin{center}\scriptsize
 \begin{tabular}{ll}
 \toprule
-结果 & 脚本/文档 \\
+文件 & 含义\\
 \midrule
-MPL 复现（表 1） & \texttt{repro/reproduce\_cosine\_to\_wsd.py} \\
-残差结构、$R^2$、与 $\Drop$ 回归 & \texttt{repro/nonadiabatic\_theory.py} \\
-$\tau\propto 1/\eta$（$p=0.84\pm 0.17$） & \texttt{repro/deep\_tau\_pooled.py} \\
-S-time vs step-time 核对比 & \texttt{repro/deep\_stime.py}、\texttt{deep\_stime2.py} \\
-谱混合（双指数）与自洽性 & \texttt{repro/deep\_rigor.py} \\
-低校准跨尺度迁移 $-44\%$ & \texttt{repro/deep\_predict.py} \\
-公平基线（信息 vs 公式缺口） & \texttt{repro/correction\_fair.py} \\
-\midrule
-\textbf{独立复现}（\texttt{represent/}） & \\
-NQM 模拟 E1--E6 & \texttt{represent/repro/E*.py} \\
-扩展 G1--G5 & \texttt{represent/repro/G*.py} \\
-真实 transformer 训练 & \texttt{represent/repro/train.py} \\
-曲线分析 + 对抗审计 & \texttt{represent/repro/analyze\_*.py} \\
-综合报告 & \texttt{represent/REPORT.md} \\
-B-恒等式与零测量链 & \texttt{repro/formula\_lab/\{amp\_from\_B,b\_stability\}.py} \\
-二阶闭合全协议对比 & \texttt{repro/formula\_lab/affine\_sweep.py} 等 \\
-真实模型界外套件/等-$S$ 阶梯 & \texttt{represent/repro/\{train\_gen,train\_floor,analyze\_gen,analyze\_floor\}.py} \\
+\code{wsd\_20000\_24000.csv} & WSD sharp cooldown\\
+\code{wsdld\_20000\_24000.csv} & WSD linear decay\\
+\code{wsdcon\_3.csv} & WSD-con final LR \(3\times10^{-5}\)\\
+\code{wsdcon\_9.csv} & WSD-con final LR \(9\times10^{-5}\)\\
+\code{wsdcon\_18.csv} & WSD-con final LR \(18\times10^{-5}\)\\
 \bottomrule
 \end{tabular}
 \end{center}
 \vfill
-\centering\footnotesize
-依赖：\texttt{pip install -r requirements.txt}。\\
-主数据：官方 MPL 公开曲线（\texttt{external/MultiPowerLaw/}）。\\
-独立复现数据：自行训练的模型与 NQM 模拟，全部种子确定。
+\textbf{主评估口径。}
+same-scale WSD-family：
+\(3\) 个尺度 \(\times\) \(5\) 个 target，共 \(15\) 条 target loss curves。
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Data processing pipeline and fixed protocol}
+\small
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\textbf{Data processing pipeline}
+\begin{enumerate}\tightlist
+\item Read source cosine loss and LR schedule.
+\item Read frozen MPL prediction.
+\item Compute source residual:
+\[
+r_{\cos}(t)=L_{\cos}(t)-L_{\mathrm{MPL},\cos}(t).
+\]
+\item Use calibration suffix \(t\ge8000\).
+\item For each target WSD schedule, compute LR drops \(d_t\) and response feature \(\phi\).
+\item Construct MPL-LD tangent basis and projection \(P_{\mathrm{LD}}\).
+\item Estimate source-only \(\widehat\kappa\).
+\item Predict target loss; target loss is used only after prediction for evaluation.
+\end{enumerate}
+\end{column}
+\begin{column}{0.38\textwidth}
+\textbf{Fixed protocol}
+\begin{itemize}\tightlist
+\item source suffix: \(t\ge8000\)
+\item logging interval: \(\Delta_{\mathrm{obs}}=128\)
+\item response time: \(q_2\) half-life rule
+\item ridge floor: \(1/N_{\mathrm{cal}}\)
+\item constraint: \(\kappa\ge0\)
+\item metrics: MAE, RMSE, terminal error
+\end{itemize}
 \vfill
-\begin{center}
-{\Large 谢谢老师审阅！}\\[16pt]
-{\normalsize 由于身体原因无法现场汇报，谨以此幻灯片呈报全部工作。}\\[10pt]
-{\small 代码与文档：\texttt{github.com/wjjpku/DL-final}}\\[8pt]
-{\small 论文：\texttt{paper/main.tex}（pdfLaTeX 编译）}
+\textbf{Data source.}
+All main loss curves are stored under
+\code{external/MultiPowerLaw/...}, with subfolders
+\code{csv\_25}, \code{csv\_100}, and \code{csv\_400}.
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Strong baseline：MPL 是 frozen 且可复现的}
+\small
+本文以 MPL prediction 作为 frozen baseline：
+\[
+L_{\mathrm{MPL},s}(t)
+=
+L_{0,s}
++
+A_s S_s(t)^{-\alpha_s}
++
+B_s D_s(t;C_s,\beta_s,\gamma_s).
+\]
+本文研究的是 MPL residual：
+\[
+r_s(t)=L_s(t)-L_{\mathrm{MPL},s}(t).
+\]
+\vfill
+\begin{center}\scriptsize
+\begin{tabular}{lrrrrr}
+\toprule
+Scale & R2 & MAE & RMSE & PredE & WorstE\\
+\midrule
+25M  & 0.998802 & 0.003760 & 0.004652 & 0.001102 & 0.004095\\
+100M & 0.998301 & 0.004348 & 0.005919 & 0.001425 & 0.005829\\
+400M & 0.997762 & 0.004835 & 0.007305 & 0.001679 & 0.009948\\
+\bottomrule
+\end{tabular}
 \end{center}
 \vfill
+\textbf{定位。}
+复现指标与 MPL README 基本一致。
+因此本文不是构造一个弱 baseline 再修正，而是在强 MPL baseline 上研究 residual transfer。
+\vfill
+\begin{block}{Reproduction details}
+\footnotesize
+复现对象是 MPL 官方公开实验 / frozen MPL prediction。
+本文不重新训练 MPL，也不在 WSD target loss 上重拟合 MPL。
+主要困难包括 logging grid 对齐、不同 scale 的文件对应关系、
+以及 MPL-LD 参数项的有限差分 tangent basis 构造。
+关键差异是：复现 MPL 后，只在其 residual 上做 source-only correction。
+\end{block}
+\end{frame}
+
+\begin{frame}{Diagnostic observation：MPL errors concentrate near transition / tail}
+\hfill\fbox{\scriptsize diagnostic only; not used for calibration}
+\vspace{-0.4em}
+\centering
+\includegraphics[width=0.96\linewidth]{fig_mpl_residual_anomaly_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{读图。}
+红线是 MPL prediction error，灰线是 normalized LR。
+这页读取 target true loss，只用于说明 MPL error 的形状；
+它不参与 \(\widehat\kappa\) calibration。
+在 WSD sharp / linear 中，MPL error 在 LR decay 后的 tail 区域出现系统偏移；
+在 WSD-con 中，final LR 改变会带来不同的 residual shape。
+\vfill
+\textbf{问题。}
+这些结构看起来和 LR schedule 有关，但 source cosine residual 里是否也含有同一种可迁移成分？
+\end{frame}
+
+\begin{frame}{Key obstacle：cosine residual 是混合信号}
+\small
+如果直接从 cosine residual 拟合一个 response amplitude：
+\[
+\widehat\kappa_{\mathrm{direct}}
+=
+\frac{\langle \phi_{\lambda,\cos},r_{\cos}\rangle_+}
+{\|\phi_{\lambda,\cos}\|_2^2+1/N_{\mathrm{cal}}},
+\]
+隐含假设是：
+\[
+r_{\cos}(t)\approx \kappa\phi_{\lambda,\cos}(t).
+\]
+这个假设太强。
+\vfill
+更合理的局部分解是：
+\[
+\boxed{
+r_{\cos}(t)
+=
+\underbrace{\kappa\phi_{\lambda,\cos}(t)}_{\text{transferable LR-drop response}}
++
+\underbrace{J_{\mathrm{LD}}(t)\Delta\theta_{\mathrm{LD}}}_{\text{non-transferable MPL-LD nuisance}}
++
+\epsilon(t)
+}
+\]
+\vfill
+\textbf{直觉。}
+cosine decay 很平滑，\(\phi_{\lambda,\cos}\) 是低频曲线；
+MPL-LD 参数误差同样会形成低频 drift。
+如果不先识别二者，\(\kappa\) 会吸收不可迁移的 MPL 参数误差。
+\end{frame}
+
+\begin{frame}{Negative control：直接迁移 cosine \(\kappa\) 会失败}
+\small
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+estimator & Pearson vs \(\kappa^\star\) & kappa RMSE & mean MAE change & wins\\
+\midrule
+direct no-projection kappa & \(-0.849\) & 0.6294 & \(+625.92\%\) & 0/15\\
+projected kappa & \(+0.910\) & 0.0103 & \(-30.88\%\) & 15/15\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{结论。}
+问题的核心不是“能不能给 MPL 加一项 residual correction”，
+而是\hl{能不能在 source residual 中识别出可迁移的那一部分}。
+\vfill
+\begin{block}{本文重新表述的任务}
+在 MPL residual 中分离：
+\[
+\text{transferable LR-drop response}
+\quad\text{vs.}\quad
+\text{MPL-LD nuisance drift}.
+\]
+只迁移前者，不迁移后者。
+\end{block}
+\end{frame}
+
+% =====================================================================
+\section{识别方法}
+
+\begin{frame}{Core idea：project out MPL-LD tangent nuisance}
+\small
+MPL 的 learning-rate dependent term 依赖：
+\[
+\theta_{\mathrm{LD}}=(B,C,\beta,\gamma).
+\]
+若这些参数存在小偏差，则 MPL prediction 的一阶误差为：
+\[
+\Delta L_{\mathrm{MPL}}(t)
+\approx
+J_{\mathrm{LD}}(t)\Delta\theta_{\mathrm{LD}},
+\]
+其中：
+\[
+J_{\mathrm{LD}}(t)
+=
+\left[
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log B},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log C},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log\beta},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log\gamma}
+\right].
+\]
+\vfill
+令 \(P_{\mathrm{LD}}\) 是 \(J_{\mathrm{LD}}\) 张成空间的正交投影。
+在估计 response amplitude 前，先做：
+\[
+x=(I-P_{\mathrm{LD}})\phi_{\lambda,\cos},
+\qquad
+y=(I-P_{\mathrm{LD}})r_{\cos}.
+\]
+\vfill
+\textbf{含义。}
+只在 MPL-LD 局部参数扰动解释不了的 residual 方向上估计可迁移 response。
+\end{frame}
+
+\begin{frame}{What projection removes from cosine residual}
+\centering
+\includegraphics[width=0.97\linewidth]{fig_projection_decomposition_cosine_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{读图。}
+左图显示 raw cosine residual 和 raw response feature 都是低频形状；
+中图显示 MPL-LD tangent space 能解释 residual 中的大部分 smooth drift；
+右图显示去掉 nuisance 后，估计 \(\kappa\) 的对象变成 projected residual 与 projected feature 的 alignment。
+\vfill
+\textbf{结论。}
+projection 不是抽象的线性代数装饰，而是在 source cosine residual 中去掉不可迁移的 MPL-LD drift。
+\end{frame}
+
+\begin{frame}{Prediction rule：最小可部署模型}
+\small
+投影识别之后，WSD prediction 使用：
+\[
+\boxed{
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++
+\widehat\kappa_s\phi_{\lambda_s,s}(t)
+}
+\]
+\vfill
+\begin{center}
+\begin{tabular}{L{0.23\linewidth}L{0.62\linewidth}}
+\toprule
+部分 & 含义\\
+\midrule
+\(L_{\mathrm{MPL},s}(t)\) & frozen MPL baseline。\\
+\(\phi_{\lambda_s,s}(t)\) & target schedule 诱导的 causal LR-drop response shape。\\
+\(\lambda_s\) & response decay rate，由 target schedule 的 \(q_2\) half-life rule 给出。\\
+\(\widehat\kappa_s\) & 唯一从 loss residual 中估计的 scalar；只用 source cosine residual。\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{一句话。}
+target schedule 决定 response shape，source residual 决定 response amplitude。
+预测 WSD 时不读取 WSD loss。
+\end{frame}
+
+\begin{frame}{Causal LR-drop response：schedule-only shape}
+\small
+定义 positive LR drop：
+\[
+d_t=[\eta_{t-1}-\eta_t]_+.
+\]
+当 LR 不下降时，\(d_t=0\)。
+\vfill
+定义响应递推：
+\[
+z_t=\exp(-\lambda_s\eta_t)z_{t-1}+d_t,
+\qquad
+\phi_{\lambda_s,s}(t)=\frac{z_t}{\eta_{\max}}.
+\]
+展开为：
+\[
+\phi_{\lambda_s,s}(t)
+=
+\frac{1}{\eta_{\max}}
+\sum_{u\le t}
+d_u
+\exp\left(
+-\lambda_s\sum_{v=u+1}^{t}\eta_v
+\right).
+\]
+\vfill
+\textbf{解释。}
+LR drop 是 forcing；每次 drop 注入一个 residual impulse；
+这个 impulse 随 cumulative LR time 衰减。
+因此 \(\phi\) 是 schedule-only、causal、target-loss-free 的 shape。
+\vfill
+\textbf{response time scale。}
+\(\lambda_s\) 由 schedule-only half-life rule 固定：
+diffuse LR decay 得到更长 response time，
+sharp LR drop 得到更短 response time。
+该规则不读取 target loss；具体 \(q_2\) 定义放在 appendix。
+\end{frame}
+
+\begin{frame}{Source-only one-dimensional \(\widehat\kappa\)}
+\small
+在 source cosine suffix 上定义：
+\[
+x_s=(I-P_{\mathrm{LD}})\phi_{\lambda_s,\cos},
+\qquad
+y=(I-P_{\mathrm{LD}})r_{\cos}.
+\]
+估计问题是：
+\[
+\min_{\kappa\ge0}
+\|y-\kappa x_s\|_2^2+\frac{1}{N_{\mathrm{cal}}}\kappa^2.
+\]
+闭式解：
+\[
+\boxed{
+\widehat\kappa_s
+=
+\frac{[x_s^\top y]_+}
+{\|x_s\|_2^2+1/N_{\mathrm{cal}}}
+}
+\]
+\vfill
+\textbf{解释。}
+\(\widehat\kappa_s\) 是 projected response feature 的 amplitude。
+它不是多参数 residual regressor；
+如果 projection 后 \(x_s\) 与 \(y\) 没有正向 alignment，则该 response 不被激活。
+\end{frame}
+
+\begin{frame}{Target-leakage audit：哪些量读了 target loss}
+\scriptsize
+\begin{center}
+\fbox{
+\begin{minipage}{0.86\linewidth}
+\centering
+source cosine residual \(\rightarrow\) projected \(\widehat\kappa\);
+\quad
+target LR schedule \(\rightarrow \phi\);
+\quad
+frozen MPL \(+\widehat\kappa\phi\rightarrow\) prediction;
+\quad
+target loss \(\rightarrow\) evaluation only.
+\end{minipage}}
+\end{center}
+\vspace{0.4em}
+\tiny
+\begin{center}
+\begin{tabular}{L{0.20\linewidth}L{0.42\linewidth}cc}
+\toprule
+stage & used quantities & WSD loss? & role\\
+\midrule
+Calibration &
+\code{cosine\_72000.csv}, cosine LR, MPL cosine prediction &
+no & compute source residual and \(\widehat\kappa\)\\
+\addlinespace
+Target feature &
+target LR schedule &
+no & compute \(q_2,\lambda_s,\phi_s(t)\)\\
+\addlinespace
+Prediction &
+target MPL prediction, \(\phi_s(t)\), source-only \(\widehat\kappa\) &
+no & output \(L_{\mathrm{MPL}}+\widehat\kappa\phi\)\\
+\addlinespace
+Evaluation &
+target loss curve &
+yes & compute MAE and terminal error\\
+\addlinespace
+Oracle diagnostics &
+target residual / target MAE grid &
+yes & only for \(\kappa^\star\), oracle \(\lambda\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\small
+\textbf{结论。}
+deployable prediction 阶段不读取 target WSD loss。
+所有读取 target loss 的量都标记为 evaluation 或 oracle diagnostic，不参与模型部署。
+\end{frame}
+
+% =====================================================================
+\section{证据链}
+
+\begin{frame}{Claim 1：target-free correction improves WSD prediction}
+\centering
+\includegraphics[width=0.70\linewidth]{fig_schedule_response_mae_heatmap.png}
+\vspace{0.2em}
+
+\begin{tabular}{cccc}
+\toprule
+Mean MAE change & Worst row & Wins & Target-loss calibration\\
+\midrule
+\(\mathbf{-30.88\%}\) & \(\mathbf{-4.67\%}\) & \(\mathbf{15/15}\) & \(\mathbf{0}\)\\
+\bottomrule
+\end{tabular}
+\vfill
+\raggedright
+\small
+\textbf{读图。}
+每个格子是一条 target loss curve 相对 MPL 的 MAE change。
+蓝色表示误差降低。
+\vfill
+\textbf{含义。}
+在不读取 target WSD loss 的设置下，识别出的 LR-drop response 在全部 15 条 WSD-family 曲线上降低 MAE。
+\end{frame}
+
+\begin{frame}{Representative curves：correction 作用在 transition / tail}
+\centering
+\includegraphics[width=0.92\linewidth]{fig_schedule_response_time_errors_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{读图。}
+上排比较 true loss、MPL 和 \(L_{\mathrm{MPL}}+\widehat\kappa\phi\)；
+下排画 prediction error。
+修正主要发生在 LR transition / tail 区域，而不是对整条曲线做任意平移。
+\end{frame}
+
+\begin{frame}{Claim 2：source \(\widehat\kappa\) aligns with target oracle \(\kappa^\star\)}
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\small
+\textbf{oracle diagnostic。}
+\[
+\kappa_s^\star
+=
+\frac{[\langle \phi_{\lambda_s,s},
+L_s-L_{\mathrm{MPL},s}\rangle]_+}
+{\|\phi_{\lambda_s,s}\|_2^2}.
+\]
+\vspace{0.4em}
+\(\kappa^\star\) 读取 target loss，
+不能用于 prediction；
+它只用于检查 source-only \(\widehat\kappa\)
+是否接近 target-own optimum。
+\vfill
+\textbf{读数。}
+projection 后 Pearson \(+0.910\)；
+no-projection 负控为 \(-0.849\)。
+\end{column}
+\begin{column}{0.62\textwidth}
+\centering
+\includegraphics[width=\linewidth]{fig_kappa_clean_scatter.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Projection ablation：with projection / without projection}
+\centering
+\includegraphics[width=0.92\linewidth]{fig_projection_ablation_time_errors_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{读图。}
+上排用同一尺度比较 MPL error 与 projected \(\widehat\kappa\)；
+下排显示 no-projection \(\kappa\) 会把 source residual 中的低频 drift 当成 response amplitude，
+导致 target error 大幅偏移。
+\vfill
+\textbf{结论。}
+projection 的作用不是提升表格分数，而是阻止不可迁移的 MPL-LD nuisance 被迁移到 WSD。
+\end{frame}
+
+\begin{frame}{Cross-scale transfer：amplitude 有信号，但 raw residual 不能粗暴合并}
+\small
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+protocol & Pearson & mean MAE change & worst & wins\\
+\midrule
+same scale & \(+0.910\) & \(-30.88\%\) & \(-4.67\%\) & 15/15\\
+leave-one-scale-out mean \(\kappa\) & \(+0.671\) & \(-25.62\%\) & \(-3.96\%\) & 15/15\\
+all-scale mean \(\kappa\) & \(+0.808\) & \(-29.15\%\) & \(-4.20\%\) & 15/15\\
+single external source scale & \(+0.731\sim+0.921\) & \(-21.90\%\sim-27.06\%\) & \(-3.15\%\) & 10/10 each\\
+pooled raw residuals & \(+0.641\) & \(+62.57\%\) & \(+231.45\%\) & 1/15\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{解释。}
+跨尺度时，先各自估计 \(\kappa\) 再聚合，比直接拼 residual 更合理。
+这说明 response amplitude 有跨尺度信号，但 residual 的绝对尺度不能粗暴合并。
+\end{frame}
+
+\begin{frame}{Audit：why this is not high-capacity residual fitting}
+\small
+本文的 residual model 保持低容量：
+\[
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++\widehat\kappa_s\phi_{\lambda_s,s}(t).
+\]
+\vfill
+\begin{center}
+\begin{tabular}{L{0.28\linewidth}L{0.48\linewidth}L{0.14\linewidth}}
+\toprule
+模块 & 来源 & residual-fitted 参数数\\
+\midrule
+\(\phi_{\lambda_s,s}\) & target LR schedule & 0\\
+\(\lambda_s\) & schedule-only half-life rule & 0\\
+\(P_{\mathrm{LD}}\) & MPL tangent basis & 0\\
+\(\widehat\kappa_s\) & source cosine residual projection & 1\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{风险控制。}
+没有按 target family 选择 channel，没有任意 basis expansion，也没有 target-loss-tuned residual regressor。
+主要过拟合风险来自 calibration window 与 schedule-family 覆盖范围。
+\end{frame}
+
+% =====================================================================
+\section{边界与结论}
+
+\begin{frame}{Failure mode：WSD-con final LR 排序仍弱}
+\small
+\begin{center}
+\begin{tabular}{L{0.22\linewidth}L{0.62\linewidth}}
+\toprule
+问题 & 观察\\
+\midrule
+What works &
+WSD-con 上 9/9 curves 都降低 MAE，说明主要 step/tail response 被捕获。\\
+\addlinespace
+What remains weak &
+WSD-con 内部 final-LR 细粒度排序仍弱：
+\(\widehat\kappa\) 对 \(3e{-5},9e{-5},18e{-5}\) 的幅度区分不足。\\
+\addlinespace
+Next evidence needed &
+更多 WSD-con final LR runs，或一个明确受 scale / final LR 约束的 amplitude model。\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{解释。}
+当前 \(\phi\) 的 shape 能抓住主要 transition/tail response；
+但 final-LR dependent amplitude variation 还没有被完全识别。
+完整数值表放在 appendix。
+\end{frame}
+
+\begin{frame}{Scope of the claim}
+\small
+\begin{block}{可以说}
+\begin{itemize}\tightlist
+\item 在 frozen MPL baseline 上，source cosine residual 中存在可迁移的 LR-drop response amplitude；
+\item MPL-LD tangent projection 是识别该成分的关键步骤；
+\item same-scale WSD-family 15 条曲线全部优于 MPL；
+\item \(\widehat\kappa\) 与 target oracle \(\kappa^\star\) 的 Pearson 为 \(+0.910\)；
+\item leave-one-scale-out mean-\(\kappa\) cross-scale 仍为 15/15 wins。
+\end{itemize}
+\end{block}
+\vfill
+\begin{alertblock}{不能说}
+\begin{itemize}\tightlist
+\item 不能声称得到通用训练 loss 定律；
+\item 不能声称 \(t\ge8000\) 是普适常数；
+\item 不能声称 WSD-con final-LR 细粒度排序已经解决；
+\item 不能声称已经覆盖所有 LR schedule family。
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Remaining validation gap：new held-out WSD runs}
+\small
+\begin{block}{当前证据上限}
+当前仓库中 same-scale WSD-family 只有五类 target：
+sharp、linear、WSD-con \(3e{-5}\)、\(9e{-5}\)、\(18e{-5}\)。
+现有 ablation 能说明 projection、\(\lambda\)、kernel、cross-scale 的合理性，
+但不能替代真正新增 schedule 的 held-out 验证。
+\end{block}
+\vfill
+\begin{alertblock}{最关键的下一步}
+The remaining validation gap is not another ablation on existing curves,
+but new held-out WSD-family training runs after freezing the protocol.
+\end{alertblock}
+\vfill
+\textbf{冻结规则。}
+\[
+t\ge8000,\quad
+q_2\text{ half-life},\quad
+P_{\mathrm{LD}},\quad
+1/N_{\mathrm{cal}}\text{ ridge floor},\quad
+\kappa\ge0.
+\]
+\vfill
+\textbf{新增 schedule 维度。}
+cooldown 起点、decay length、final LR、sharp 与 linear 之间的中间形态。
+\end{frame}
+
+\begin{frame}{Contribution summary}
+\small
+\begin{enumerate}
+\item \textbf{Problem formulation.}
+在 frozen MPL baseline 之上，把 cosine-to-WSD residual transfer 明确表述为 identification problem：
+\[
+\text{transferable LR-drop response}
+\quad\text{vs.}\quad
+\text{MPL-LD nuisance drift}.
+\]
+\item \textbf{Identification method.}
+使用 MPL-LD tangent projection 去除 source residual 中的局部参数误差方向，
+再用一维非负 ridge projection 得到 deployable \(\widehat\kappa\)。
+\item \textbf{Evidence.}
+projected source \(\widehat\kappa\) 与 target oracle \(\kappa^\star\) 对齐，
+并在 15/15 same-scale WSD-family curves 上降低 MAE；
+no-projection 负控则系统失败。
+\end{enumerate}
+\vfill
+\begin{center}
+\hl{核心贡献不是 feature stacking，而是 residual identification。}
+\end{center}
+\end{frame}
+
+\begin{frame}{Assignment checklist}
+\small
+\begin{center}
+\begin{tabular}{L{0.58\linewidth}L{0.24\linewidth}}
+\toprule
+课程要求 & 对应位置\\
+\midrule
+1. 问题背景与目标：说明研究内容、动机和核心问题。 &
+slides 1--3\\
+\addlinespace
+2. 数据处理与实验设置：数据来源、处理流程、模型/方法和必要参数。 &
+slides 4--6, 12--14\\
+\addlinespace
+3. 复现实验结果：报告已有方法复现情况，并说明关键差异或困难。 &
+slide 6\\
+\addlinespace
+4. 方法与结果对比：说明本文方法，展示实验结果及 baseline 对比。 &
+slides 8--20\\
+\addlinespace
+5. 分析与思考：结果分析、failure mode、scope 和后续验证缺口。 &
+slides 21--24\\
+\addlinespace
+6. 代码与分工：仓库、脚本入口、环境、输出和完成方式。 &
+last slide\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{说明。}
+主文围绕 residual identification 展开；appendix 保留 \(q_2\) 细节、kernel 消融、
+calibration window、MPL \(L_G\) audit 与完整 failure-mode 数值表。
+\end{frame}
+
+\begin{frame}{Takeaway}
+\centering
+\vspace{0.7em}
+{\Large \textbf{从 cosine 到 WSD 的关键，不是更强地拟合 residual，\\
+而是识别 residual 中哪一部分是可迁移的 LR-drop response。}}\\[1.0em]
+
+\small
+\[
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++
+\widehat\kappa_s\phi_{\lambda_s,s}(t)
+\]
+\vspace{0.3em}
+
+\begin{block}{主要结果}
+\[
+\widehat\kappa \text{ vs. } \kappa^\star:
+\quad
+\mathrm{Pearson}=+0.910.
+\]
+\[
+\text{same-scale WSD-family: }
+-30.88\% \text{ mean MAE change},
+\quad
+15/15 \text{ wins}.
+\]
+\end{block}
+\end{frame}
+
+% =====================================================================
+\appendix
+\section{Appendix}
+
+\begin{frame}{Appendix A：\(q_2\) half-life rule 细节}
+\small
+loss 只在离散 logging points 上观测。设主要 logging interval 为：
+\[
+\Delta_{\mathrm{obs}}=128,
+\qquad
+\lambda_{\mathrm{obs}}
+=
+\frac{\log 2}{\eta_{\max}\Delta_{\mathrm{obs}}}.
+\]
+\vfill
+令总 drop 和归一化 drop mass 为：
+\[
+D_s=\sum_t d_t,
+\qquad
+p_t=\frac{d_t}{D_s}.
+\]
+定义 Herfindahl concentration：
+\[
+q_s=\sum_t p_t^2=\frac{1}{n_{\mathrm{eff}}}.
+\]
+本文使用：
+\[
+\boxed{
+\lambda_s=\frac{\lambda_{\mathrm{obs}}}{2-q_s}
+}
+\]
+\vfill
+\textbf{直觉。}
+diffuse decay 对应约 \(2\Delta_{\mathrm{obs}}\) half-life；
+single sharp drop 对应约 \(\Delta_{\mathrm{obs}}\) half-life。
+该规则只读 schedule，不读 target loss。
+\end{frame}
+
+\begin{frame}{Appendix B：Why one-pole exponential response?}
+\small
+本文把 LR drop 看成 forcing，把 residual relaxation 看成一阶线性系统的 low-capacity closure：
+\[
+z_t=\exp(-\lambda_s\eta_t)z_{t-1}+d_t.
+\]
+\vfill
+三点解释：
+\begin{enumerate}\tightlist
+\item LR drop 不是持续输入，而是离散 forcing：\(d_t=[\eta_{t-1}-\eta_t]_+\)。
+\item 如果系统对 forcing 的恢复可由一阶状态变量近似，则状态按 cumulative LR time 衰减。
+\item 一阶线性系统的 Green's function 就是 exponential kernel：
+\[
+\exp\left(-\lambda_s\sum_{v=u+1}^{t}\eta_v\right).
+\]
+\end{enumerate}
+\vfill
+\textbf{边界。}
+这不是严格训练动力学定理，而是一个 one-pole closure assumption。
+kernel ablation 用来检查它是否比同容量替代更合理。
+\end{frame}
+
+\begin{frame}{Appendix C：\(\lambda\) / kernel robustness}
+\scriptsize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\textbf{\(\lambda\) sensitivity}
+\begin{tabular}{lrr}
+\toprule
+rule & mean MAE & wins\\
+\midrule
+\(q_2\) half-life & \(-30.88\%\) & 15/15\\
+fixed \(1\Delta_{\mathrm{obs}}\) & \(-17.52\%\) & 15/15\\
+fixed \(2\Delta_{\mathrm{obs}}\) & \(+20.63\%\) & 7/15\\
+wrong fast \(\lambda=20\) & \(-14.76\%\) & 15/15\\
+oracle grid best & \(-31.55\%\) & 15/15\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{same-capacity kernel}
+\begin{tabular}{lrr}
+\toprule
+one-scalar feature & mean MAE & wins\\
+\midrule
+LR-time exp drop & \(-30.88\%\) & 15/15\\
+signed LR-time & \(-30.24\%\) & 15/15\\
+step-time exp & \(-3.05\%\) & 15/15\\
+cumulative drop & \(+27.15\%\) & 7/15\\
+power-law LR-time & \(+119.07\%\) & 1/15\\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\vfill
+\small
+\textbf{读数。}
+oracle grid best 读取 target loss，只是上界诊断；
+\(q_2\) half-life 不读取 target loss，但接近 oracle。
+同容量替代说明，不是任意 schedule-derived scalar 都能解释 residual transfer。
+\end{frame}
+
+\begin{frame}{Appendix D：calibration window source-only 选择规则}
+\small
+候选 suffix 只用 source cosine 检查 projected response 是否可辨识：
+\[
+\rho=\frac{\|(I-P_{\mathrm{LD}})\phi\|_2^2}{\|\phi\|_2^2},
+\qquad
+\rho\le 1/N_{\mathrm{cal}}.
+\]
+\vfill
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+fit start & max retention & floor \(1/N_{\mathrm{cal}}\) & pass & target result\\
+\midrule
+5000 & 0.013748 & 0.001912 & no & \(+139.64\%\), 0/15\\
+6500 & 0.004225 & 0.001953 & no & \(+21.07\%\), 4/15\\
+8000 & 0.001478 & 0.002000 & yes & \(-30.88\%\), 15/15\\
+10000 & 0.000489 & 0.002066 & yes & \(-9.85\%\), 15/15\\
+12000 & 0.000353 & 0.002132 & yes & \(-1.82\%\), 6/15\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{读数。}
+规则选择最早通过的 \(t\ge8000\)。
+target loss 不参与窗口选择；窗口 sweep 只作为事后敏感性分析。
+\end{frame}
+
+\begin{frame}{Appendix E：为什么不是简单调整 MPL 最后一项}
+\small
+MPL 的最后一项 \(L_G(t)=B_sD_s(t)\) 本身也与 LR schedule 有关。
+自然怀疑是：
+\[
+\text{proposed correction}
+\approx
+\rho L_G(t).
+\]
+\vfill
+scalar multiplier audit：
+\begin{center}\small
+\begin{tabular}{lrrr}
+\toprule
+setting & proposed correction & oracle scalar \( \rho L_G \) & scalar \(R^2\)\\
+\midrule
+all core & about \(-30\%\) & \(-8.91\%\) & \(+0.039\)\\
+WSD final & about \(-45\%\) & \(-17.80\%\) & \(+0.036\)\\
+WSD-con & \(-21.14\%\) & \(-2.98\%\) & \(+0.040\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{结论。}
+调整 MPL 最后一项系数是有意义的 ablation，
+但它不能解释本文 residual correction 的主要形状；
+\(\phi\) 是 LR-drop causal response，不是 \(L_G(t)\) 的常数倍。
+\end{frame}
+
+\begin{frame}{Appendix F：WSD-con failure-mode 数值表}
+\scriptsize
+\begin{center}
+\begin{tabular}{llrrrr}
+\toprule
+scale & target & \(\widehat\kappa\) & \(\kappa^\star\) & ratio & MAE change\\
+\midrule
+25M & 3e-5 & 0.0186 & 0.0243 & 0.766 & \(-44.65\%\)\\
+25M & 9e-5 & 0.0186 & 0.0206 & 0.904 & \(-21.19\%\)\\
+25M & 18e-5 & 0.0186 & 0.0338 & 0.551 & \(-9.19\%\)\\
+100M & 3e-5 & 0.0327 & 0.0317 & 1.032 & \(-42.76\%\)\\
+100M & 9e-5 & 0.0327 & 0.0227 & 1.444 & \(-9.84\%\)\\
+100M & 18e-5 & 0.0327 & 0.0217 & 1.506 & \(-12.80\%\)\\
+400M & 3e-5 & 0.0318 & 0.0504 & 0.631 & \(-35.97\%\)\\
+400M & 9e-5 & 0.0318 & 0.0376 & 0.845 & \(-9.17\%\)\\
+400M & 18e-5 & 0.0318 & 0.0277 & 1.149 & \(-4.67\%\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\small
+\textbf{读数。}
+每条 WSD-con curve 的 aggregate MAE 都改善；
+但 \(\widehat\kappa\) 与 \(\kappa^\star\) 的 ratio 在 final LR 内部并不稳定。
+\end{frame}
+
+\begin{frame}{Appendix G：当前仍缺少真正新增 held-out WSD schedule}
+\small
+仓库中同一套 scale 下可用的 WSD-family target 是：
+\[
+\{\text{sharp},\ \text{linear},\ \text{WSD-con 3e-5},\ \text{WSD-con 9e-5},\ \text{WSD-con 18e-5}\}.
+\]
+因此当前的 held-out / robustness 分析只能在这些曲线内部做 protocol audit。
+\vfill
+\textbf{下一步最关键实验。}
+冻结以下规则后，新增 2--4 条 WSD-family training runs：
+\[
+t\ge8000,\quad
+q_2\text{ half-life},\quad
+P_{\mathrm{LD}},\quad
+1/N_{\mathrm{cal}}\text{ ridge floor},\quad
+\kappa\ge0.
+\]
+新增 schedule 可以改变：
+\begin{itemize}\tightlist
+\item cooldown 起点；
+\item decay length；
+\item final LR；
+\item sharp 与 linear 之间的中间形态。
+\end{itemize}
+\vfill
+\textbf{目的。}
+验证该 identification protocol 不是在现有 5 类 WSD target 上调出来的。
+\end{frame}
+
+\begin{frame}{Appendix H：复现实验与产物}
+\small
+\begin{center}
+\begin{tabular}{L{0.28\linewidth}L{0.58\linewidth}}
+\toprule
+产物 & 内容\\
+\midrule
+\code{robustness\_audit.py} &
+\(\lambda\) sensitivity、kernel ablation、cross-scale、window、failure mode、figures。\\
+\addlinespace
+\code{REPORT.md} &
+新增 robustness audit 的完整表格和文字解释。\\
+\addlinespace
+\code{LEAKAGE\_AUDIT.md} &
+target-leakage checklist。\\
+\addlinespace
+\code{slides/figs/} &
+heatmap、representative error curves、MPL residual anomaly、projection decomposition、projection ablation、kappa scatter。\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{复现命令。}
+\begin{center}
+\scriptsize
+\code{python3 repro/schedule\_response\_robustness\_audit.py}\\[0.2em]
+\code{cd slides \&\& xelatex main\_zh.tex \&\& xelatex main\_zh.tex}
+\end{center}
+\end{frame}
+
+\begin{frame}{Code and division / 代码与分工}
+\small
+\textbf{GitHub:}\\
+\code{github.com/wjjpku/DL-final}
+
+\vfill
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Main scripts}
+\begin{itemize}\tightlist
+\item reproduce MPL baseline:\\
+\code{python3 repro/reproduce\_cosine\_to\_wsd.py}
+\item run MPL-LD projected kappa:\\
+\code{python3 repro/schedule\_response\_robustness\_audit.py}
+\item generate figures / tables:\\
+\code{python3 repro/schedule\_response\_robustness\_audit.py}
+\end{itemize}
+
+\textbf{Required environment}
+\begin{itemize}\tightlist
+\item Python 3
+\item numpy, pandas, scipy, matplotlib
+\item scikit-learn, tqdm, requests
+\item XeLaTeX for Chinese slides
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Outputs}
+\begin{itemize}\tightlist
+\item MPL reproduction metrics
+\item WSD-family MAE / RMSE tables
+\item kappa-oracle scatter plots
+\item projection ablation figures
+\item slides and audit reports
+\end{itemize}
+
+\textbf{Division}
+\begin{block}{个人完成}
+本项目为个人完成：方法设计、代码实现、实验运行、图表生成、报告撰写均由吴家驹完成。
+MPL baseline 复现基于公开实现 / 公开数据，相关引用与改动见仓库说明。
+\end{block}
+\end{column}
+\end{columns}
 \end{frame}
 
 \end{document}

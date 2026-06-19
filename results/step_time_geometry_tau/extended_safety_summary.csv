@@ -1,0 +1,10 @@
+mean_delta,nonharm,rows,target_curve,target_label,wins,worst_delta
+-35.014117827481364,3,3,cosine_72000.csv,Cosine,3,-23.654066381177863
+-54.32338769245518,3,3,wsd_20000_24000.csv,WSD sharp,3,-40.918422823186006
+-46.68771742519494,3,3,wsdld_20000_24000.csv,WSD linear,3,-33.982468687418965
+-53.14850426136252,3,3,wsdcon_3.csv,WSD-con 3e-5,3,-47.31021639725243
+-15.966835560441433,3,3,wsdcon_9.csv,WSD-con 9e-5,3,-9.381115950130036
+-11.718410514585676,3,3,wsdcon_18.csv,WSD-con 18e-5,3,-7.030977928538551
+0.0,3,3,cosine_24000.csv,Cosine 24k,0,0.0
+0.0,3,3,constant_24000.csv,Constant 24k,0,0.0
+0.0,3,3,constant_72000.csv,Constant 72k,0,0.0

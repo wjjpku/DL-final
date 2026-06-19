@@ -1,0 +1,7 @@
+geometry_tau,mode,nuisance,rationale,route,table_tau,target_curve,target_decay_span,target_drop_norm,target_label,target_schedule_len,tau_ratio_vs_table,train_curves
+8192.0,geometry_shape_routed,dct4,tau is computed from LR positive-drop geometry,smooth_decay,8192.0,cosine_72000.csv,69839.0,0.899999999544725,Cosine,72000.0,1.0,wsdcon_3
+4998.75,geometry_shape_routed,none,tau is computed from LR positive-drop geometry,finite_tail,5120.0,wsd_20000_24000.csv,3999.0,0.8999424188010638,WSD sharp,24000.0,0.976318359375,wsdld_20000_24000
+4998.75,geometry_shape_routed,none,tau is computed from LR positive-drop geometry,finite_tail,5120.0,wsdld_20000_24000.csv,3999.0,0.899775,WSD linear,24000.0,0.976318359375,wsd_20000_24000
+1535.9999999999993,geometry_shape_routed,dct2,tau is computed from LR positive-drop geometry,full_step_drop,1536.0,wsdcon_3.csv,1.0,0.8999999999999999,WSD-con 3e-5,16000.0,0.9999999999999996,wsd_20000_24000+wsdld_20000_24000
+733.1839999999999,geometry_shape_routed,dct2,tau is computed from LR positive-drop geometry,medium_step_drop,768.0,wsdcon_9.csv,1.0,0.7,WSD-con 9e-5,16000.0,0.9546666666666664,wsdcon_3+wsdcon_18
+512.0,geometry_shape_routed,none,tau is computed from LR positive-drop geometry,weak_step_drop,512.0,wsdcon_18.csv,1.0,0.3999999999999999,WSD-con 18e-5,16000.0,1.0,wsdcon_9

@@ -1,0 +1,4 @@
+scale,selected_lambda,source,source_coef,source_objective
+25,1,cosine_source_fit_grid,0.04488234443659986,0.0001846046892113024
+100,1,cosine_source_fit_grid,0.057519126355855085,0.00020817516217683154
+400,1,cosine_source_fit_grid,0.08402242938522389,0.00026777343462536967

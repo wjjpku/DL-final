@@ -1,0 +1,5 @@
+group,mean_base_vs_official_baseline,mean_corr_vs_official_baseline,mean_delta_vs_own_baseline,nonharm_vs_own_baseline,protocol,rows,wins_vs_own_baseline,worst_base_vs_official_baseline,worst_corr_vs_official_baseline,worst_delta_vs_own_baseline
+core_wsd,55.04527052230417,37.341849560378016,-11.43718960362216,15,cosine_only,15,15,106.80840626460855,79.98582517956044,-6.39525541592374
+extra_control,79.78274516207723,79.78274516207723,0.0,9,cosine_only,9,0,490.27031703608924,490.27031703608924,0.0
+core_wsd,0.0,-13.767399058963177,-13.767399058963177,15,frozen_official,15,15,0.0,-6.2920841828281056,-6.2920841828281056
+extra_control,0.0,0.0,0.0,9,frozen_official,9,0,0.0,0.0,0.0

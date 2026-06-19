@@ -1,0 +1,31 @@
+description,mean_delta,model,nonharm,rows,variant,worst_delta
+baseline formula,-36.14316221358685,residualized,18/18,18,baseline,-7.030977928538551
+tail response coefficient -10%,-36.13659826220599,residualized,18/18,18,tail_x0.9,-7.030977928538551
+tail response coefficient +10%,-36.12505529455723,residualized,18/18,18,tail_x1.1,-7.030977928538551
+single-step base tau -25%,-34.61284246581338,residualized,18/18,18,step_base_x0.75,-7.687649852345735
+single-step base tau +25%,-35.26062919151423,residualized,18/18,18,step_base_x1.25,-3.22652018485744
+less conservative single-step drop exponent,-35.91082391369637,residualized,18/18,18,step_power_2,-6.247154107529096
+more conservative single-step drop exponent,-36.01265003755989,residualized,18/18,18,step_power_4,-7.030977928538551
+weak-drop anchor moved lower,-36.1211485592711,residualized,18/18,18,weak_anchor_0.35,-7.007943361765645
+weak-drop anchor moved higher,-36.104062646652615,residualized,18/18,18,weak_anchor_0.45,-7.030977928538551
+lower long-decay maximum tau,-35.10095222974533,residualized,18/18,18,max_tau_6144,-7.030977928538551
+baseline formula,-32.25660141409271,no_nuisance,18/18,18,baseline,-1.5363485015613465
+tail response coefficient -10%,-32.25003746271185,no_nuisance,18/18,18,tail_x0.9,-1.5363485015613465
+tail response coefficient +10%,-32.238494495063094,no_nuisance,18/18,18,tail_x1.1,-1.5363485015613465
+single-step base tau -25%,-31.899179810928565,no_nuisance,18/18,18,step_base_x0.75,-7.687649852345735
+single-step base tau +25%,-30.45571044798832,no_nuisance,17/18,18,step_base_x1.25,3.9940119252130035
+less conservative single-step drop exponent,-31.324696983850927,no_nuisance,17/18,18,step_power_2,2.9877015270386886
+more conservative single-step drop exponent,-32.727091625095085,no_nuisance,18/18,18,step_power_4,-4.572051787976184
+weak-drop anchor moved lower,-31.987706341297308,no_nuisance,18/18,18,weak_anchor_0.35,-0.16007550462014963
+weak-drop anchor moved higher,-32.5271593885412,no_nuisance,18/18,18,weak_anchor_0.45,-3.0691353303860303
+lower long-decay maximum tau,-32.0438802658469,no_nuisance,18/18,18,max_tau_6144,-1.5363485015613465
+baseline formula,-33.75222133744537,cross_family,18/18,18,baseline,-6.460721805621095
+tail response coefficient -10%,-33.6853712095969,cross_family,18/18,18,tail_x0.9,-6.460721805621095
+tail response coefficient +10%,-33.769336102788834,cross_family,18/18,18,tail_x1.1,-6.460721805621095
+single-step base tau -25%,-32.83504433263574,cross_family,18/18,18,step_base_x0.75,-6.302457382378468
+single-step base tau +25%,-33.022984598281106,cross_family,18/18,18,step_base_x1.25,-4.267782804357523
+less conservative single-step drop exponent,-33.47784052597351,cross_family,18/18,18,step_power_2,-4.857995016542893
+more conservative single-step drop exponent,-33.867195406478565,cross_family,18/18,18,step_power_4,-6.460721805621095
+weak-drop anchor moved lower,-33.68551177878736,cross_family,18/18,18,weak_anchor_0.35,-6.457826587056004
+weak-drop anchor moved higher,-33.81860642022713,cross_family,18/18,18,weak_anchor_0.45,-6.460721805621095
+lower long-decay maximum tau,-32.710011353603846,cross_family,18/18,18,max_tau_6144,-6.460721805621095

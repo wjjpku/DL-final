@@ -19,6 +19,10 @@ env/
 # build artifacts
 *_submission.zip
 
+# local scratch workspaces that are not part of the public release
+mpl_error_curves/
+archive/legacy_docs/kdroprelax_formula.md
+
 # latex build artifacts (keep .tex and .pdf; drop intermediates)
 paper/*.aux
 paper/*.out

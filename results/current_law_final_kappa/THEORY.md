@@ -485,7 +485,7 @@ schedule feature. Across all `1116` rows, max differences in `R_target`, gate
 factor, and `kappa_safe` are all `0.000e+00`. Thus target loss is used only for evaluation. Deployment uses training residuals plus target schedule
 features.
 
-The scale-holdout constant audit checks whether the constants are only tuned to
+The Scale-holdout constant audit checks whether the constants are only tuned to
 the pooled three-scale matrix. Holding out one model scale at a time, `0.01`
 remains inside the target-retention margin inferred from the other two scales
 in `3/3` splits. For rho, the first safe value inferred from the two training

@@ -1,0 +1,3 @@
+base_mae,corr_mae,level,mean_delta,method,nonharm,rows,test_label,wins
+0.003952818425392253,0.013462465700871958,family,240.57890477314365,raw_cosine_kappa,0,3,WSD sharp,0
+0.0043692244325636825,0.043465153318632474,family,894.8024870200795,raw_cosine_kappa,0,9,WSD-con step,0

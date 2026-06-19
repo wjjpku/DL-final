@@ -61,17 +61,17 @@ def main():
     s2, _ = np.polyfit(lx, ly, 1)[:2]
     print(f"  single-intercept pooled OLS p = {-s2:.3f}")
 
-    print(f"\n  PAPER currently claims p = 1.00 +/- 0.18 -- NOT reproduced by "
-          f"any of the above; honest pooled = {fe_p:.2f} +/- {se_slope:.2f} "
-          f"(consistent with tau~1/eta at 100M/400M; shallow at 25M).")
+    print(f"\n  Current paper headline: p = {fe_p:.2f} +/- {se_slope:.2f}. "
+          "This supersedes the historical p~1 headline; the pooled "
+          "estimate is consistent with tau~1/eta at 100M/400M and shallow at 25M.")
     json.dump({"per_scale_p": {s: per_scale[s][0] for s in TAU},
                "per_scale_se": {s: per_scale[s][1] for s in TAU},
                "naive_mean_p": naive_mean, "naive_sd": naive_sd,
                "naive_se": naive_se, "fixed_effects_p": float(fe_p),
                "fixed_effects_se": float(se_slope),
                "single_intercept_p": float(-s2),
-               "note": "backs the tau-exponent headline; supersedes the "
-                       "unbacked 1.00+/-0.18"},
+               "note": "backs the current tau-exponent headline; supersedes "
+                       "the historical unbacked p~1 headline"},
               open(os.path.join(REPO, "results", "DEEP_TAU_POOLED.json"), "w"),
               indent=1)
     print("\nsaved results/DEEP_TAU_POOLED.json")

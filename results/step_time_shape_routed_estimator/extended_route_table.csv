@@ -1,0 +1,10 @@
+base_nuisance,base_tau,nuisance,rationale,route,target_curve,target_decay_span,target_drop_entropy,target_drop_norm,target_label,target_schedule_len,tau,train_curves
+dct4,8192.0,dct4,very long smooth decay uses the slowest finite response; source is the strongest single-step full-drop probe,smooth_decay,cosine_72000.csv,69839.0,11.00923229991077,0.899999999544725,Cosine,72000.0,8192.0,wsdcon_3
+none,5120.0,none,finite WSD tail uses its paired finite-tail schedule when available,finite_tail,wsd_20000_24000.csv,3999.0,8.098650228945473,0.8999424188010638,WSD sharp,24000.0,5120.0,wsdld_20000_24000
+none,5120.0,none,finite WSD tail uses its paired finite-tail schedule when available,finite_tail,wsdld_20000_24000.csv,3999.0,8.29379960884682,0.899775,WSD linear,24000.0,5120.0,wsd_20000_24000
+dct2,1536.0,dct2,full single-step drop borrows amplitude from finite-tail WSD curves and removes broad drift,full_step_drop,wsdcon_3.csv,1.0,-0.0,0.8999999999999999,WSD-con 3e-5,16000.0,1536.0,wsd_20000_24000+wsdld_20000_24000
+dct2,768.0,dct2,medium single-step drop uses neighboring step probes with a short response,medium_step_drop,wsdcon_9.csv,1.0,-0.0,0.7,WSD-con 9e-5,16000.0,768.0,wsdcon_3+wsdcon_18
+none,512.0,none,weak single-step drop uses the nearest stronger step probe and the shortest stable response,weak_step_drop,wsdcon_18.csv,1.0,-0.0,0.3999999999999999,WSD-con 18e-5,16000.0,512.0,wsdcon_9
+none,0.0,none,short smooth cosine has no stable nonzero transient transfer across scales,short_smooth_no_transfer,cosine_24000.csv,21839.0,9.846768500413447,0.8999999953443857,Cosine 24k,24000.0,0.0,none
+none,0.0,none,"no positive LR drop, so the LR-drop transient must be zero",no_lr_drop,constant_24000.csv,0.0,0.0,0.0,Constant 24k,24000.0,0.0,none
+none,0.0,none,"no positive LR drop, so the LR-drop transient must be zero",no_lr_drop,constant_72000.csv,0.0,0.0,0.0,Constant 72k,72000.0,0.0,none

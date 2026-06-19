@@ -1,0 +1,4 @@
+cooldown_fixed128_mean_delta,cooldown_fixed128_nonharm,cooldown_fixed128_wins,cooldown_fixed128_worst_delta,cooldown_support_bracket_mean_delta,cooldown_support_bracket_nonharm,cooldown_support_bracket_wins,cooldown_support_bracket_worst_delta,group,rows
+-8.730091277292765,15,15,-6.219781912356814,-13.767399058963177,15,15,-6.2920841828281056,core_wsd,15
+0.0,3,0,0.0,0.0,3,0,0.0,extra_control,3
+-7.275076064410639,18,15,0.0,-11.47283254913598,18,15,0.0,all,18

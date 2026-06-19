@@ -1,0 +1,4 @@
+geometry_beats_table,geometry_mean_delta,geometry_nonharm,geometry_vs_table_mean_pct,geometry_vs_table_worst_pct,geometry_worst_delta,group,rows,table_mean_delta,table_nonharm,table_worst_delta
+7,-32.256601414092714,18,-0.23791672760354446,0.18896114677180442,-1.5363485015613465,core,18,-32.038059900826575,18,-0.410037060093571
+7,-21.50440094272848,27,-0.15861115173569632,0.18896114677180442,0.0,extended,27,-21.358706600551052,27,0.0
+0,0.0,9,0.0,0.0,0.0,safety_controls,9,0.0,9,0.0

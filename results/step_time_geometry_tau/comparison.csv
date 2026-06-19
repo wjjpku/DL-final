@@ -1,0 +1,9 @@
+mean_delta,model,nonharm,reading,role,wins,worst_delta
+-36.12943610676929,current_shape_routed,18/18,discrete route tau table,baseline residualized target-holdout,18/18,-7.030977928538551
+-32.038059900826575,current_minimal_no_nuisance,18/18,discrete route tau table,baseline one-kappa target-holdout,18/18,-0.410037060093571
+-32.70344546373875,current_cross_family,18/18,discrete route tau table,baseline no-same-family audit,18/18,-6.460721805621095
+-40.71444188617523,current_self_fit_no_nuisance,18/18,discrete route tau table,baseline self-fit,18/18,-6.612826064772137
+-36.14316221358685,geometry_shape_routed,18/18,same route/source/nuisance as current; tau from LR geometry,geometry-tau residualized target-holdout,18/18,-7.030977928538551
+-32.25660141409271,geometry_no_nuisance,18/18,no nuisance projection; tau from LR geometry,geometry-tau one-kappa target-holdout,18/18,-1.5363485015613465
+-33.75222133744537,geometry_cross_family,18/18,cross-family source rule; tau from target LR geometry,geometry-tau no-same-family audit,18/18,-6.460721805621095
+-40.69910266215973,geometry_self_fit_no_nuisance,18/18,same target residual fits kappa only; tau from LR geometry,geometry-tau one-kappa self-fit,18/18,-6.612826064772137

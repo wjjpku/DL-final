@@ -79,7 +79,20 @@ The spectral `final_spectral_G4_no_cap` audit row is:
 - Next-gen stress-slice audit: `../current_law_nextgen_stress_slice_audit/REPORT.md`
 - Next-gen deployment estimator audit: `../current_law_nextgen_deployment_audit/REPORT.md`
 - Next-gen target-loss blindness audit: `../current_law_nextgen_target_loss_blindness_audit/REPORT.md`
+- Next-gen scale-holdout constant audit: `../current_law_nextgen_scale_holdout_audit/REPORT.md`
 - Next-gen vs final common-matrix audit: `../current_law_nextgen_vs_final_audit/REPORT.md`
+
+- Cosine residual-shape diagnostic: `../current_law_decay_matrix/error_visualization/SCHEDULE_RESIDUAL_GALLERY.md`
+- Step-time response candidate audit: `../step_time_robust_matrix/REPORT.md`
+- Step-time response-shape figures: `../step_time_robust_matrix/response_shapes/REPORT.md`
+- Step-time nuisance estimator search: `../step_time_nuisance_estimator/REPORT.md`
+- Step-time nuisance holdout audit: `../step_time_nuisance_holdout_audit/REPORT.md`
+- Fixed step-time nuisance estimator: `../step_time_nuisance_fixed/REPORT.md`
+- Decomposed step-time error estimator: `../step_time_decomposed_estimator/REPORT.md`
+- Shape-routed target-holdout estimator and safety controls: `../step_time_shape_routed_estimator/REPORT.md`
+- Conservative cross-family step-time estimator: `../step_time_cross_family_estimator/REPORT.md`
+- Shape-routed protocol audit: `../step_time_shape_routed_estimator/PROTOCOL_AUDIT.md`
+- Step-time overfit-risk audit: `../step_time_shape_routed_estimator/OVERFIT_RISK_AUDIT.md`
 
 ## Reproduction Commands
 
@@ -193,10 +206,76 @@ Regenerate the next-gen target-loss blindness audit:
 python3 repro/current_law_nextgen_target_loss_blindness_audit.py
 ```
 
+Regenerate the next-gen scale-holdout constant audit:
+
+```bash
+python3 repro/current_law_nextgen_scale_holdout_audit.py
+```
+
 Regenerate the next-gen vs final common-matrix audit:
 
 ```bash
 python3 repro/current_law_nextgen_vs_final_audit.py
+```
+
+Regenerate the fixed step-time nuisance estimator:
+
+```bash
+python3 repro/step_time_nuisance_fixed.py
+```
+
+Regenerate the decomposed step-time error estimator:
+
+```bash
+python3 repro/step_time_decomposed_estimator.py
+```
+
+Regenerate the shape-routed target-holdout estimator:
+
+```bash
+python3 repro/step_time_shape_routed_estimator.py
+```
+
+Regenerate the conservative cross-family estimator:
+
+```bash
+python3 repro/step_time_cross_family_estimator.py
+```
+
+Audit target-loss blindness for the shape-routed protocol:
+
+```bash
+python3 repro/audit_step_time_protocol.py
+```
+
+Expected protocol-audit output:
+
+```text
+shape-routed protocol audit passed
+```
+
+Summarize remaining overfit risk for the step-time head:
+
+```bash
+python3 repro/audit_step_time_overfit_risk.py
+```
+
+Expected overfit-audit output:
+
+```text
+step-time overfit risk audit written
+```
+
+Validate the step-time model artifacts, paper text, and slides:
+
+```bash
+python3 repro/validate_step_time_model.py
+```
+
+Expected validator output:
+
+```text
+step-time model artifacts validated
 ```
 
 Validate the final paper-facing artifacts:

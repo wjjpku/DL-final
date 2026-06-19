@@ -1,0 +1,9 @@
+backbone_params,description,group,mean_base_vs_official_baseline,mean_corr_vs_official_baseline,mean_delta_vs_own_baseline,nonharm_vs_own_baseline,residual_params,rows,variant,wins_vs_own_baseline,worst_base_vs_official_baseline,worst_corr_vs_official_baseline,worst_delta_vs_own_baseline
+21,three independent MPL fits from cosine_24000 + cosine_72000,core_wsd,55.04527052230417,37.341849560378016,-11.43718960362216,15,0,15,cosine_independent,15,106.80840626460855,79.98582517956044,-6.39525541592374
+21,three independent MPL fits from cosine_24000 + cosine_72000,extra_control,79.78274516207723,79.78274516207723,0.0,9,0,9,cosine_independent,0,490.27031703608924,490.27031703608924,0.0
+21,official public-split MPL parameters; diagnostic reference,core_wsd,0.0,-13.767399058963177,-13.767399058963177,15,0,15,frozen_official,15,0.0,-6.2920841828281056,-6.2920841828281056
+21,official public-split MPL parameters; diagnostic reference,extra_control,0.0,0.0,0.0,9,0,9,frozen_official,0,0.0,0.0,0.0
+17,"per-scale L0,A,alpha,B,C with shared beta,gamma",core_wsd,54.307721225423926,36.90665861075727,-11.331134301074902,15,0,15,shared_beta_gamma,15,97.56631817873122,78.77160157082564,-6.920069482772984
+17,"per-scale L0,A,alpha,B,C with shared beta,gamma",extra_control,79.88221727853286,79.88221727853286,0.0,9,0,9,shared_beta_gamma,0,489.49226166045116,489.49226166045116,0.0
+15,"per-scale L0,A,alpha,B with shared C,beta,gamma",core_wsd,54.17201790732098,36.817310954397,-11.313371238579274,15,0,15,shared_c_beta_gamma,15,96.55465953009536,78.89924679195002,-6.9499700252767305
+15,"per-scale L0,A,alpha,B with shared C,beta,gamma",extra_control,79.87467464529782,79.87467464529782,0.0,9,0,9,shared_c_beta_gamma,0,489.37082976923733,489.37082976923733,0.0

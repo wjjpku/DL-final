@@ -1,0 +1,12 @@
+audit,description,mean_delta,nonharm,rows,wins,worst_delta
+minimal_core,minimal one-kappa routed rule on core targets,-32.038059900826575,18,18,18,-0.410037060093571
+minimal_extended,minimal rule plus short-cosine and constant controls,-21.358706600551052,27,27,18,0.0
+fixed_tau_1024,one universal response time,-23.067805061883934,16,18,16,6.811239081516973
+no_short_smooth_gate,allows short smooth cosine to receive transient correction,-16.464175301846687,24,27,18,67.12281438321561
+strict_cross_family_p3,"no same-family source, no nuisance, drop-cubed weak-step attenuation",-24.63039317889678,18,18,18,-3.5179879953821214
+cross_family_no_attenuation,no same-family source and no weak-step attenuation,-12.121558354597855,13,18,13,75.2933063816091
+tau_x0.5,minimal route with all nonzero taus multiplied by 0.5,-27.060534094043035,18,18,18,-3.565389717291667
+tau_x0.75,minimal route with all nonzero taus multiplied by 0.75,-31.58255184053848,18,18,18,-7.111884424006709
+tau_x1.25,minimal route with all nonzero taus multiplied by 1.25,-30.300452336555978,17,18,17,5.169986466972576
+tau_x1.5,minimal route with all nonzero taus multiplied by 1.5,-28.025674476891076,14,18,14,9.797629997226176
+tau_x2,minimal route with all nonzero taus multiplied by 2,-23.975621456087058,14,18,14,16.694801020934634

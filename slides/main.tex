@@ -1,4 +1,6 @@
-\documentclass[10pt,aspectratio=169]{beamer}
+% English version -- compile with pdfLaTeX or XeLaTeX.
+%   pdflatex main.tex && pdflatex main.tex
+\documentclass[9pt,aspectratio=169]{beamer}
 \usetheme{Madrid}
 \usecolortheme{seahorse}
 \useinnertheme{circles}
@@ -10,1006 +12,1183 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{graphicx}
-\usepackage{caption}
+\usepackage[normalem]{ulem}
+\usepackage{xcolor}
+\usepackage{array}
+
+\graphicspath{{figs/}}
 
 \newcommand{\hl}[1]{\textcolor{blue!60!black}{\textbf{#1}}}
-\newcommand{\Drop}{\ensuremath{\mathrm{DropRelaxS}}}
 \newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\tightlist}{\setlength{\itemsep}{2pt}\setlength{\parskip}{0pt}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-\title[LR schedules are not adiabatic]{Learning-Rate Schedules Are Not Adiabatic:\\
-A Rate-Dependent Correction for Loss-Curve Prediction}
-\author[Jiaju Wu]{Jiaju Wu \quad (2400010711)}
+\title[Residual identification in MPL residuals]{From Cosine to WSD:\\Identifying Transferable LR-Drop Response in MPL Residuals}
+\subtitle[Source-only calibration]{Source-only calibration without target WSD loss}
+\author[Jiaju Wu]{Jiaju Wu 2400010711}
 \institute[]{Peking University \quad Deep Learning Course Task 2\\
-\texttt{github.com/wjjpku/DL-final}}
+\code{github.com/wjjpku/DL-final}}
 \date{}
 
 \begin{document}
 
+% =====================================================================
+\section{Title}
+
 {\setbeamertemplate{footline}{}
 \begin{frame}
 \titlepage
-\vspace{-1.0em}
-\begin{block}{Self-contained summary}
-MPL and FSL are strong \emph{adiabatic} predictors: they model the quasi-static loss implied
-by the LR history. This project identifies the missing transient: when LR is annealed faster
-than the optimizer's excess-loss state can relax, the true loss remains \hl{above} the
-quasi-static prediction. I derive a low-capacity correction, test it on public LLM curves,
-and reproduce the mechanism in a real $\sim$10M transformer and controlled AdamW simulations.
+\vspace{-1.2em}
+\footnotesize
+\begin{block}{Central question}
+Given a cosine training loss curve and a target WSD-family schedule,
+can we predict the full WSD loss curve without reading the target WSD loss?
 \end{block}
-\vfill
-{\scriptsize Standalone report: project goal, method, experimental settings, results,
-analysis, limitations, and next steps.}
+\vspace{-0.45em}
+\begin{block}{Thesis}
+Cosine residuals contain both a \hl{transferable LR-drop response}
+and a \hl{non-transferable MPL-LD parameter error}.
+The contribution is to identify these two components and transfer only the former.
+\end{block}
 \end{frame}}
 
-\begin{frame}{Roadmap}
-\tableofcontents
-\end{frame}
-
-\begin{frame}{Task 2 coverage checklist}
-This deck is organized to explicitly cover the six required components.
-\vfill
-\begin{center}\small
-\begin{tabular}{p{0.32\linewidth}p{0.58\linewidth}}
-\toprule
-Requirement & Where it appears in this deck\\
-\midrule
-Problem background and goal & Project Goal section: schedule-aware loss-curve prediction, motivation, and the core question.\\
-Data processing and experimental setup & Data and Reproduction: data source, preprocessing pipeline, splits, fitting protocol, and parameters.\\
-Reproduction results & Reproduction slide: Tissue/MPL reproduction and public-curve baseline validation.\\
-Method and result comparison & Public-curve experiments: MPL vs MPL+\Drop{}, transfer table, and fair-baseline diagnostic.\\
-Analysis and reflection & Independent reproduction, negative results, limitations, and next-work slides.\\
-Code and work division & Reproducibility map plus explicit code/running/division slide.\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Design choice.} The slides are not a speaking outline; they are written so that the
-project can be understood by reading the deck alone.
-\end{frame}
-
-% =====================================================================
-\section{Project Goal}
-
-\begin{frame}{The problem: predict the whole loss curve before training}
-\textbf{Goal.} Given a learning-rate schedule $\{\eta_t\}$, predict the pretraining loss
-curve $L(t)$ without running the full training job.
-\vfill
-\textbf{Why this matters.}
-\begin{itemize}
-\item LLM pretraining is expensive; schedule search by full trial runs is wasteful.
-\item Standard scaling laws mostly target endpoint loss; schedule-aware laws must predict
-the \emph{trajectory} under warmup, stable phases, cooldowns, and WSD-style drops.
-\item The hardest test is cross-schedule transfer: fit on slow schedules such as cosine,
-then predict unseen sharp-decay WSD curves.
-\end{itemize}
-\vfill
-\textbf{Project question.}
-\begin{center}
-\hl{Do current loss-curve laws only know how much LR was spent, or also how fast it was spent?}
-\end{center}
-\end{frame}
-
-\begin{frame}{Baseline laws: strong, but structurally adiabatic}
-Let $S(t)=\sum_{i\le t}\eta_i$ be cumulative LR and
-$\Delta\eta_k=\eta_{k-1}-\eta_k$ be a LR decrement.
-\vfill
-\textbf{Multi-Power Law (MPL).}
+\begin{frame}{How to read this report}
+\small
+This report does not start from ``adding a kappa correction''.
+It starts from a residual identification problem:
 \[
-L(t)=L_0+A\,S(t)^{-\alpha}
-+B\sum_{k\le t}\Delta\eta_k\,
-G\!\left(\eta_k^{-\gamma}(S(t)-S(k))\right),
-\quad
-G(x)=1-(1+Cx)^{-\beta}.
+\text{MPL residual transfer is hard because residuals are confounded.}
 \]
-\textbf{Functional Scaling Law (FSL).}
-FSL gives a closely related functional predictor over the LR history.
 \vfill
-\textbf{What they capture well.}
-\begin{itemize}
-\item Integrated progress through $S(t)$.
-\item A saturating benefit from past LR drops.
-\item Cross-schedule structure in public LLM curves.
-\end{itemize}
-\textbf{The gap.} Their response to a drop is essentially quasi-static: after fitting the
-schedule kernel, they do not explicitly model the finite-time tracking error of a moving
-LR-dependent noise floor. I call this an \hl{adiabatic approximation}.
-\end{frame}
-
-\begin{frame}{Core thesis}
 \begin{center}
-\Large
-\hl{Loss depends not only on how much LR has been spent,\\
-but also on how fast it was spent.}
+\scriptsize
+\begin{tabular}{L{0.17\linewidth}L{0.51\linewidth}L{0.23\linewidth}}
+\toprule
+Link & Question & Evidence\\
+\midrule
+Baseline & Are the baseline laws reproducible? & Tissue/Momentum and MPL reproduction.\\
+\addlinespace
+Obstacle & Can cosine residual be transferred directly? & Direct-kappa negative control.\\
+\addlinespace
+Identification & How do we remove nuisance drift? & MPL-LD projection.\\
+\addlinespace
+Prediction & How do we build a target-free correction? & Schedule-only \(\phi\) plus source-only \(\widehat\kappa\).\\
+\addlinespace
+Validation & Is the identified component transferable? & 15/15 WSD-family wins and oracle-kappa alignment.\\
+\bottomrule
+\end{tabular}
 \end{center}
 \vfill
-\textbf{Mechanism.}
-\begin{itemize}
-\item At a fixed LR, the optimizer has an equilibrium excess-loss/noise-floor state.
-\item A sharp LR drop lowers that equilibrium immediately.
-\item The actual excess-loss state relaxes only over a finite time.
-\item During this transient, the true loss is \hl{higher} than the adiabatic prediction.
-\end{itemize}
-\vfill
-\textbf{Resulting signature.}
-Slow and fast schedules may reach the same final LR, but the fast sweep retains a positive
-residual. This is not just a function of cumulative LR $S$; it is a rate-dependent lag.
+\textbf{Reading order.}
+First understand why residuals are confounded, then how projection identifies the transferable part,
+and finally how each experiment validates one link in this chain.
 \end{frame}
 
 % =====================================================================
-\section{Data and Reproduction}
+\section{Problem and obstacle}
 
-\begin{frame}{Data source and processing pipeline}
-\textbf{Public-curve data.}
-\begin{itemize}
-\item Source: official MPL public loss curves vendored under
-\code{external/MultiPowerLaw/loss\_curve\_repo/csv\_\{25,100,400\}}.
-\item Scales: $25$M, $100$M, $400$M.
-\item Schedules: cosine, constant, WSD, WSD-long-decay, and WSD constant-tail probes.
+\begin{frame}{Problem setting: source cosine \(\rightarrow\) target WSD}
+\small
+\textbf{Inputs.}
+\begin{itemize}\tightlist
+\item source: a cosine learning-rate schedule and its observed training loss curve;
+\item baseline: frozen MPL predictions for both source and target schedules;
+\item target: a WSD-family learning-rate schedule \(\{\eta_t\}_{t=1}^T\).
 \end{itemize}
 \vfill
-\textbf{Processing pipeline.}
-\begin{enumerate}
-\item Load per-run CSV curves and learning-rate schedules.
-\item Align curves by training step; compute cumulative LR
-$S(t)=\sum_{i\le t}\eta_i$ and LR decrements
-$\Delta\eta_k=(\eta_{k-1}-\eta_k)_+$.
-\item Fit baseline laws on selected training curves using log-loss Huber objectives.
-\item Evaluate predictions on held-out WSD-family curves using MAE.
-\item Compute residuals $L_{\mathrm{true}}-L_{\mathrm{MPL}}$ and fit/test \Drop{} only on
-the residual structure.
-\end{enumerate}
+\textbf{Output.}
+\[
+\widehat L_s(t),\qquad t=1,\ldots,T.
+\]
 \vfill
-\textbf{Main parameters.} MPL has $(L_0,A,\alpha,B,C,\beta,\gamma)$; \Drop{} adds
-$\lambda_{\mathrm{slow}}$, $c$, and independently measured $\chi=dL_{\mathrm{eq}}/d\eta$.
+\textbf{Restriction.}
+\[
+\text{calibration uses cosine residual only,}
+\qquad
+\text{target loss is used only for evaluation.}
+\]
+\vfill
+\textbf{Why this is not ordinary curve fitting.}
+Cosine and WSD schedules have different decay geometry.
+If a source residual component transfers to WSD, it must correspond to a schedule-response mechanism,
+not just a low-frequency fitting error on the source curve.
 \end{frame}
 
-\begin{frame}{Experimental split and evaluation protocol}
-\textbf{Course-task reproduction split.}
-\begin{itemize}
-\item Training curves: \code{cosine\_24000}, \code{cosine\_72000}.
-\item Held-out test curves:
-\code{wsd\_20000\_24000}, \code{wsdld\_20000\_24000},
-\code{wsdcon\_3}, \code{wsdcon\_9}, \code{wsdcon\_18}.
-\item Evaluation scales: $25$M, $100$M, and $400$M.
-\end{itemize}
+\begin{frame}{Data split and experiment setting}
+\footnotesize
+\textbf{Model scales.}
+\[
+25\mathrm{M},\qquad 100\mathrm{M},\qquad 400\mathrm{M}.
+\]
 \vfill
-\textbf{Additional public-curve experiments.}
-\begin{itemize}
-\item Use a faithfully reproduced MPL as the adiabatic baseline.
-\item Measure $\tau$ from two-stage \code{wsdcon} constant-tail windows.
-\item Use \code{wsd}/\code{wsdld} as held-out sharp-decay targets for low-calibration
-cross-scale transfer.
-\end{itemize}
+\textbf{Source curve.}
+\[
+\code{cosine\_72000.csv},\qquad
+r_{\cos}(t)=L_{\cos}(t)-L_{\mathrm{MPL},\cos}(t).
+\]
+The residual calibration uses the source suffix \(t\ge8000\);
+the window is chosen by a source-side identifiability check.
 \vfill
-\textbf{Why this protocol is fair.}
-The correction is evaluated after MPL has already captured the backbone and schedule-drop
-structure. Therefore any remaining positive residual is not simply a weak baseline artifact.
-\end{frame}
-
-\begin{frame}{Data visualization: WSD isolates LR-change speed}
-\centering
-\includegraphics[width=0.78\linewidth]{figs/fig_data_wsd_focus.png}
-
-{\footnotesize The key contrast is local: WSD reaches low LR much faster, so the cooldown
-window is where rate dependence should appear.}
-\end{frame}
-
-\begin{frame}{Reproducing existing methods: Tissue and MPL}
-\begin{columns}
-\begin{column}{0.46\textwidth}
-\centering\small
-\begin{tabular}{lcc}
+\textbf{WSD-family targets.}
+\begin{center}\scriptsize
+\begin{tabular}{ll}
 \toprule
-Scale & Tissue & MPL\\
+File & Meaning\\
 \midrule
-25M  & 0.00783 & \textbf{0.00539}\\
-100M & \textbf{0.00486} & 0.00496\\
-400M & 0.00979 & \textbf{0.00852}\\
+\code{wsd\_20000\_24000.csv} & WSD sharp cooldown\\
+\code{wsdld\_20000\_24000.csv} & WSD linear decay\\
+\code{wsdcon\_3.csv} & WSD-con final LR \(3\times10^{-5}\)\\
+\code{wsdcon\_9.csv} & WSD-con final LR \(9\times10^{-5}\)\\
+\code{wsdcon\_18.csv} & WSD-con final LR \(18\times10^{-5}\)\\
 \bottomrule
 \end{tabular}
-\vspace{0.6em}
+\end{center}
+\vfill
+\textbf{Main evaluation.}
+Same-scale WSD-family transfer:
+\(3\) scales \(\times\) \(5\) targets, giving \(15\) target loss curves.
+\end{frame}
 
-{\footnotesize Average WSD-family test MAE.}
+\begin{frame}{Data processing pipeline and fixed protocol}
+\small
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\textbf{Data processing pipeline}
+\begin{enumerate}\tightlist
+\item Read source cosine loss and LR schedule.
+\item Read frozen MPL prediction.
+\item Compute source residual:
+\[
+r_{\cos}(t)=L_{\cos}(t)-L_{\mathrm{MPL},\cos}(t).
+\]
+\item Use calibration suffix \(t\ge8000\).
+\item For each target WSD schedule, compute LR drops \(d_t\) and response feature \(\phi\).
+\item Construct MPL-LD tangent basis and projection \(P_{\mathrm{LD}}\).
+\item Estimate source-only \(\widehat\kappa\).
+\item Predict target loss; target loss is used only after prediction for evaluation.
+\end{enumerate}
 \end{column}
-\begin{column}{0.52\textwidth}
-\includegraphics[width=\linewidth]{figs/fig1_repro_invariance.png}
+\begin{column}{0.38\textwidth}
+\textbf{Fixed protocol}
+\begin{itemize}\tightlist
+\item source suffix: \(t\ge8000\)
+\item logging interval: \(\Delta_{\mathrm{obs}}=128\)
+\item response time: \(q_2\) half-life rule
+\item ridge floor: \(1/N_{\mathrm{cal}}\)
+\item constraint: \(\kappa\ge0\)
+\item metrics: MAE, RMSE, terminal error
+\end{itemize}
+\vfill
+\textbf{Data source.}
+All main loss curves are stored under
+\code{external/MultiPowerLaw/...}, with subfolders
+\code{csv\_25}, \code{csv\_100}, and \code{csv\_400}.
 \end{column}
 \end{columns}
-\vfill
-\textbf{Key differences and difficulties.}
-\begin{itemize}
-\item Tissue is compact and interpretable but less stable on sharp WSD families.
-\item MPL is higher-capacity and matches the published public-curve results.
-\item Correct optimizer protocol matters: weak or inconsistent fitting can make false
-``improvements'' look real.
-\end{itemize}
-\textbf{Conclusion.} The reproduced MPL is the baseline used for all residual analysis.
 \end{frame}
 
-\begin{frame}{Curve-level fitting: zoom into the WSD cooldown}
-\centering
-\includegraphics[width=0.90\linewidth]{figs/fig_wsd_fit_zoom.png}
-
-{\footnotesize Globally the fit is good; locally after the LR drop, MPL predicts too low,
-leaving a positive residual.}
-\end{frame}
-
-% =====================================================================
-\section{Method}
-
-\begin{frame}{Theory in one slide: linear response of a moving equilibrium}
-Assume an LR-dependent hidden excess-loss state $z_t$ with local equilibrium
-$z^\star(S_t,\eta_t)$:
+\begin{frame}{Strong baseline: MPL is frozen and reproducible}
+\small
+The frozen MPL baseline is:
 \[
-z_{t+1}=\Phi_{S_t,\eta_t}(z_t),\qquad
-L_t=L_{\mathrm{ad}}(S_t,\eta_t)+r_t.
+L_{\mathrm{MPL},s}(t)
+=
+L_{0,s}
++
+A_s S_s(t)^{-\alpha_s}
++
+B_s D_s(t;C_s,\beta_s,\gamma_s).
 \]
-Linearizing around the moving equilibrium gives the cooldown-specific residual
+This work studies the MPL residual:
 \[
-r_t \approx \sum_{k<t}K_{k,t}\,(\eta_k-\eta_{k+1})_+.
+r_s(t)=L_s(t)-L_{\mathrm{MPL},s}(t).
 \]
 \vfill
-Under the first-order optimizer approximation
-$T_t\simeq I-\eta_t A$, products of transition matrices become exponentials in
-\hl{cumulative-LR time}:
-\[
-T_{t-1}\cdots T_{k+1}\simeq
-\exp[-A(S_t-S_k)].
-\]
+\begin{center}\scriptsize
+\begin{tabular}{lrrrrr}
+\toprule
+Scale & R2 & MAE & RMSE & PredE & WorstE\\
+\midrule
+25M  & 0.998802 & 0.003760 & 0.004652 & 0.001102 & 0.004095\\
+100M & 0.998301 & 0.004348 & 0.005919 & 0.001425 & 0.005829\\
+400M & 0.997762 & 0.004835 & 0.007305 & 0.001679 & 0.009948\\
+\bottomrule
+\end{tabular}
+\end{center}
 \vfill
-\begin{block}{Primitive prediction}
-The non-adiabatic residual is a causal convolution of LR decrements with a stable memory
-kernel in $S$-time, not a free bump fitted after the fact.
+\textbf{Role.}
+The reproduction metrics are consistent with the MPL README.
+Therefore the correction is studied on top of a strong MPL baseline,
+not on top of a weak baseline.
+\vfill
+\begin{block}{Reproduction details}
+\footnotesize
+The reproduced object is the public MPL experiment / frozen MPL prediction.
+This work does not retrain MPL and does not refit MPL on WSD target loss.
+The main difficulties are logging-grid alignment, scale-file matching,
+and finite-difference construction of the MPL-LD tangent basis.
+The key difference is that after reproducing MPL, this work only corrects its residual
+using source-only calibration.
 \end{block}
 \end{frame}
 
-\begin{frame}{Operational correction: DropRelaxS}
-The full kernel can be a spectral mixture. To avoid overfitting, the paper uses the
-lowest-capacity one-pole closure:
+\begin{frame}{Baseline reproduction: Tissue et al. / Momentum Law}
+\small
+In addition to MPL, I reproduced the learning-rate annealing baseline from
+Tissue et al. / Momentum Law. In the repository this baseline is implemented
+as \code{tissue} in \code{repro/reproduce\_cosine\_to\_wsd.py}.
+\[
+L_{\mathrm{Tissue}}(t)
+=
+L_0 + A S_1(t)^{-\alpha} - C S_2(t),
+\qquad
+S_2(t)=\sum_{\tau\le t} m_\tau,
+\qquad
+m_\tau=\lambda m_{\tau-1}+(\eta_{\tau-1}-\eta_\tau).
+\]
+\vspace{-0.4em}
+\begin{block}{What is being reproduced}
+\footnotesize
+This is the one-pole annealing / momentum response baseline: LR drops are accumulated
+through a first-order state \(m_t\), then added as the schedule-dependent term \(S_2(t)\).
+It is a low-capacity baseline rather than a residual-identification method.
+\end{block}
+\vspace{-0.2em}
+\begin{block}{Fixed reproduction protocol}
+\footnotesize
+Fit on source cosine curves only:
+\(\code{cosine\_24000.csv}\) and \(\code{cosine\_72000.csv}\);
+then evaluate on the same \(15\) WSD-family targets used in this report.
+No WSD target loss is used during fitting.
+\end{block}
+\vfill
+\footnotesize
+\textbf{Command.}
+\code{python3 repro/reproduce\_cosine\_to\_wsd.py}
+\end{frame}
+
+\begin{frame}{Reproduction result: Momentum Law is a valid but weaker WSD baseline}
+\small
+The just-reproduced Tissue/Momentum result is suitable for the baseline section:
+it verifies an earlier LR-annealing law under the same source-only protocol,
+but it does not replace MPL as the backbone for residual identification.
+\vfill
+\begin{center}\scriptsize
+\begin{tabular}{lrrrr}
+\toprule
+Baseline & Cosine train MAE & WSD test MAE & WSD test RMSE & WSD test \(R^2\)\\
+\midrule
+Tissue et al. / Momentum Law & 0.002242 & 0.007493 & 0.010415 & 0.995223\\
+MPL & 0.003517 & 0.006292 & 0.009848 & 0.995760\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\begin{center}\scriptsize
+\begin{tabular}{lrrrrrr}
+\toprule
+Scale & \multicolumn{3}{c}{Tissue/Momentum} & \multicolumn{3}{c}{MPL}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & MAE & RMSE & \(R^2\) & MAE & RMSE & \(R^2\)\\
+\midrule
+25M  & 0.007831 & 0.009842 & 0.995576 & 0.005388 & 0.008573 & 0.996521\\
+100M & 0.004859 & 0.007490 & 0.997855 & 0.004964 & 0.008152 & 0.997130\\
+400M & 0.009790 & 0.013913 & 0.992238 & 0.008524 & 0.012820 & 0.993629\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\footnotesize
+\textbf{Interpretation.}
+Tissue/Momentum fits the source cosine curves more tightly
+\((0.002242 < 0.003517)\), but MPL gives the stronger average WSD-family transfer baseline
+\((0.006292 < 0.007493)\).
+Therefore the residual-identification method is built on frozen MPL, while Tissue/Momentum
+is retained as a reproduced baseline reference.
+\end{frame}
+
+\begin{frame}{Diagnostic observation: MPL errors concentrate near transition / tail}
+\hfill\fbox{\scriptsize diagnostic only; not used for calibration}
+\vspace{-0.4em}
+\centering
+\includegraphics[width=0.96\linewidth]{fig_mpl_residual_anomaly_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{Reading the figure.}
+The red curve is MPL prediction error and the gray curve is normalized LR.
+This page reads target true loss only to show the error shape;
+it is not used for \(\widehat\kappa\) calibration.
+For WSD sharp / linear, MPL error concentrates after the LR decay.
+For WSD-con, different final LRs induce different residual shapes.
+\vfill
+\textbf{Question.}
+These errors look schedule-related, but does the source cosine residual contain the same transferable component?
+\end{frame}
+
+\begin{frame}{Key obstacle: cosine residual is a mixed signal}
+\small
+If we directly fit a response amplitude from the cosine residual,
+\[
+\widehat\kappa_{\mathrm{direct}}
+=
+\frac{\langle \phi_{\lambda,\cos},r_{\cos}\rangle_+}
+{\|\phi_{\lambda,\cos}\|_2^2+1/N_{\mathrm{cal}}},
+\]
+we implicitly assume:
+\[
+r_{\cos}(t)\approx \kappa\phi_{\lambda,\cos}(t).
+\]
+This assumption is too strong.
+\vfill
+A more realistic local decomposition is:
 \[
 \boxed{
-L(t)=L_{\mathrm{MPL}}(t)+c\,\chi
-\sum_{k<t}e^{-\lambda_{\mathrm{slow}}(S_t-S_k)}(\eta_k-\eta_{k+1})_+
+r_{\cos}(t)
+=
+\underbrace{\kappa\phi_{\lambda,\cos}(t)}_{\text{transferable LR-drop response}}
++
+\underbrace{J_{\mathrm{LD}}(t)\Delta\theta_{\mathrm{LD}}}_{\text{non-transferable MPL-LD nuisance}}
++
+\epsilon(t)
 }
 \]
-\[
-\chi=\frac{dL_{\mathrm{eq}}}{d\eta}.
-\]
 \vfill
-\textbf{Interpretation.}
-\begin{itemize}
-\item $(\eta_k-\eta_{k+1})_+$: only LR drops create the positive lag.
-\item $e^{-\lambda_{\mathrm{slow}}(S_t-S_k)}$: memory decays in cumulative LR time.
-\item $\chi$: amplitude equals the equilibrium noise-floor sensitivity.
-\item $c$: low-capacity compression of a spectral mixture into one pole.
-\end{itemize}
-\vfill
-\textbf{Important convention.} If drops are normalized by $\eta_{\mathrm{peak}}$, the
-prefactor must absorb that factor. With raw LR drops, the dimensionally clean amplitude is
-$c\chi$.
+\textbf{Intuition.}
+Cosine decay is smooth, so \(\phi_{\lambda,\cos}\) is low-frequency.
+MPL-LD parameter error also creates low-frequency drift.
+Without separating them, \(\kappa\) absorbs non-transferable MPL parameter error.
 \end{frame}
 
-\begin{frame}{AdamW specialization: expected relaxation scaling}
-For a noisy quadratic mode with curvature $\lambda_i$ and gradient-noise standard deviation
-$s_i$, noise-dominated AdamW has $v_i^\star\simeq s_i^2$. Locally it behaves like
-preconditioned SGD:
-\[
-x_{i,t+1}=\left(1-\eta_t\frac{\lambda_i}{s_i}\right)x_{i,t}
--\eta_t\frac{1}{s_i}\xi_{i,t}.
-\]
-For $V_i=\mathbb E[x_i^2]$:
-\[
-V_i^\star(\eta)=\frac{\eta s_i}{2\lambda_i}+O(\eta^2),\qquad
-F_i^\star(\eta)=\frac12\lambda_iV_i^\star(\eta)=\frac{\eta s_i}{4}+O(\eta^2).
-\]
-\vfill
-\textbf{Two useful consistency checks.}
-\begin{itemize}
-\item \textbf{Amplitude identity:}
-$\sum_i dF_i^\star/d\eta=\frac14\sum_i s_i+O(\eta)$.
-\item \textbf{Classical relaxation time:}
-\[
-\tau_i^{-1}=2\eta\frac{\lambda_i}{s_i},
-\qquad \tau_i\propto \eta^{-1}.
-\]
-\end{itemize}
-This timescale is not a new theorem; here it is used as a mechanistic check for whether the
-\hl{residual left by adiabatic loss-curve laws} behaves like finite-time relaxation.
-\end{frame}
-
-\begin{frame}{Predictions and falsifiability}
-\textbf{The correction predicts six observable signatures.}
-\begin{enumerate}
-\item Residual after fast LR drops is positive.
-\item Residual depends causally on LR decrements, not just on LR level.
-\item Memory is in cumulative LR time $S$, not raw step time.
-\item Amplitude is controlled by $dL_{\mathrm{eq}}/d\eta$.
-\item In a noise-dominated AdamW regime, residual relaxation should be consistent with
-$\tau\propto1/\eta$.
-\item A spectral mixture should sometimes beat a single exponential.
-\end{enumerate}
-\vfill
-\textbf{Failure modes are also meaningful.}
-\begin{itemize}
-\item If a full set of WSD curves is available, MPL can absorb the residual by refitting.
-\item If the scale is too small/noisy, this relaxation scaling may not be resolved.
-\item A single decay curve can make finite-$\lambda_{\mathrm{slow}}$ nearly degenerate with
-the adiabatic limit; rate dependence must be identified across schedules.
-\end{itemize}
-\end{frame}
-
-% =====================================================================
-\section{Experiments on Public LLM Curves}
-
-\begin{frame}{Public-curve experimental setting}
-\textbf{Data.}
-\begin{itemize}
-\item Official MPL public LLM loss curves.
-\item Llama-2-style models at $25$M, $100$M, and $400$M.
-\item Nine schedules per scale, including cosine, constant, WSD, WSD-long-decay, and
-two-stage WSD constant-tail probes.
-\end{itemize}
-\vfill
-\textbf{Baseline.}
-\begin{itemize}
-\item Use a faithfully reproduced well-fit MPL.
-\item Test MAE matches Luo et al.: $0.0054/0.0050/0.0085$ at $25/100/400$M.
-\item This matters: the residual is measured after a strong adiabatic baseline, not after a
-weak fit.
-\end{itemize}
-\vfill
-\textbf{Evaluation.}
-\begin{itemize}
-\item Residual structure on held-out sharp decays.
-\item $\tau$ measured from two-stage \code{wsdcon} relaxation transients.
-\item Cross-scale transfer on held-out \code{wsd}/\code{wsdld} curves.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Result 1: fast decays leave a structured positive residual}
-\begin{columns}
-\begin{column}{0.54\textwidth}
-\includegraphics[width=\linewidth]{figs/fig_residual_fit.png}
-\end{column}
-\begin{column}{0.43\textwidth}
-\textbf{Observation.}
-\begin{itemize}
-\item During the stable phase, the well-fit MPL residual is near zero.
-\item At a sharp WSD cooldown, the residual jumps positive.
-\item The one-pole \Drop{} term tracks the residual.
-\end{itemize}
-\vfill
-\textbf{Fit quality.}
-\[
-R^2=0.40/0.80/0.87\quad(25/100/400\mathrm{M}).
-\]
-\textbf{Interpretation.} The signal strengthens with scale. The residual is exactly the
-expected lag: after a fast drop, the true loss stays above the quasi-static prediction.
-\end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Result 1b: WSD cooldown residual across scales}
-\centering
-\includegraphics[width=0.92\linewidth]{figs/fig_wsd_residual_by_scale.png}
-
-{\footnotesize The same post-drop sign appears at $25/100/400$M, and the residual magnitude
-is larger at larger scale.}
-\end{frame}
-
-\begin{frame}{Consistency check: relaxation time vs. LR}
-\begin{columns}
-\begin{column}{0.52\textwidth}
-\includegraphics[width=\linewidth]{figs/fig_tau_scaling.png}
-\end{column}
-\begin{column}{0.45\textwidth}
-\textbf{Protocol.}
-\begin{itemize}
-\item Use two-stage \code{wsdcon} curves.
-\item At step $8000$, LR drops to a constant second-stage value:
-$\eta\in\{3,9,18\}\times10^{-5}$.
-\item Fit the residual transient
-$r(t)\propto e^{-(t-8000)/\tau}$.
-\end{itemize}
-\vfill
-\textbf{Observed trend.}
-\[
-\tau\propto\eta^{-p},\qquad p=0.84\pm0.17
-\]
-pooled over public curves; $100/400$M track the classical slope $-1$ most cleanly.
-\vfill
-\textbf{Interpretation.} This supports the finite-time relaxation mechanism, but it is not the
-main claim: the main claim is the positive WSD residual and its useful correction.
-\end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Result 3: amplitude is tied to the noise floor}
-\textbf{Independent amplitude probe.}
-Use final losses of two-stage constant-tail curves to estimate the equilibrium noise-floor
-sensitivity $dL_{\mathrm{eq}}/d\eta$ without fitting \Drop{} to the target curve.
-\vfill
+\begin{frame}{Negative control: direct cosine \(\kappa\) fails}
+\small
 \begin{center}
-\begin{tabular}{lccc}
+\begin{tabular}{lrrrr}
 \toprule
-Scale & 25M & 100M & 400M\\
+Estimator & Pearson vs \(\kappa^\star\) & kappa RMSE & mean MAE change & wins\\
 \midrule
-$\kappa_{\mathrm{fit}}/\kappa_{\mathrm{pred}}$ & 0.43 & 0.51 & 0.60\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Analysis.}
-\begin{itemize}
-\item The ratio has coefficient of variation $14\%$ across scales.
-\item The $<1$ factor is expected: the single-pole closure compresses a spectral mixture.
-\item With raw LR drops this gives $c\approx0.5$; with normalized drops
-$(\eta_k-\eta_{k+1})_+/\eta_{\mathrm{peak}}$, the same convention requires
-$c\approx60$--$86$.
-\end{itemize}
-\begin{block}{Practical conclusion}
-The transferable object is the near-constant ratio under a clearly stated normalization
-convention, not a universal first-principles value of $c$.
-\end{block}
-\end{frame}
-
-\begin{frame}{Result 4: low-calibration cross-scale transfer improves sharp decays}
-\textbf{Transfer protocol.}
-\begin{itemize}
-\item Fix $\lambda_{\mathrm{slow}}=10$ from the public-curve relaxation measurement.
-\item Take $c$ from a leave-one-scale-out average of the other scales.
-\item Measure $dL_{\mathrm{eq}}/d\eta$ from cheap two-stage probes at the target scale.
-\item Do \hl{zero fitting on the held-out target curve}.
-\end{itemize}
-\vfill
-\begin{center}\small
-\begin{tabular}{lccccc}
-\toprule
- & \multicolumn{2}{c}{\code{wsd}} & \multicolumn{2}{c}{\code{wsdld}} & \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Scale & MPL & MPL+\Drop & MPL & MPL+\Drop & avg. change\\
-\midrule
-25M  & 0.00341 & 0.00246 & 0.00314 & 0.00219 & $-29\%$\\
-100M & 0.00375 & 0.00164 & 0.00325 & 0.00161 & $-53\%$\\
-400M & 0.00470 & 0.00236 & 0.00385 & 0.00212 & $-47\%$\\
-\midrule
-\multicolumn{5}{r}{overall} & \hl{$-44\%$ (6/6 wins)}\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Analysis.} The correction is most useful in the data-poor regime: cosine plus cheap
-noise-floor probes, but no full WSD curves.
-\end{frame}
-
-\begin{frame}{Upgrade 1: the B-identity --- the amplitude was inside MPL all along}
-\textbf{Proposition.} Compare holding $\eta$ vs dropping to $\eta-d\eta$ and equilibrating at
-matched $S$: MPL's annealing term changes by $-B\,d\eta\,G(\cdot)\to-B\,d\eta$ as $G\to1$, so
-\[
-\left.\partial_\eta L^{\mathrm{MPL}}_{\mathrm{eq}}\right|_{S}=B .
-\]
-\vfill
-\textbf{Falsifiable check.} $B=363.8/437.9/523.4$ vs independently measured
-$dL_{\mathrm{eq}}/d\eta=381.7/499.3/561.5$ ($5$--$15\%$ at all scales).
-\vfill
-\begin{block}{Zero-extra-measurement transfer}
-$\kappa=c''\eta_{\mathrm{peak}}B$ ($c''$ leave-one-scale-out, CV $14.7\%$) gives
-$\mathbf{-43\%}$ ($6/6$) on the Table-1 protocol --- matching the probe chain at zero
-additional training runs. Smooth-only MPL refits ($B$ drifts $\le30\%$) retain
-$-35.6$ to $-40\%$.
-\end{block}
-\end{frame}
-
-\begin{frame}{Upgrade 2: second-order amplitude closure $\chi(\eta)\propto\eta^{\delta}$}
-\textbf{Measurement.} Public settled-probe floors read superlinear:
-$F_{\mathrm{eq}}\propto\eta^{1+\delta}$, $1{+}\delta=1.06/1.49/1.25$ ($25/100/400$M)
-\emph{(protocol-dependent: confound-free equal-$S$ ladders read sublinear $\approx0.65$;
-see backup)}. The first-order closure froze $\chi$; the
-derivation's forcing $\partial_\eta z^\star(S_k,\eta_k)$ already depends on $\eta_k$.
-\[
-L(t)=L_{\mathrm{MPL}}(t)+\kappa\sum_{k<t}\Big(\tfrac{\eta_k}{\eta_{\mathrm{peak}}}\Big)^{\!\delta}
-e^{-\lambda_{\mathrm{slow}}(S_t-S_k)}\tfrac{(\eta_{k-1}-\eta_k)_+}{\eta_{\mathrm{peak}}}
-\]
-\vfill
-\begin{itemize}\itemsep2pt
-\item Public curves, $\delta{=}1/4$ (Pareto-selected, never target-fit): audited
-$6{\times}6$ matrix improves on \emph{every} aggregate; probes-only calibration
-$-17\%\to-23$ to $-29\%$.
-\item Real $10.7$M model, never-scanned out-of-family beds: \texttt{sharp600}
-$-18\%\to-71\%$ ($\delta{=}3/4$); showcase \texttt{wsd\_sharp} $-14\%\to-52\%$.
-\item Honest split: part of the cheap-probe gain is amplitude recalibration; at matched
-amplitude the unweighted shape stays best in-family. Naive NQM route falsified at
-magnitude; bulk$+$edge spectrum (tracking cutoff $a_{\max}\!\propto\!1/\eta$) is the
-consistent mechanism (conjecture flagged).
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Fair-baseline diagnostic: formula gap vs information gap}
-\textbf{Key question.} Is \Drop{} a better formula, or does it just supply information missing
-from a few-shot MPL fit?
-\vfill
-\textbf{Diagnostic.}
-\begin{itemize}
-\item If MPL is refit on several full WSD curves, it can absorb the non-adiabatic residual.
-\item In that data-rich setting, the explicit \Drop{} term adds little.
-\item In the data-poor setting, \Drop{} provides a structured prior that transfers from cheap
-probes and other scales.
-\end{itemize}
-\vfill
-\begin{block}{Honest scope}
-The correction is an \hl{information-efficient leading-order term}. It is not meant to beat
-a fully refit, data-rich MPL on its own training distribution.
-\end{block}
-\end{frame}
-
-\begin{frame}{Calibration audit: staying within the current law}
-\textbf{Question.}
-Can the current law be made more reliable by changing only how
-$\lambda_{\mathrm{slow}}$ and the amplitude are calibrated?
-\vfill
-\textbf{Fixed model class.}
-\[
-L(t)=L_{\mathrm{MPL}}(t)+\kappa\,\Drop_{\lambda}(t),
-\qquad
-\Drop_{\lambda}(t)=\sum_{k<t}e^{-\lambda(S_t-S_k)}(\eta_k-\eta_{k+1})_+ .
-\]
-\vfill
-\begin{center}\scriptsize
-\begin{tabular}{lccc}
-\toprule
-Calibration protocol & Best $\lambda$ & Final WSD MAE change & wins\\
-\midrule
-fit $\kappa$ on \code{wsdcon\_9} probe & 10 & $-14.5\%$ & 6/6\\
-fit $\kappa$ on all \code{wsdcon} probes & 7--10 & $-17.9\%$ & 6/6\\
-cross-scale $c$ + noise-floor sensitivity & 5--10 & $-44.0\%$ to $-45.0\%$ & 6/6\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Interpretation.}
-\begin{itemize}
-\item The current law improves final cosine-fit MPL $\to$ WSD prediction under several
-non-target calibration choices.
-\item $\lambda=10$ is not a hand-tuned optimum; it is close to the best range and is the
-independently measured value from the relaxation probe.
-\item The large $44\%$ gain relies on the stronger cross-scale amplitude chain, not merely
-on fitting residuals on one probe curve.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Final kappa estimator: remove nuisance drift before transfer}
-\textbf{Problem with raw amplitude fitting.}
-The residual after MPL contains both the schedule-response feature and smooth MPL drift.
-Directly fitting $\kappa$ can get the trend direction right but the magnitude wrong.
-\vfill
-\textbf{Final calibration model.}
-\[
-r=L_{\mathrm{obs}}-L_{\mathrm{MPL}}
-=\kappa_\star\phi+g_\star+\varepsilon,\qquad g_\star\in\mathcal G,\quad \kappa_\star\ge0.
-\]
-Let $M_{\mathcal G}$ residualize against the low-frequency nuisance subspace:
-\[
-\phi_\perp=M_{\mathcal G}\phi,\qquad r_\perp=M_{\mathcal G}r,\qquad
-R=\frac{\|\phi_\perp\|_2^2}{\|\phi\|_2^2}.
-\]
-\vfill
-\textbf{Cap-free paper-facing estimator.}
-\[
-\widehat\kappa
-=
-\sqrt R
-\left(
-\frac{\langle \phi_\perp,r_\perp\rangle}
-     {\|\phi_\perp\|_2^2+\tau^2}
-\right)_+,\qquad \tau=\sigma/k_0.
-\]
-{\footnotesize Interpretation: FWL partial regression + empirical-Bayes ridge +
-identifiable-amplitude conversion.}
-\end{frame}
-
-\begin{frame}{Final kappa audit: what changed}
-\textbf{Cross-schedule transfer matrix.}
-\begin{center}\small
-\begin{tabular}{lcccc}
-\toprule
-Estimator & worst offdiag & mean offdiag & cosine$\to$WSD & max cosine $\kappa$\\
-\midrule
-smooth baseline & $-0.0\%$ & $-10.1\%$ & $-0.0\%$ & $0.0000$\\
-EB without nuisance control & $-1.0\%$ & $-10.8\%$ & $-3.1\%$ & $0.0045$\\
-\textbf{final cap-free} & \textbf{$-2.7\%$} & \textbf{$-12.1\%$} & \textbf{$-4.3\%$} & $0.0089$\\
-spectral $G_4$ audit & $-1.8\%$ & $-10.0\%$ & $-3.6\%$ & $0.0070$\\
-no identifiable conversion & $+1.8\%$ & $-12.2\%$ & $-17.4\%$ & $0.0300$\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Readout.}
-\begin{itemize}
-\item The DCT low-frequency audit is slightly more conservative, but shows the result is not
-tied to a polynomial-shaped nuisance basis.
-\item The hard cap is not the mechanism: cap-free and capped legacy variants have the same
-worst off-diagonal result.
-\item Removing $\sqrt R$ creates a positive off-diagonal failure.
-\item Train-only $\tau$ preserves the conclusion: worst remains $-2.7\%$, mean remains
-$-12.1\%$, and cosine$\to$WSD becomes $-5.6\%$.
-\end{itemize}
-\vfill
-{\footnotesize Scripts: \code{repro/current\_law\_final\_kappa.py},
-\code{repro/current\_law\_trainonly\_tau\_audit.py}.}
-\end{frame}
-
-\begin{frame}{How to choose the nuisance subspace}
-\textbf{The object is low-frequency drift control, not a polynomial fit.}
-Use a DCT low-frequency family:
-\[
-\mathcal G_K=\operatorname{span}\{q_0,\ldots,q_K\},\qquad
-R_K=\frac{\|M_{\mathcal G_K}\phi\|_2^2}{\|\phi\|_2^2}.
-\]
-\textbf{Automatic spectral rule.}
-\[
-K^\star=\arg\min_{K\ge K_{\min}} |R_K-\rho|.
-\]
-\vfill
-\begin{center}\small
-\begin{tabular}{lccc}
-\toprule
-Choice of $\mathcal G$ & worst offdiag & mean offdiag & cosine$\to$WSD\\
-\midrule
-fixed DCT $K=4$ & $-1.8\%$ & $-10.0\%$ & $-3.6\%$\\
-retention target only & $+304.0\%$ & $+8.4\%$ & $-9.5\%$\\
-$K_{\min}=3,\rho=0.35$ & $-1.7\%$ & $-11.2\%$ & $-10.1\%$\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Conclusion.} First enforce minimum low-frequency drift control; then use identifiable
-feature energy to choose among sufficiently rich nuisance spaces.
-\end{frame}
-
-\begin{frame}{Split audit: where the current law fails}
-\textbf{Research question.}
-If we calibrate $\lambda$ and $\kappa$ on arbitrary non-cosine curves, does the same law
-generalize to the rest?
-\vfill
-\begin{center}\scriptsize
-\begin{tabular}{lccc}
-\toprule
-Audit & Result & wins & Interpretation\\
-\midrule
-all non-cosine train/test splits & median $-14.1\%$ MAE & 182/225 & usually helpful\\
-probe-only $\to$ final \code{wsd}/\code{wsdld} & mean $-14.8\%$ MAE & 42/42 & robust target use case\\
-sharp decays $\to$ \code{wsdcon} tails & up to $+96\%$ MAE & fail & over-corrects long tails\\
+direct no-projection kappa & \(-0.849\) & 0.6294 & \(+625.92\%\) & 0/15\\
+projected kappa & \(+0.910\) & 0.0103 & \(-30.88\%\) & 15/15\\
 \bottomrule
 \end{tabular}
 \end{center}
 \vfill
 \textbf{Conclusion.}
-\Drop{} should not be sold as a universal residual smoother. Its defensible role is narrower:
-a leading-order sharp-cooldown correction whose amplitude is best fixed by probe curves and
-cross-scale transfer, then judged on cosine-fit MPL $\to$ WSD prediction.
-\end{frame}
-
-\begin{frame}{More calibration data: matched beats mixed}
-\textbf{Question.}
-If we allow more calibration curves, does the same law become more reliable?
+The core problem is not whether we can add a residual correction to MPL.
+The core problem is \hl{whether we can identify the transferable part inside the source residual}.
 \vfill
-\begin{center}\scriptsize
-\begin{tabular}{lccc}
-\toprule
-Calibration data & $\lambda$ choice & Held-out sharp MAE change & wins\\
-\midrule
-other sharp curve only & fixed $10$ & $-49.0\%$ & 6/6\\
-other sharp curve only & selected on calibration & $-49.9\%$ & 6/6\\
-all \code{wsdcon} probes + other sharp & fixed $10$ & $-19.5\%$ & 6/6\\
-all \code{wsdcon} probes only & fixed $10$ & $-17.6\%$ & 6/6\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Research conclusion.}
-More data is not automatically better. A full sharp-decay calibration curve transfers
-strongly to the other sharp shape, but mixing it with long \code{wsdcon} tails dilutes the
-amplitude. For the strict no-target-WSD setting, the cross-scale probe rule remains the
-cleaner claim.
-\end{frame}
-
-\begin{frame}{Cross-schedule fitting matrix}
-\vspace{-0.6em}
-\begin{center}
-\includegraphics[height=0.66\textheight]{figs/fig_decay_family_matrix.png}
-\end{center}
-\vspace{-0.7em}
-{\footnotesize
-\textbf{Reading.} Cosine calibration does not transfer to WSD targets; \code{wsdcon} step
-probes transfer to sharp WSD with smaller but stable gain; sharp-WSD calibration
-over-corrects \code{wsdcon} tails. The law is schedule-family dependent, not universal.}
-\end{frame}
-
-\begin{frame}{Method comparison: what each model can and cannot express}
-\footnotesize
-\begin{description}
-\item[Tissue.] Simple LR-integral baseline with few parameters. It is useful as a
-lightweight reference, but has a coarse schedule response and weaker WSD transfer.
-\item[MPL.] Strong adiabatic schedule-aware predictor. Public results are
-reproducible, but lag is absorbed only when full WSD curves are available.
-\item[MPL+\Drop{}.] Adds a causal finite-time lag term with low calibration cost.
-It is most useful for data-poor sharp-decay prediction; constants are still measured
-and the single-curve degeneracy remains.
-\end{description}
-\vfill
-\textbf{Empirical comparison.}
-\begin{itemize}
-\item On the course split, MPL reproduces or improves the existing baselines at $25/400$M
-and ties Tissue at $100$M.
-\item On held-out sharp decays, low-calibration MPL+\Drop{} reduces MAE by $44\%$ over
-well-fit MPL in the public same-architecture setting.
-\item When full WSD curves are available, refit MPL absorbs much of the residual; the gain
-of \Drop{} is specifically in the ``predict before training'' regime.
-\item Exhaustive split audits show the current law can over-correct \code{wsdcon} tails when
-calibrated only on sharp decays, so its scope is sharp-cooldown prediction, not arbitrary
-residual smoothing.
-\end{itemize}
-\end{frame}
-
-% =====================================================================
-\section{Independent Reproduction}
-
-\begin{frame}{Why an independent reproduction was needed}
-\textbf{Problem.} The original project data are not fully recoverable: the author-side public
-loss-curve repository is no longer hosted.
-\vfill
-\textbf{Reproduction strategy.}
-\begin{enumerate}
-\item Build a controlled noisy-quadratic AdamW simulator from scratch.
-\item Train an independent $\sim$10M byte-level transformer on WikiText.
-\item Run adversarial audits: check for estimator failures, degeneracies, leakage, and
-windowing artifacts.
-\end{enumerate}
-\vfill
-\textbf{Purpose.}
-The reproduction is not just a rerun. It tests whether the mechanism survives outside the
-original public curves and clarifies which quantitative claims do \emph{not} transfer at
-small scale.
-\end{frame}
-
-\begin{frame}{Real $\sim$10M transformer: no-fitting evidence of rate dependence}
-\begin{columns}[T]
-\begin{column}{0.47\textwidth}
-\centering\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Schedule & final loss & cumulative LR $S$\\
-\midrule
-cosine (gradual) & 1.0490 & 8.20\\
-wsd (gradual) & 1.0482 & 9.22\\
-wsd (sharp) & \textbf{1.0593} & \textbf{12.59}\\
-\bottomrule
-\end{tabular}
-\vspace{0.6em}
-
-{\footnotesize All schedules reach the same final LR.}
-\vspace{0.8em}
-
-\raggedright
-\textbf{Analysis.}
-\begin{itemize}\footnotesize\itemsep2pt
-\item Sharp sweep: higher loss despite $37\%$ more cumulative LR.
-\item Any law monotone in $S$ predicts the opposite.
-\item Across schedules, finite-$\lambda_{\mathrm{slow}}$ \Drop{} beats the adiabatic limit:
-$\Delta R^2\approx+0.18$.
-\end{itemize}
-\end{column}
-\begin{column}{0.50\textwidth}
-\includegraphics[width=0.94\linewidth]{figs/fig_real_transformer.png}
-\end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Controlled AdamW simulation: quantitative mechanism checks}
-\textbf{Simulator.}
-Noisy quadratic model with real AdamW updates: true $m$ and $v$ EMAs, true
-$m/(\sqrt v+\epsilon)$ preconditioning, Gaussian gradient noise, and Monte-Carlo ground truth.
-Closed-form linear theory is used only as an independent baseline.
-\vfill
-\begin{center}\small
-\begin{tabular}{lll}
-\toprule
-Claim tested & Result & Interpretation\\
-\midrule
-$\tau$ vs LR & $p=0.971$, log-log $R^2=0.9996$ & consistent noise-dominated scaling\\
-$\tau$ vs $\beta_2$ & CV $=1.1\%$ over $[0.9,0.9999]$ & lag not an EMA artifact\\
-Amplitude identity & $3.075$ vs closed-form $3.0$ & within $3\%$\\
-Spectral mixture & recover rates $\{0.87,16.1\}$ for true $\{1,16\}$ & two-pole structure real\\
-\bottomrule
-\end{tabular}
-\end{center}
-\vfill
-\textbf{Falsifiability.}
-A signal-dominated spectrum breaks the slope-$1$ pattern, so the check is not a circular fit
-to a fixed exponent.
-\end{frame}
-
-\begin{frame}{What does not transfer at $\sim$10M}
-\textbf{Negative results are part of the final claim.}
-\begin{itemize}
-\item The real $\sim$10M transformer does \hl{not} resolve $\tau\propto1/\eta$:
-over a $16\times$ LR range, measured post-step relaxation is roughly flat
-($\tau\approx475$--$912$ steps, $p\approx0.18$).
-\item Audits reject the simple ``window truncation'' excuse: synthetic recovery tests and
-profile-likelihood checks reject very large hidden $\tau$ values.
-\item On a single decay curve, finite-$\lambda_{\mathrm{slow}}$ \Drop{} is numerically close
-to the adiabatic limit (correlation $\approx0.99$). Rate dependence is identifiable only
-across schedules.
-\item Frozen cross-shape transfer in controlled simulations fails its pre-registered
-threshold (mean $R^2=0.52<0.6$).
-\end{itemize}
-\vfill
-\begin{block}{Bounded conclusion}
-The qualitative non-adiabatic lag is robust. The inverse-LR relaxation trend is useful
-supporting evidence in public larger curves and controlled AdamW, but it is not established
-by the small real transformer.
+\begin{block}{Task reformulation}
+Separate the following two components in MPL residuals:
+\[
+\text{transferable LR-drop response}
+\quad\text{vs.}\quad
+\text{MPL-LD nuisance drift}.
+\]
+Transfer only the former.
 \end{block}
 \end{frame}
 
 % =====================================================================
-\section{Synthesis}
+\section{Identification method}
 
-\begin{frame}{What is solid}
-\textbf{Main evidence.}
-\begin{itemize}
-\item Fast LR decays create a positive residual relative to well-fit adiabatic laws.
-\item The residual has the predicted causal LR-decrement structure.
-\item Public LLM curves show residual relaxation consistent with inverse-LR scaling
-($p=0.84\pm0.17$), as a mechanism check rather than the main claim.
-\item Controlled AdamW reproduces the same trend, $\beta_2$ robustness, amplitude identity,
-and spectral-mixture behavior.
-\item A real $\sim$10M transformer shows no-fitting rate dependence: the fast sweep ends
-higher despite more cumulative LR.
-\end{itemize}
+\begin{frame}{Core idea: project out MPL-LD tangent nuisance}
+\small
+The MPL learning-rate dependent term depends on:
+\[
+\theta_{\mathrm{LD}}=(B,C,\beta,\gamma).
+\]
+If these parameters have small errors, the first-order MPL prediction error is:
+\[
+\Delta L_{\mathrm{MPL}}(t)
+\approx
+J_{\mathrm{LD}}(t)\Delta\theta_{\mathrm{LD}},
+\]
+where:
+\[
+J_{\mathrm{LD}}(t)
+=
+\left[
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log B},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log C},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log\beta},
+\frac{\partial L_{\mathrm{MPL}}}{\partial\log\gamma}
+\right].
+\]
 \vfill
-\textbf{Practical value.}
-In data-poor sharp-decay prediction, low-calibration \Drop{} transfer reduces held-out MAE by
-$44\%$ on public curves (6/6 wins).
+Let \(P_{\mathrm{LD}}\) be the orthogonal projection onto the span of \(J_{\mathrm{LD}}\).
+Before estimating response amplitude, use:
+\[
+x=(I-P_{\mathrm{LD}})\phi_{\lambda,\cos},
+\qquad
+y=(I-P_{\mathrm{LD}})r_{\cos}.
+\]
+\vfill
+\textbf{Meaning.}
+Estimate the transferable response only in residual directions that local MPL-LD parameter perturbations cannot explain.
 \end{frame}
 
-\begin{frame}{What remains open}
-\textbf{Constants are measured, not solved.}
-\begin{itemize}
-\item $\lambda_{\mathrm{slow}}$ is best interpreted as a slow preconditioned mode
-$\sim2(\lambda/s)_{\mathrm{eff}}$, not a universal spectral average.
-\item A robust first-principles predictor still needs an unexplained $O(1)$ constant.
-\item The normalization of LR drops must be stated explicitly; otherwise $c\approx0.5$ and
-$c\approx60$--$86$ can appear contradictory while describing the same data under different
-conventions.
-\end{itemize}
+\begin{frame}{What projection removes from cosine residual}
+\centering
+\includegraphics[width=0.97\linewidth]{fig_projection_decomposition_cosine_100M.png}
 \vfill
-\textbf{Scope limits.}
-\begin{itemize}
-\item Real-data public curves cover one architecture family and three scales.
-\item The $\sim$10M independently trained model confirms the effect but not a clean inverse-LR
-relaxation trend.
-\item The relationship to MPL's empirical exponent $\gamma$ is complementary and still only
-qualitative.
-\end{itemize}
+\raggedright
+\small
+\textbf{Reading the figure.}
+The left panel shows that raw cosine residual and raw response feature are both low-frequency.
+The middle panel shows that the MPL-LD tangent space explains much of the smooth residual drift.
+The right panel shows that after nuisance removal,
+the estimated \(\kappa\) comes from the alignment between projected residual and projected feature.
 \vfill
-\textbf{Closed by the second (adversarially-audited) round.}
-\begin{itemize}
-\item The slow-mode \emph{spectral} explanation was tested directly (top-Lanczos
-preconditioned sharpness at 10.7M and 25M) and \textbf{falsified} (OFF\_REGIME at both):
-$\lambda_{\mathrm{slow}}$ stays phenomenological, not a deterministic edge-re-pinning rate.
-\item The floor superlinearity is \textbf{protocol-dependent}: confound-free equal-$S$
-ladders read sublinear ($\approx0.65$, robust across $10.7$/$25$M, batch size, horizon to
-$24$k); the public $1.06$--$1.49$ is a settled-probe three-point-fit artifact, not a
-parameter-count law.
-\end{itemize}
+\textbf{Conclusion.}
+Projection is not a decorative linear-algebra step.
+It removes non-transferable MPL-LD drift from the source cosine residual.
 \end{frame}
 
-\begin{frame}{Second round: what we ran (all pre-registered, audited)}
-\textbf{Priorities 1--3 from the original plan are now DONE.}
-\begin{itemize}
-\item \emph{Amplitude identity (was P1):} the B-identity ($dL_{\mathrm{eq}}/d\eta=B$) transfers
-MPL's own annealing coefficient with no extra measurement ($-43\%$); a split-free ladder
-anchor gives $B_l/B_m=1.10$.
-\item \emph{S-time / batch control (was P2):} the slow-mode clock is batch-size-\textbf{blind}
-(bladder ladder, AUDIT-A C1/C3); the floor exponent is invariant to gradient-noise scale
-(bs192 ladder, BS\_NULL $p=0.61$).
-\item \emph{Scale + spectrum (was P3):} the $25$M equal-$S$ floor ladder ran ($p=0.64$,
-sublinear); top-Lanczos sharpness spectroscopy at $10.7$/$25$M returned OFF\_REGIME --
-the spectral slow-mode account is falsified, not open.
-\item \emph{Concentration-dependent rate $\Lambda(\rho)$ (now done):} on a wide width
-ladder the rate is a real $12\times$ \emph{log-linear}-in-$\log W$ concentration effect,
-\emph{not} a fractional/scale-free memory ($\Delta$AIC $22$); promoting to a width-dependent
-$\lambda(W)$ buys only $5.9\%$ held-out gain $\Rightarrow$ the fixed effective
-$\lambda_{\mathrm{slow}}$ is \textbf{vindicated}. The visible amplitude mirrors it (rises
-with $\rho$, Spearman $+0.90$, but mild $2.2\times$, no clean gate).
-\end{itemize}
+\begin{frame}{Prediction rule: minimal deployable model}
+\small
+After projected identification, WSD prediction uses:
+\[
+\boxed{
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++
+\widehat\kappa_s\phi_{\lambda_s,s}(t)
+}
+\]
 \vfill
-\textbf{Genuinely open / next (need a bigger machine).}
-\begin{itemize}
-\item \emph{P0 (cheap):} more two-stage probe LRs for tighter $\chi/\lambda$ CIs; cross-family
-$c$ transfer.
-\item \emph{Saturating (Hill) visible-amplitude} for the strong mid-$\eta$ probe deficit:
-needs a depth-varied ladder at public $100$/$400$M (where the floor is superlinear) to move
-the $\chi$ claim --- $\sim$200--400 GPU-h, beyond one accelerator.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Reproducibility map}
-\begin{center}\footnotesize
-\begin{tabular}{ll}
+\begin{center}
+\begin{tabular}{L{0.23\linewidth}L{0.62\linewidth}}
 \toprule
-Result & Script / document\\
+Part & Meaning\\
 \midrule
-MPL reproduction and public-curve baseline & \code{repro/reproduce\_cosine\_to\_wsd.py}\\
-Residual structure and \Drop{} regression & \code{repro/nonadiabatic\_theory.py}\\
-Relaxation-time check on public curves & \code{repro/deep\_tau.py}\\
-S-time vs step-time kernels & \code{repro/deep\_stime.py}, \code{deep\_stime2.py}\\
-Spectral mixture diagnostics & \code{repro/deep\_rigor.py}\\
-Low-calibration cross-scale transfer & \code{repro/deep\_predict.py}\\
-Fair-baseline check & \code{repro/correction\_fair.py}\\
-Current-law calibration audit & \code{repro/current\_law\_calibration\_search.py}\\
-Current-law split research & \code{repro/current\_law\_split\_research.py}\\
-More-data calibration research & \code{repro/current\_law\_more\_data\_calibration.py}\\
-\midrule
-Independent NQM simulations & \code{represent/repro/E*.py}, \code{represent/repro/G*.py}\\
-Real $\sim$10M transformer training & \code{represent/repro/train*.py}\\
-Independent audit and final report & \code{represent/results/AUDIT\_PARTC.md}, \code{represent/REPORT.md}\\
+\(L_{\mathrm{MPL},s}(t)\) & frozen MPL baseline.\\
+\(\phi_{\lambda_s,s}(t)\) & causal LR-drop response shape induced by the target schedule.\\
+\(\lambda_s\) & response decay rate fixed by the target schedule using the \(q_2\) half-life rule.\\
+\(\widehat\kappa_s\) & the only scalar estimated from loss residual; it uses source cosine residual only.\\
 \bottomrule
 \end{tabular}
 \end{center}
 \vfill
-\centering\footnotesize
-Dependencies: \code{pip install -r requirements.txt}.\\
-Main paper: \code{paper/main.tex}. Independent reproduction: \code{represent/REPORT.md}.
+\textbf{One sentence.}
+The target schedule determines the response shape;
+the source residual determines the response amplitude.
+WSD prediction does not read WSD loss.
 \end{frame}
 
-\begin{frame}{Code, running instructions, and work division}
-\textbf{Repository.}
+\begin{frame}{Causal LR-drop response: schedule-only shape}
+\small
+Define positive LR drop:
 \[
-\code{https://github.com/wjjpku/DL-final}
+d_t=[\eta_{t-1}-\eta_t]_+.
+\]
+When LR does not decrease, \(d_t=0\).
+\vfill
+Define the response recursion:
+\[
+z_t=\exp(-\lambda_s\eta_t)z_{t-1}+d_t,
+\qquad
+\phi_{\lambda_s,s}(t)=\frac{z_t}{\eta_{\max}}.
+\]
+Equivalently:
+\[
+\phi_{\lambda_s,s}(t)
+=
+\frac{1}{\eta_{\max}}
+\sum_{u\le t}
+d_u
+\exp\left(
+-\lambda_s\sum_{v=u+1}^{t}\eta_v
+\right).
 \]
 \vfill
-\textbf{Minimal running instructions.}
-\begin{enumerate}
-\item Install dependencies: \code{pip install -r requirements.txt}.
-\item Reproduce main public-curve results:
-\code{python3 repro/reproduce\_cosine\_to\_wsd.py --scales 25 100 400}.
-\item Run key non-adiabatic diagnostics:
-\code{python3 repro/deep\_tau.py},
-\code{python3 repro/deep\_predict.py},
-\code{python3 repro/nonadiabatic\_theory.py}.
-\item Build paper and slides:
-\code{pdflatex paper/main.tex};
-\code{pdflatex slides/main.tex}.
-\end{enumerate}
+\textbf{Interpretation.}
+An LR drop is a forcing event.
+Each drop injects a residual impulse, and the impulse decays in cumulative LR time.
+Therefore \(\phi\) is schedule-only, causal, and target-loss-free.
 \vfill
-\textbf{Work division.}
-This is a single-member project. Jiaju Wu completed data processing, baseline
-reproduction, theory derivation, new correction design, experiments, independent reproduction
-analysis, writing, and slide preparation. Third-party code/data dependencies are kept under
-\code{external/} and cited in the paper.
+\textbf{Response time scale.}
+\(\lambda_s\) is fixed by a schedule-only half-life rule:
+diffuse LR decay receives a longer response time,
+while a sharp LR drop receives a shorter response time.
 \end{frame}
 
-\begin{frame}{Final takeaway}
+\begin{frame}{Source-only one-dimensional \(\widehat\kappa\)}
+\small
+On the source cosine suffix, define:
+\[
+x_s=(I-P_{\mathrm{LD}})\phi_{\lambda_s,\cos},
+\qquad
+y=(I-P_{\mathrm{LD}})r_{\cos}.
+\]
+The estimation problem is:
+\[
+\min_{\kappa\ge0}
+\|y-\kappa x_s\|_2^2+\frac{1}{N_{\mathrm{cal}}}\kappa^2.
+\]
+Closed-form solution:
+\[
+\boxed{
+\widehat\kappa_s
+=
+\frac{[x_s^\top y]_+}
+{\|x_s\|_2^2+1/N_{\mathrm{cal}}}
+}
+\]
+\vfill
+\textbf{Interpretation.}
+\(\widehat\kappa_s\) is the amplitude of the projected response feature.
+It is not a multi-parameter residual regressor.
+If \(x_s\) and \(y\) have no positive alignment after projection,
+the response is not activated.
+\end{frame}
+
+\begin{frame}{Target-leakage audit: which quantities read target loss}
+\scriptsize
 \begin{center}
-\Large
-\hl{Learning-rate schedules are not adiabatic.}
+\fbox{
+\begin{minipage}{0.86\linewidth}
+\centering
+source cosine residual \(\rightarrow\) projected \(\widehat\kappa\);
+\quad
+target LR schedule \(\rightarrow \phi\);
+\quad
+frozen MPL \(+\widehat\kappa\phi\rightarrow\) prediction;
+\quad
+target loss \(\rightarrow\) evaluation only.
+\end{minipage}}
+\end{center}
+\vspace{0.4em}
+\tiny
+\begin{center}
+\begin{tabular}{L{0.20\linewidth}L{0.42\linewidth}cc}
+\toprule
+Stage & Used quantities & WSD loss? & Role\\
+\midrule
+Calibration &
+\code{cosine\_72000.csv}, cosine LR, MPL cosine prediction &
+no & compute source residual and \(\widehat\kappa\)\\
+\addlinespace
+Target feature &
+target LR schedule &
+no & compute \(q_2,\lambda_s,\phi_s(t)\)\\
+\addlinespace
+Prediction &
+target MPL prediction, \(\phi_s(t)\), source-only \(\widehat\kappa\) &
+no & output \(L_{\mathrm{MPL}}+\widehat\kappa\phi\)\\
+\addlinespace
+Evaluation &
+target loss curve &
+yes & compute MAE and terminal error\\
+\addlinespace
+Oracle diagnostics &
+target residual / target MAE grid &
+yes & only for \(\kappa^\star\), oracle \(\lambda\)\\
+\bottomrule
+\end{tabular}
 \end{center}
 \vfill
-\textbf{Substantive conclusion.}
-MPL/FSL-style laws capture strong quasi-static structure, but fast LR decay leaves a
-finite-time relaxation lag. The leading correction is a causal convolution of LR drops with
-a memory kernel in cumulative LR time.
+\small
+\textbf{Conclusion.}
+The deployable prediction stage does not read target WSD loss.
+Any target-loss-dependent quantity is explicitly marked as evaluation or oracle diagnostic.
+\end{frame}
+
+% =====================================================================
+\section{Evidence chain}
+
+\begin{frame}{Claim 1: target-free correction improves WSD prediction}
+\centering
+\includegraphics[width=0.70\linewidth]{fig_schedule_response_mae_heatmap.png}
+\vspace{0.2em}
+
+\begin{tabular}{cccc}
+\toprule
+Mean MAE change & Worst row & Wins & Target-loss calibration\\
+\midrule
+\(\mathbf{-30.88\%}\) & \(\mathbf{-4.67\%}\) & \(\mathbf{15/15}\) & \(\mathbf{0}\)\\
+\bottomrule
+\end{tabular}
 \vfill
-\textbf{Practical conclusion.}
-\Drop{} is useful as a low-calibration prior when full WSD curves are unavailable, especially
-for sharp-decay extrapolation.
+\raggedright
+\small
+\textbf{Reading the figure.}
+Each cell is the MAE change relative to MPL for one target loss curve.
+Blue indicates lower error.
 \vfill
-\textbf{Scientific boundary.}
-The mechanism is real; the exact constants are not yet first-principles solved. The honest
-open problem is to compute $\lambda_{\mathrm{slow}}$ and $c$ from spectra, and to test the
-relaxation trend on larger independently trained models.
+\textbf{Meaning.}
+Without reading target WSD loss,
+the identified LR-drop response reduces MAE on all 15 WSD-family curves.
+\end{frame}
+
+\begin{frame}{Representative curves: correction acts near transition / tail}
+\centering
+\includegraphics[width=0.92\linewidth]{fig_schedule_response_time_errors_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{Reading the figure.}
+The top row compares true loss, MPL, and \(L_{\mathrm{MPL}}+\widehat\kappa\phi\).
+The bottom row shows prediction error.
+The correction mainly acts near the LR transition and tail,
+instead of arbitrarily shifting the whole curve.
+\end{frame}
+
+\begin{frame}{Claim 2: source \(\widehat\kappa\) aligns with target oracle \(\kappa^\star\)}
+\begin{columns}[T]
+\begin{column}{0.36\textwidth}
+\small
+\textbf{Oracle diagnostic.}
+\[
+\kappa_s^\star
+=
+\frac{[\langle \phi_{\lambda_s,s},
+L_s-L_{\mathrm{MPL},s}\rangle]_+}
+{\|\phi_{\lambda_s,s}\|_2^2}.
+\]
+\vspace{0.4em}
+\(\kappa^\star\) reads target loss,
+so it cannot be used for prediction.
+It only checks whether source-only \(\widehat\kappa\)
+is close to the target-own optimum.
+\vfill
+\textbf{Result.}
+After projection, Pearson is \(+0.910\);
+the no-projection control is \(-0.849\).
+\end{column}
+\begin{column}{0.62\textwidth}
+\centering
+\includegraphics[width=\linewidth]{fig_kappa_clean_scatter.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Projection ablation: with projection / without projection}
+\centering
+\includegraphics[width=0.92\linewidth]{fig_projection_ablation_time_errors_100M.png}
+\vfill
+\raggedright
+\small
+\textbf{Reading the figure.}
+The top row compares MPL error with projected \(\widehat\kappa\).
+The bottom row shows that no-projection \(\kappa\) treats low-frequency drift in the source residual
+as response amplitude, causing large target error shifts.
+\vfill
+\textbf{Conclusion.}
+Projection is not merely improving a table score.
+It prevents non-transferable MPL-LD nuisance from being transferred to WSD.
+\end{frame}
+
+\begin{frame}{Cross-scale transfer: amplitude has signal, raw residuals do not merge safely}
+\small
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Protocol & Pearson & mean MAE change & worst & wins\\
+\midrule
+same scale & \(+0.910\) & \(-30.88\%\) & \(-4.67\%\) & 15/15\\
+leave-one-scale-out mean \(\kappa\) & \(+0.671\) & \(-25.62\%\) & \(-3.96\%\) & 15/15\\
+all-scale mean \(\kappa\) & \(+0.808\) & \(-29.15\%\) & \(-4.20\%\) & 15/15\\
+single external source scale & \(+0.731\sim+0.921\) & \(-21.90\%\sim-27.06\%\) & \(-3.15\%\) & 10/10 each\\
+pooled raw residuals & \(+0.641\) & \(+62.57\%\) & \(+231.45\%\) & 1/15\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Interpretation.}
+Across scales, estimating \(\kappa\) per scale and then aggregating is more reliable
+than directly concatenating residuals.
+The response amplitude has cross-scale signal,
+but absolute residuals should not be pooled naively.
+\end{frame}
+
+\begin{frame}{Audit: why this is not high-capacity residual fitting}
+\small
+The residual model is deliberately low-capacity:
+\[
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++\widehat\kappa_s\phi_{\lambda_s,s}(t).
+\]
+\vfill
+\begin{center}
+\begin{tabular}{L{0.28\linewidth}L{0.48\linewidth}L{0.14\linewidth}}
+\toprule
+Module & Source & residual-fitted parameters\\
+\midrule
+\(\phi_{\lambda_s,s}\) & target LR schedule & 0\\
+\(\lambda_s\) & schedule-only half-life rule & 0\\
+\(P_{\mathrm{LD}}\) & MPL tangent basis & 0\\
+\(\widehat\kappa_s\) & source cosine residual projection & 1\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Risk control.}
+There is no target-family channel selection, no arbitrary basis expansion,
+and no target-loss-tuned residual regressor.
+The main overfitting risks are the calibration window and schedule-family coverage.
+\end{frame}
+
+% =====================================================================
+\section{Scope and conclusion}
+
+\begin{frame}{Failure mode: WSD-con final-LR ranking remains weak}
+\small
+\begin{center}
+\begin{tabular}{L{0.22\linewidth}L{0.62\linewidth}}
+\toprule
+Issue & Observation\\
+\midrule
+What works &
+All 9/9 WSD-con curves improve MAE, so the main step/tail response is captured.\\
+\addlinespace
+What remains weak &
+Within WSD-con, fine-grained final-LR ranking is weak:
+\(\widehat\kappa\) does not fully distinguish amplitudes across \(3e{-5},9e{-5},18e{-5}\).\\
+\addlinespace
+Next evidence needed &
+More WSD-con final-LR runs, or a scale/final-LR constrained amplitude model.\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Interpretation.}
+The current \(\phi\) captures the main transition/tail response,
+but not all final-LR-dependent amplitude variation.
+The complete numeric table is in the appendix.
+\end{frame}
+
+\begin{frame}{Scope of the claim}
+\small
+\begin{block}{What this work can claim}
+\begin{itemize}\tightlist
+\item On top of a frozen MPL baseline, source cosine residual contains transferable LR-drop response amplitude.
+\item MPL-LD tangent projection is the key identification step.
+\item Same-scale WSD-family prediction improves on all 15 curves.
+\item \(\widehat\kappa\) aligns with target oracle \(\kappa^\star\) with Pearson \(+0.910\).
+\item Leave-one-scale-out mean-\(\kappa\) cross-scale transfer still gives 15/15 wins.
+\end{itemize}
+\end{block}
+\vfill
+\begin{alertblock}{What this work should not claim}
+\begin{itemize}\tightlist
+\item It is not a universal training-loss law.
+\item \(t\ge8000\) is not claimed to be a universal constant.
+\item WSD-con final-LR fine ranking is not fully solved.
+\item The method is not yet validated on all LR schedule families.
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Remaining validation gap: new held-out WSD runs}
+\small
+\begin{block}{Current evidence limit}
+For each scale, the repository contains five WSD-family targets:
+sharp, linear, WSD-con \(3e{-5}\), WSD-con \(9e{-5}\), and WSD-con \(18e{-5}\).
+Existing ablations support projection, \(\lambda\), kernel, and cross-scale behavior,
+but they cannot replace genuinely new held-out schedules.
+\end{block}
+\vfill
+\begin{alertblock}{Most important next step}
+The remaining validation gap is not another ablation on existing curves,
+but new held-out WSD-family training runs after freezing the protocol.
+\end{alertblock}
+\vfill
+\textbf{Frozen rules.}
+\[
+t\ge8000,\quad
+q_2\text{ half-life},\quad
+P_{\mathrm{LD}},\quad
+1/N_{\mathrm{cal}}\text{ ridge floor},\quad
+\kappa\ge0.
+\]
+\vfill
+\textbf{New schedule dimensions.}
+cooldown start, decay length, final LR, and intermediate shapes between sharp and linear.
+\end{frame}
+
+\begin{frame}{Contribution summary}
+\small
+\begin{enumerate}
+\item \textbf{Problem formulation.}
+Cosine-to-WSD residual transfer is formulated as an identification problem on top of frozen MPL:
+\[
+\text{transferable LR-drop response}
+\quad\text{vs.}\quad
+\text{MPL-LD nuisance drift}.
+\]
+\item \textbf{Identification method.}
+MPL-LD tangent projection removes local parameter-error directions in the source residual,
+and a one-dimensional nonnegative ridge projection gives deployable \(\widehat\kappa\).
+\item \textbf{Evidence.}
+Projected source \(\widehat\kappa\) aligns with target oracle \(\kappa^\star\)
+and reduces MAE on 15/15 same-scale WSD-family curves,
+while the no-projection negative control fails systematically.
+\end{enumerate}
+\vfill
+\begin{center}
+\hl{The core contribution is residual identification, not feature stacking.}
+\end{center}
+\end{frame}
+
+\begin{frame}{Assignment checklist}
+\small
+\begin{center}
+\begin{tabular}{L{0.58\linewidth}L{0.24\linewidth}}
+\toprule
+Requirement & Location\\
+\midrule
+1. Background and goal: research content, motivation, and core question. &
+slides 1--3\\
+\addlinespace
+2. Data processing and setup: source data, pipeline, model/method, and parameters. &
+slides 4--8, 14--16\\
+\addlinespace
+3. Reproduction result: reproduced baseline and key differences/difficulties. &
+slides 6--8\\
+\addlinespace
+4. Method and result comparison: proposed method, results, and baseline comparison. &
+slides 10--22\\
+\addlinespace
+5. Analysis and discussion: results, failure mode, scope, and validation gap. &
+slides 23--26\\
+\addlinespace
+6. Code and division: repository, scripts, environment, outputs, and work division. &
+last slide\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Note.}
+The main text follows the residual-identification story.
+The appendix keeps \(q_2\) details, kernel ablation, calibration window,
+MPL \(L_G\) audit, and the full failure-mode table.
+\end{frame}
+
+\begin{frame}{Takeaway}
+\centering
+\vspace{0.7em}
+{\Large \textbf{The key to cosine-to-WSD transfer is not fitting residuals harder,\\
+but identifying which residual component is transferable LR-drop response.}}\\[1.0em]
+
+\small
+\[
+\widehat L_s(t)
+=
+L_{\mathrm{MPL},s}(t)
++
+\widehat\kappa_s\phi_{\lambda_s,s}(t)
+\]
+\vspace{0.3em}
+
+\begin{block}{Main result}
+\[
+\widehat\kappa \text{ vs. } \kappa^\star:
+\quad
+\mathrm{Pearson}=+0.910.
+\]
+\[
+\text{same-scale WSD-family: }
+-30.88\% \text{ mean MAE change},
+\quad
+15/15 \text{ wins}.
+\]
+\end{block}
+\end{frame}
+
+% =====================================================================
+\appendix
+\section{Appendix}
+
+\begin{frame}{Appendix A: q2 half-life rule}
+\small
+Loss is observed only on discrete logging points. Let the main logging interval be:
+\[
+\Delta_{\mathrm{obs}}=128,
+\qquad
+\lambda_{\mathrm{obs}}
+=
+\frac{\log 2}{\eta_{\max}\Delta_{\mathrm{obs}}}.
+\]
+\vfill
+Let total drop and normalized drop mass be:
+\[
+D_s=\sum_t d_t,
+\qquad
+p_t=\frac{d_t}{D_s}.
+\]
+Define Herfindahl concentration:
+\[
+q_s=\sum_t p_t^2=\frac{1}{n_{\mathrm{eff}}}.
+\]
+This work uses:
+\[
+\boxed{
+\lambda_s=\frac{\lambda_{\mathrm{obs}}}{2-q_s}
+}
+\]
+\vfill
+\textbf{Intuition.}
+Diffuse decay receives roughly a \(2\Delta_{\mathrm{obs}}\) half-life;
+a single sharp drop receives roughly a \(\Delta_{\mathrm{obs}}\) half-life.
+The rule reads only the schedule and not target loss.
+\end{frame}
+
+\begin{frame}{Appendix B: Why one-pole exponential response?}
+\small
+This work treats LR drop as forcing and residual relaxation as a low-capacity one-pole closure:
+\[
+z_t=\exp(-\lambda_s\eta_t)z_{t-1}+d_t.
+\]
+\vfill
+Three points:
+\begin{enumerate}\tightlist
+\item LR drop is a discrete forcing: \(d_t=[\eta_{t-1}-\eta_t]_+\).
+\item If recovery from forcing is approximated by one state variable, the state decays in cumulative LR time.
+\item The Green's function of a first-order linear system is an exponential kernel:
+\[
+\exp\left(-\lambda_s\sum_{v=u+1}^{t}\eta_v\right).
+\]
+\end{enumerate}
+\vfill
+\textbf{Boundary.}
+This is not a strict training-dynamics theorem.
+It is a one-pole closure assumption.
+Kernel ablations test whether it is more reasonable than same-capacity alternatives.
+\end{frame}
+
+\begin{frame}{Appendix C: lambda / kernel robustness}
+\scriptsize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\textbf{\(\lambda\) sensitivity}
+\begin{tabular}{lrr}
+\toprule
+Rule & mean MAE & wins\\
+\midrule
+\(q_2\) half-life & \(-30.88\%\) & 15/15\\
+fixed \(1\Delta_{\mathrm{obs}}\) & \(-17.52\%\) & 15/15\\
+fixed \(2\Delta_{\mathrm{obs}}\) & \(+20.63\%\) & 7/15\\
+wrong fast \(\lambda=20\) & \(-14.76\%\) & 15/15\\
+oracle grid best & \(-31.55\%\) & 15/15\\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Same-capacity kernel}
+\begin{tabular}{lrr}
+\toprule
+One-scalar feature & mean MAE & wins\\
+\midrule
+LR-time exp drop & \(-30.88\%\) & 15/15\\
+signed LR-time & \(-30.24\%\) & 15/15\\
+step-time exp & \(-3.05\%\) & 15/15\\
+cumulative drop & \(+27.15\%\) & 7/15\\
+power-law LR-time & \(+119.07\%\) & 1/15\\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\vfill
+\small
+\textbf{Reading the table.}
+Oracle grid best reads target loss and is only an upper-bound diagnostic.
+The \(q_2\) half-life rule does not read target loss but is close to the oracle.
+The kernel audit shows that not every schedule-derived scalar explains residual transfer.
+\end{frame}
+
+\begin{frame}{Appendix D: source-only calibration window rule}
+\small
+Candidate suffixes are checked using source cosine only:
+\[
+\rho=\frac{\|(I-P_{\mathrm{LD}})\phi\|_2^2}{\|\phi\|_2^2},
+\qquad
+\rho\le 1/N_{\mathrm{cal}}.
+\]
+\vfill
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+fit start & max retention & floor \(1/N_{\mathrm{cal}}\) & pass & target result\\
+\midrule
+5000 & 0.013748 & 0.001912 & no & \(+139.64\%\), 0/15\\
+6500 & 0.004225 & 0.001953 & no & \(+21.07\%\), 4/15\\
+8000 & 0.001478 & 0.002000 & yes & \(-30.88\%\), 15/15\\
+10000 & 0.000489 & 0.002066 & yes & \(-9.85\%\), 15/15\\
+12000 & 0.000353 & 0.002132 & yes & \(-1.82\%\), 6/15\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Reading the table.}
+The rule selects the earliest passing suffix, \(t\ge8000\).
+Target loss is not used to choose the window;
+the sweep is reported only as a post-hoc sensitivity analysis.
+\end{frame}
+
+\begin{frame}{Appendix E: why not just rescale the last MPL term?}
+\small
+The last MPL term \(L_G(t)=B_sD_s(t)\) is also schedule-aware.
+A natural suspicion is:
+\[
+\text{proposed correction}
+\approx
+\rho L_G(t).
+\]
+\vfill
+Scalar multiplier audit:
+\begin{center}\small
+\begin{tabular}{lrrr}
+\toprule
+Setting & proposed correction & oracle scalar \( \rho L_G \) & scalar \(R^2\)\\
+\midrule
+all core & about \(-30\%\) & \(-8.91\%\) & \(+0.039\)\\
+WSD final & about \(-45\%\) & \(-17.80\%\) & \(+0.036\)\\
+WSD-con & \(-21.14\%\) & \(-2.98\%\) & \(+0.040\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Conclusion.}
+Rescaling the last MPL term is a meaningful ablation,
+but it does not explain the main correction shape.
+\(\phi\) is a causal LR-drop response, not a constant multiple of \(L_G(t)\).
+\end{frame}
+
+\begin{frame}{Appendix F: WSD-con failure-mode numbers}
+\scriptsize
+\begin{center}
+\begin{tabular}{llrrrr}
+\toprule
+scale & target & \(\widehat\kappa\) & \(\kappa^\star\) & ratio & MAE change\\
+\midrule
+25M & 3e-5 & 0.0186 & 0.0243 & 0.766 & \(-44.65\%\)\\
+25M & 9e-5 & 0.0186 & 0.0206 & 0.904 & \(-21.19\%\)\\
+25M & 18e-5 & 0.0186 & 0.0338 & 0.551 & \(-9.19\%\)\\
+100M & 3e-5 & 0.0327 & 0.0317 & 1.032 & \(-42.76\%\)\\
+100M & 9e-5 & 0.0327 & 0.0227 & 1.444 & \(-9.84\%\)\\
+100M & 18e-5 & 0.0327 & 0.0217 & 1.506 & \(-12.80\%\)\\
+400M & 3e-5 & 0.0318 & 0.0504 & 0.631 & \(-35.97\%\)\\
+400M & 9e-5 & 0.0318 & 0.0376 & 0.845 & \(-9.17\%\)\\
+400M & 18e-5 & 0.0318 & 0.0277 & 1.149 & \(-4.67\%\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\small
+\textbf{Reading the table.}
+Every WSD-con curve improves aggregate MAE,
+but the \(\widehat\kappa/\kappa^\star\) ratio is not stable across final LRs.
+\end{frame}
+
+\begin{frame}{Appendix G: missing new held-out WSD schedules}
+\small
+For each scale, the currently available WSD-family targets are:
+\[
+\{\text{sharp},\ \text{linear},\ \text{WSD-con 3e-5},\ \text{WSD-con 9e-5},\ \text{WSD-con 18e-5}\}.
+\]
+Therefore the current held-out / robustness analysis can only audit the protocol within these curves.
+\vfill
+\textbf{Most important next experiment.}
+After freezing the following rules, add 2--4 new WSD-family training runs:
+\[
+t\ge8000,\quad
+q_2\text{ half-life},\quad
+P_{\mathrm{LD}},\quad
+1/N_{\mathrm{cal}}\text{ ridge floor},\quad
+\kappa\ge0.
+\]
+The new schedules can vary:
+\begin{itemize}\tightlist
+\item cooldown start;
+\item decay length;
+\item final LR;
+\item intermediate shapes between sharp and linear.
+\end{itemize}
+\vfill
+\textbf{Purpose.}
+Test whether the identification protocol was tuned to the existing five WSD target types.
+\end{frame}
+
+\begin{frame}{Appendix H: reproduction artifacts}
+\small
+\begin{center}
+\begin{tabular}{L{0.28\linewidth}L{0.58\linewidth}}
+\toprule
+Artifact & Content\\
+\midrule
+\code{robustness\_audit.py} &
+\(\lambda\) sensitivity, kernel ablation, cross-scale, window, failure mode, and figures.\\
+\addlinespace
+\code{REPORT.md} &
+Complete tables and interpretation for the robustness audit.\\
+\addlinespace
+\code{LEAKAGE\_AUDIT.md} &
+Target-leakage checklist.\\
+\addlinespace
+\code{slides/figs/} &
+Heatmap, representative error curves, MPL residual anomaly, projection decomposition,
+projection ablation, and kappa scatter.\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vfill
+\textbf{Reproduction command.}
+\begin{center}
+\scriptsize
+\code{python3 repro/schedule\_response\_robustness\_audit.py}\\[0.2em]
+\code{cd slides \&\& pdflatex main.tex \&\& pdflatex main.tex}
+\end{center}
+\end{frame}
+
+\begin{frame}{Code and division}
+\small
+\textbf{GitHub:}\\
+\code{github.com/wjjpku/DL-final}
+
+\vfill
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Main scripts}
+\begin{itemize}\tightlist
+\item reproduce MPL baseline:\\
+\code{python3 repro/reproduce\_cosine\_to\_wsd.py}
+\item run MPL-LD projected kappa:\\
+\code{python3 repro/schedule\_response\_robustness\_audit.py}
+\item generate figures / tables:\\
+\code{python3 repro/schedule\_response\_robustness\_audit.py}
+\end{itemize}
+
+\textbf{Required environment}
+\begin{itemize}\tightlist
+\item Python 3
+\item numpy, pandas, scipy, matplotlib
+\item scikit-learn, tqdm, requests
+\item pdfLaTeX or XeLaTeX for slides
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Outputs}
+\begin{itemize}\tightlist
+\item MPL reproduction metrics
+\item WSD-family MAE / RMSE tables
+\item kappa-oracle scatter plots
+\item projection ablation figures
+\item slides and audit reports
+\end{itemize}
+
+\textbf{Division}
+\begin{block}{Individual completion}
+This project was completed individually by Jiaju Wu:
+method design, code implementation, experiment execution,
+figure/table generation, and report writing.
+The MPL baseline reproduction is based on public implementation / public data;
+citations and modifications are documented in the repository.
+\end{block}
+\end{column}
+\end{columns}
 \end{frame}
 
 \end{document}

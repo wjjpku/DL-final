@@ -1,0 +1,2 @@
+estimator,mean_delta_pct,mean_kappa_hat,mean_kappa_star,median_delta_pct,pearson_kappa_star,rows,wins,worst_delta_pct
+direct_no_projection,625.9199404861537,0.6284774242955319,0.046078323479564046,336.02587482988355,-0.8493556750908642,15,0,2366.7109686237577
