@@ -27,6 +27,15 @@ release staging command instead of using `git add .`:
 python3 repro/verify_release.py --print-git-add
 ```
 
+If `results/` already contains tracked exploratory dumps, clean the result index
+first and then re-add only the release allowlist:
+
+```bash
+git rm -r --cached results
+python3 repro/verify_release.py --print-git-add | sh
+python3 repro/verify_release.py --require-index
+```
+
 Expected slide counts:
 
 - `slides/main_zh.pdf`: 36 pages.
@@ -98,4 +107,4 @@ frozen MPL baseline
 
 Historical directories such as `current_law_*`, `step_time_*`, and
 `cosine_to_wsd_response_search/` may be retained for provenance, but they should
-not be presented as the current main method.
+not be committed under `results/` in the GitHub-facing release.

@@ -100,6 +100,19 @@ FORBIDDEN_MAIN_TEXT = [
 ]
 
 
+ALLOWED_RESULTS_EXACT = {
+    "results/README.md",
+    "results/tables/cosine_to_wsd_metrics.csv",
+    "results/tables/fitted_params.json",
+    "results/figures/avg_test_mae.png",
+    "results/figures/avg_test_rmse.png",
+}
+
+ALLOWED_RESULTS_PREFIXES = (
+    "results/schedule_response_robustness/",
+)
+
+
 MAIN_TEXT_FILES = [
     "README.md",
     "FINAL_DELIVERABLES.md",
@@ -345,6 +358,29 @@ def check_required_files_known_to_git(
         ok("required files are present in the git index")
 
 
+def check_results_allowlist(errors: list[str]) -> None:
+    tracked = tracked_files()
+    extra = sorted(
+        path
+        for path in tracked
+        if path.startswith("results/")
+        and path not in ALLOWED_RESULTS_EXACT
+        and not any(path.startswith(prefix) for prefix in ALLOWED_RESULTS_PREFIXES)
+    )
+    if extra:
+        preview = ", ".join(extra[:30])
+        suffix = "" if len(extra) <= 30 else f", ... ({len(extra)} total)"
+        fail(
+            errors,
+            "non-release result files are still tracked: "
+            + preview
+            + suffix
+            + ". Clean with: git rm -r --cached results && python3 repro/verify_release.py --print-git-add",
+        )
+    else:
+        ok("tracked results are restricted to the release allowlist")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify the GitHub-facing release package.")
     parser.add_argument(
@@ -379,6 +415,7 @@ def main(argv: list[str] | None = None) -> int:
     check_required_files(errors)
     check_required_files_not_ignored(errors)
     check_required_files_known_to_git(errors, warnings, strict=args.require_index)
+    check_results_allowlist(errors)
     check_data_files(errors)
     check_report_numbers(errors)
     check_baseline_reproduction_numbers(errors)

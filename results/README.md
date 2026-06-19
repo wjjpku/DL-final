@@ -1,7 +1,9 @@
 # Results Directory
 
-This directory contains committed result artifacts.  The current main result is
-under:
+This directory contains only release-facing result artifacts.  Large exploratory
+result dumps are intentionally not part of the GitHub release.
+
+The current main result is under:
 
 ```text
 results/schedule_response_robustness/
@@ -57,16 +59,13 @@ Expected aggregate values over the 15 WSD-family test targets:
 | Tissue/Momentum | `0.002242` | `0.007493` | `0.010415` | `0.995223` |
 | MPL | `0.003517` | `0.006292` | `0.009848` | `0.995760` |
 
-## Historical Result Directories
+## What Is Not Committed Here
 
-Many other directories are retained from earlier development:
+Historical exploratory result directories such as `current_law_*`, `step_time_*`,
+`cosine_to_wsd_response_search/`, `interpretable_*`, and `mpl_ld_*` are not part
+of the public release.  They can be regenerated locally when needed, but pushing
+them makes the repository hard to read.
 
-- `current_law_*`
-- `step_time_*`
-- `cosine_to_wsd_response_search/`
-- `interpretable_*`
-- `mpl_ld_*`
-
-They are not deleted because they document the modeling path and negative
-controls.  For grading or public reproduction, start with
-`schedule_response_robustness/` and `../REPRODUCIBILITY.md`.
+The release verifier enforces this rule: tracked files under `results/` must be
+limited to this README, `schedule_response_robustness/`, and the small baseline
+summary tables/figures listed above.

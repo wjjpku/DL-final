@@ -14,7 +14,19 @@ env/
 .idea/
 .vscode/
 
-# Note: results/ 与 external/ 按项目约定纳入版本控制，故不在此忽略。
+# Keep external public data in version control. Keep results on a strict
+# allowlist so exploratory result dumps are not accidentally pushed.
+results/**
+!results/
+!results/README.md
+!results/schedule_response_robustness/
+!results/schedule_response_robustness/**
+!results/tables/
+!results/tables/cosine_to_wsd_metrics.csv
+!results/tables/fitted_params.json
+!results/figures/
+!results/figures/avg_test_mae.png
+!results/figures/avg_test_rmse.png
 
 # build artifacts
 *_submission.zip
