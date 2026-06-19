@@ -29,10 +29,18 @@ The project treats cosine-to-WSD transfer as an **identification problem**:
 remove the MPL-LD nuisance component first, then transfer only the identified
 LR-drop response.
 
-<p align="center">
-  <img src="slides/figs/fig_mpl_residual_anomaly_100M.png" width="47%" alt="MPL residual anomaly near WSD transition and tail">
-  <img src="slides/figs/fig_projection_decomposition_cosine_100M.png" width="47%" alt="Projection decomposition of cosine residual">
-</p>
+**MPL residuals are structured, not random.**  
+The residual concentrates around the LR transition and tail region, which makes
+schedule transfer plausible but also dangerous.
+
+![MPL residual anomaly near WSD transition and tail](slides/figs/fig_mpl_residual_anomaly_100M.png)
+
+**Projection separates signal from nuisance.**  
+The raw cosine residual contains both transferable response and MPL-LD parameter
+drift.  The projection removes the local MPL-LD tangent directions before
+estimating the response amplitude.
+
+![Projection decomposition of cosine residual](slides/figs/fig_projection_decomposition_cosine_100M.png)
 
 The prediction rule is intentionally low capacity:
 
@@ -52,10 +60,18 @@ L_hat_s(t) = L_MPL,s(t) + kappa_hat_s * phi_{lambda_s,s}(t)
 The main deployable setting is same-scale cosine source to WSD-family targets
 across `25M`, `100M`, and `400M`.
 
-<p align="center">
-  <img src="slides/figs/fig_schedule_response_mae_heatmap.png" width="47%" alt="MAE improvement heatmap">
-  <img src="slides/figs/fig_kappa_clean_scatter.png" width="47%" alt="Source kappa versus target oracle kappa">
-</p>
+**Main result across WSD-family targets.**  
+The projected source-only correction improves all 15 same-scale WSD-family
+curves relative to MPL.
+
+![MAE improvement heatmap](slides/figs/fig_schedule_response_mae_heatmap.png)
+
+**Source-only amplitude tracks target oracle amplitude.**  
+The oracle `kappa_star` reads target loss and is used only as a diagnostic.  The
+alignment shows that the projected source estimate captures transferable
+amplitude information.
+
+![Source kappa versus target oracle kappa](slides/figs/fig_kappa_clean_scatter.png)
 
 | Evidence | Result |
 |---|---:|
