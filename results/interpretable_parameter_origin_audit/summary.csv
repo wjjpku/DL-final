@@ -1,8 +1,0 @@
-mean_delta,median_delta,method,nonharm,note,rows,wins,worst_delta
--22.061025834938636,-17.06097335704525,fixed_lr_lambda_20,15,one universal fast LR-time response,15,15,-5.296443352845004
-22.337095160303967,45.10290148324283,fixed_lr_lambda_7,7,one universal slow LR-time response,15,7,137.85484158653233
-200.2899918626886,281.8317931037147,cosine_source_selected_lambda,0,lambda chosen by cosine residual fit objective only,15,0,452.79353991599686
--31.97217804276374,-33.842269428319526,obs_half_life_2p5_exact,15,endpoints from 2.5 and 1 observed-interval half-lives,15,15,-1.085874412445098
--34.5598985317148,-36.502491592646145,obs_half_life_2p5_roundfast20,15,slow endpoint from 2.5 observed intervals; fast endpoint rounded to 20,15,15,-5.296443352845004
--34.45048460699111,-35.17415449856828,current_q_7_20,15,current development endpoint rule,15,15,-5.296443352845004
-30.386708354921915,32.984193631229616,step_time_geometry_tau,1,"step-time contrast rule; target tau from LR geometry, coefficient from cosine only",15,1,58.55574524456193

@@ -30,11 +30,9 @@ REQUIRED_FILES = [
     "DATA_MANIFEST.md",
     "RELEASE_CHECKLIST.md",
     "requirements.txt",
-    "docs/README.md",
     "repro/README.md",
     "results/README.md",
     "slides/README.md",
-    "paper/README.md",
     "slides/main_zh.tex",
     "slides/main_zh.pdf",
     "slides/main.tex",
@@ -48,6 +46,7 @@ REQUIRED_FILES = [
     "repro/interpretable_error_model.py",
     "repro/interpretable_nuisance_origin_audit.py",
     "repro/interpretable_observation_bracket_audit.py",
+    "repro/verify_release.py",
     "results/schedule_response_robustness/REPORT.md",
     "results/schedule_response_robustness/LEAKAGE_AUDIT.md",
     "results/schedule_response_robustness/lambda_sensitivity_summary.csv",
@@ -100,17 +99,16 @@ FORBIDDEN_MAIN_TEXT = [
 ]
 
 
-ALLOWED_RESULTS_EXACT = {
-    "results/README.md",
-    "results/tables/cosine_to_wsd_metrics.csv",
-    "results/tables/fitted_params.json",
-    "results/figures/avg_test_mae.png",
-    "results/figures/avg_test_rmse.png",
-}
+def release_data_files() -> set[str]:
+    return {
+        f"external/MultiPowerLaw/loss_curve_repo/csv_{scale}/{name}"
+        for scale in ("25", "100", "400")
+        for name in DATA_FILES
+    }
 
-ALLOWED_RESULTS_PREFIXES = (
-    "results/schedule_response_robustness/",
-)
+
+def release_tracked_allowlist() -> set[str]:
+    return set(REQUIRED_FILES) | release_data_files()
 
 
 MAIN_TEXT_FILES = [
@@ -118,11 +116,9 @@ MAIN_TEXT_FILES = [
     "FINAL_DELIVERABLES.md",
     "REPRODUCIBILITY.md",
     "DATA_MANIFEST.md",
-    "docs/README.md",
     "repro/README.md",
     "results/README.md",
     "slides/README.md",
-    "paper/README.md",
     "slides/main.tex",
     "slides/main_zh.tex",
 ]
@@ -360,12 +356,12 @@ def check_required_files_known_to_git(
 
 def check_results_allowlist(errors: list[str]) -> None:
     tracked = tracked_files()
+    allowed = release_tracked_allowlist()
     extra = sorted(
         path
         for path in tracked
         if path.startswith("results/")
-        and path not in ALLOWED_RESULTS_EXACT
-        and not any(path.startswith(prefix) for prefix in ALLOWED_RESULTS_PREFIXES)
+        and path not in allowed
     )
     if extra:
         preview = ", ".join(extra[:30])
@@ -375,10 +371,28 @@ def check_results_allowlist(errors: list[str]) -> None:
             "non-release result files are still tracked: "
             + preview
             + suffix
-            + ". Clean with: git rm -r --cached results && python3 repro/verify_release.py --print-git-add",
+            + ". Clean with: git rm -r --cached . && python3 repro/verify_release.py --print-git-add | sh",
         )
     else:
         ok("tracked results are restricted to the release allowlist")
+
+
+def check_tracked_release_allowlist(errors: list[str]) -> None:
+    tracked = tracked_files()
+    allowed = release_tracked_allowlist()
+    extra = sorted(path for path in tracked if path not in allowed)
+    if extra:
+        preview = ", ".join(extra[:40])
+        suffix = "" if len(extra) <= 40 else f", ... ({len(extra)} total)"
+        fail(
+            errors,
+            "non-release files are still tracked: "
+            + preview
+            + suffix
+            + ". Clean with: git rm -r --cached . && python3 repro/verify_release.py --print-git-add | sh",
+        )
+    else:
+        ok("tracked files are restricted to the minimal release allowlist")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -401,10 +415,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.print_files:
-        print("\n".join(REQUIRED_FILES))
+        print("\n".join(sorted(release_tracked_allowlist())))
         return 0
     if args.print_git_add:
-        quoted = " ".join(shlex.quote(path) for path in REQUIRED_FILES)
+        quoted = " ".join(shlex.quote(path) for path in sorted(release_tracked_allowlist()))
         print(f"git add -- {quoted}")
         return 0
 
@@ -416,6 +430,7 @@ def main(argv: list[str] | None = None) -> int:
     check_required_files_not_ignored(errors)
     check_required_files_known_to_git(errors, warnings, strict=args.require_index)
     check_results_allowlist(errors)
+    check_tracked_release_allowlist(errors)
     check_data_files(errors)
     check_report_numbers(errors)
     check_baseline_reproduction_numbers(errors)

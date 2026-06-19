@@ -1,7 +1,0 @@
-mean_delta,mode,nonharm,reading,role,wins,worst_delta
--32.038059900826575,shape_routed_no_nuisance,18/18,one fitted kappa; no nuisance coefficients used,minimal target-holdout,18/18,-0.410037060093571
--36.12943610676929,shape_routed_residualized,18/18,adds projection to reduce smooth-drift contamination,strong target-holdout,18/18,-7.030977928538551
--40.71444188617523,self_fit_no_nuisance,18/18,same target curve fits only kappa against phi_tau,minimal self-fit,18/18,-6.612826064772137
--70.57679566355084,decomposed_self_fit_reference,18/18,uses fitted low-frequency nuisance for same-curve explanation,diagnostic self-fit,18/18,-38.87148919959566
--32.70344546373875,cross_family_residualized,18/18,forbids calibration from the target schedule family,no-same-family audit,18/18,-6.460721805621095
--24.63039317889678,cross_family_no_nuisance_p3,18/18,"no same-family source, no nuisance projection, stronger drop attenuation",strict audit,18/18,-3.5179879953821214

@@ -1,6 +1,0 @@
-fitted_in_recommended_error_model,notes,quantity,role,source,uses_target_loss
-0,not introduced by the finite-response correction,MPL parameters,baseline predictor,precomputed MPL fit already used by baseline,outside_error_model
-0,no external residual basis; computed from MPL formula and LR schedule,D_down(t),cooldown component of MPL LD term,signed decomposition of MPL D(t) by Delta eta < 0,0
-0,support-bracket observation prior; no loss values,tau_s,finite-response time,"Delta_obs * (1 + min(1, cooldown_support_span / Delta_obs))",0
-0,schedule-only boundary; full-horizon diffuse decay gets no local transient correction,a_s,adiabatic boundary,"1 - cooldown_support_span / post_warmup_span, clipped at zero",0
-0,cosine-fitted amplitude appears only as a negative control and fails badly,residual amplitude,not used by recommended model,none,0

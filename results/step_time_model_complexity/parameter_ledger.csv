@@ -1,5 +1,0 @@
-component,count_per_fit,explanation,fitted_from_loss,headline
-kappa,1,the only transferable amplitude fitted from calibration residuals,yes,yes
-low-frequency nuisance coefficients,"0, 3, or 5 depending on audit",residualization/self-fit diagnostic only; not a physical sinusoidal mechanism,yes,no
-tau / route / safety gate,0,schedule-only model-selection rule; ablated separately because it can overfit benchmarks,no,no
-drop attenuation,0,schedule-only conservative shrinkage for weaker single-step targets,no,no

@@ -12,9 +12,7 @@ pip install -r requirements.txt
 ```
 
 The main audit uses NumPy, SciPy, Matplotlib, and standard-library CSV/Path
-utilities.  Pandas is included for table-oriented exploration scripts and
-notebooks.  Other exploratory scripts may use additional packages already
-listed in `requirements.txt`.
+utilities.  Pandas is included for lightweight table checks.
 
 For slides:
 
@@ -43,8 +41,7 @@ Each scale contains:
 `constant_24000.csv`, `constant_72000.csv`, and `cosine_24000.csv` are also
 included because some reproduction and baseline scripts use them.
 
-See `DATA_MANIFEST.md` for the complete data boundary, including ignored local
-raw bytes for the independent transformer-reproduction branch.
+See `DATA_MANIFEST.md` for the complete data boundary.
 
 ## Main Result Reproduction
 
@@ -54,13 +51,14 @@ Run:
 python3 repro/schedule_response_robustness_audit.py
 ```
 
-This regenerates:
+This regenerates committed summary files and local intermediate files:
 
 ```text
 results/schedule_response_robustness/REPORT.md
 results/schedule_response_robustness/LEAKAGE_AUDIT.md
-results/schedule_response_robustness/*.csv
-results/schedule_response_robustness/figs/*.png
+results/schedule_response_robustness/*_summary.csv
+results/schedule_response_robustness/window_rule.csv
+results/schedule_response_robustness/wsdcon_failure_slice.csv
 slides/figs/fig_mpl_residual_anomaly_100M.png
 slides/figs/fig_projection_decomposition_cosine_100M.png
 slides/figs/fig_projection_ablation_time_errors_100M.png
@@ -68,6 +66,10 @@ slides/figs/fig_schedule_response_mae_heatmap.png
 slides/figs/fig_schedule_response_time_errors_100M.png
 slides/figs/fig_kappa_clean_scatter.png
 ```
+
+The script may also write detailed local CSVs and intermediate figures under
+`results/schedule_response_robustness/`; those are ignored by the release
+allowlist because the summary files above are enough to reproduce the slides.
 
 Expected headline numbers in `REPORT.md`:
 
@@ -98,16 +100,18 @@ To restrict scales:
 python3 repro/reproduce_cosine_to_wsd.py --scales 25 100 400
 ```
 
-Generated baseline outputs:
+Committed baseline summary outputs:
 
 ```text
 results/tables/cosine_to_wsd_metrics.csv
 results/tables/fitted_params.json
 results/figures/avg_test_mae.png
 results/figures/avg_test_rmse.png
-results/predictions/*_tissue_*.csv
-results/predictions/*_mpl_*.csv
 ```
+
+The script also writes per-curve prediction CSVs locally under
+`results/predictions/`; those are regenerable and are not part of the release
+allowlist.
 
 Expected aggregate values over the 15 WSD-family test targets:
 
@@ -139,16 +143,6 @@ Expected:
 - `slides/main_zh.pdf`: 36 pages.
 - `slides/main.pdf`: 38 pages.
 
-## Compile Paper
-
-```bash
-cd paper
-pdflatex -interaction=nonstopmode -halt-on-error main.tex
-```
-
-The paper is a technical draft.  The slides are currently the cleanest
-standalone presentation.
-
 ## Target-Loss Leakage Boundary
 
 Deployable prediction uses:
@@ -163,22 +157,16 @@ target loss -> evaluation only
 Target WSD loss is not used for calibration.  It is used only for evaluation and
 for oracle diagnostics such as `kappa_star`.
 
-## Expensive Or Historical Experiments
+## Release Verification
 
-The repository includes many historical exploration scripts and result
-directories.  They are kept for provenance but are not required for grading or
-for reproducing the main claim.  In particular:
-
-- `represent/` contains an independent reproduction branch; its raw local
-  training bytes under `represent/data/` are ignored by Git.
-- `results/current_law_*`, `results/step_time_*`, and
-  `results/cosine_to_wsd_response_search/` are historical development audits.
-- Re-running all historical audits is unnecessary and may take a long time.
+The release package is intentionally minimal.  Historical exploration scripts,
+large local result dumps, paper drafts, and independent training branches are
+not part of the GitHub-facing submission.
 
 The lightweight verification path is:
 
 ```bash
-python3 repro/verify_release.py
+python3 repro/verify_release.py --require-index
 python3 repro/schedule_response_robustness_audit.py
 cd slides && xelatex -interaction=nonstopmode -halt-on-error main_zh.tex
 ```

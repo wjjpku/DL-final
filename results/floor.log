@@ -1,4 +1,0 @@
-留一: 训练其余8条, 预测留出1条 | MPL vs MPL+floor
-scale     held | MPL test  MPL dec | +floor test +floor dec | D, c
- 100M    wsd_2 |  0.00216  0.00605 |     0.00235    0.00784 | D=-0.0341 c=0.725
- 100M    wsdld |  0.00195  0.00508 |     0.00184    0.00503 | D=-0.0340 c=0.727

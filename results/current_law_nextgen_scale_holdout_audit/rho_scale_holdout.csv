@@ -1,4 +1,0 @@
-heldout_main_tests,heldout_main_wins,heldout_mean_delta_pct,heldout_non_harm_cells,heldout_scale,heldout_tests,heldout_wins,heldout_worst_delta_pct,selected_inside_safe_side,selected_rho,train_first_safe_rho,train_scales
-186,186,-4.883432871386796,372,100,372,186,0.0,1,0.5,0.35,25|400
-186,186,-6.433184290110668,372,25,372,186,0.0,1,0.5,0.4,100|400
-186,186,-6.369986842378323,372,400,372,186,0.0,1,0.5,0.4,100|25

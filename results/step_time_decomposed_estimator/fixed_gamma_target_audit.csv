@@ -1,7 +1,0 @@
-heldout_target,mean_delta,nonharm,rows,target_label,wins,worst_delta
-cosine_72000.csv,-4.367486667937489,15,15,Cosine,15,-1.5901453359082995
-wsd_20000_24000.csv,-27.36462297373779,15,15,WSD sharp,13,0.0
-wsdld_20000_24000.csv,-19.327816798245962,15,15,WSD linear,13,0.0
-wsdcon_3.csv,-20.765871981936094,15,15,WSD-con 3e-5,13,0.0
-wsdcon_9.csv,-12.164209999295021,15,15,WSD-con 9e-5,13,0.0
-wsdcon_18.csv,-4.613416278859889,15,15,WSD-con 18e-5,13,0.0

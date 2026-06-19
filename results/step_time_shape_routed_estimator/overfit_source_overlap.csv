@@ -1,7 +1,0 @@
-route,source_count,source_families,target_curve,target_family,target_label,uses_same_family_source
-smooth_decay,1,single_step_probe,cosine_72000.csv,cosine,Cosine,0
-finite_tail,1,finite_tail_wsd,wsd_20000_24000.csv,finite_tail_wsd,WSD sharp,1
-finite_tail,1,finite_tail_wsd,wsdld_20000_24000.csv,finite_tail_wsd,WSD linear,1
-full_step_drop,2,finite_tail_wsd,wsdcon_3.csv,single_step_probe,WSD-con 3e-5,0
-medium_step_drop,2,single_step_probe,wsdcon_9.csv,single_step_probe,WSD-con 9e-5,1
-weak_step_drop,1,single_step_probe,wsdcon_18.csv,single_step_probe,WSD-con 18e-5,1

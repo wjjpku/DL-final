@@ -57,27 +57,15 @@ These files can be regenerated with:
 python3 repro/schedule_response_robustness_audit.py
 ```
 
-## Ignored Local Training Bytes
+## Ignored Local Or Historical Data
 
-The independent transformer-reproduction branch under `represent/` has local
-raw training bytes:
+The release package intentionally excludes:
 
-```text
-represent/data/wiki_train.u8
-represent/data/wiki_val.u8
-```
+- raw transformer-training bytes;
+- historical search outputs under `results/current_law_*`, `results/step_time_*`,
+  and `results/cosine_to_wsd_response_search/`;
+- paper-draft figures and independent reproduction branches;
+- local scratch plotting workspaces.
 
-These files are intentionally ignored by `.gitignore` because `wiki_train.u8`
-is about 180MB and exceeds the normal GitHub single-file limit.  They are not
-needed for the current public-curve reproduction path.  The committed
-`represent/` scripts, reports, and result artifacts document that branch.
-
-If the independent transformer branch must be reproduced exactly from raw
-bytes, either regenerate/download the data locally or use Git LFS / an external
-release artifact.  Do not add `represent/data/` to a normal Git commit.
-
-## Large Historical Result Files
-
-Some historical search CSVs under `results/cosine_to_wsd_response_search/` are
-around 20--25MB.  They are below GitHub's single-file limit and are retained for
-provenance, but they are not required by the main reproduction path.
+These files are not needed to reproduce the slides' core experiments.  The
+release verifier fails if non-release result files are still tracked.

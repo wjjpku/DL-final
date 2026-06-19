@@ -1,4 +1,0 @@
-dct_performance_mean_delta,dct_performance_median_delta,dct_performance_nonharm,dct_performance_wins,dct_performance_worst_delta,group,observation_bracket_mean_delta,observation_bracket_median_delta,observation_bracket_nonharm,observation_bracket_wins,observation_bracket_worst_delta,old_mpl_ld_mean_delta,old_mpl_ld_median_delta,old_mpl_ld_nonharm,old_mpl_ld_wins,old_mpl_ld_worst_delta,rows
--32.82569336684312,-39.347184548198214,15,15,-5.300377471151208,core_wsd,-29.87468874369102,-35.96635695800162,15,15,-4.665186792735431,-27.249907643228894,-31.08624992582383,15,15,-3.001762892643167,15
-0.0,0.0,9,0,0.0,extra_control,0.0,0.0,9,0,0.0,0.0,0.0,9,0,0.0,9
--20.516058354276947,-10.445408862989293,24,15,0.0,all,-18.67168046480689,-9.516214993878863,24,15,0.0,-17.03119227701806,-7.521290700108491,24,15,0.0,24

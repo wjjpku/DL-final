@@ -1,4 +1,0 @@
-group,minimal_mean_delta,minimal_nonharm,minimal_worst_delta,old_mean_delta,old_nonharm,old_worst_delta,rows
-core,-32.038059900826575,18,-0.410037060093571,-32.265764837142676,18,-5.613852346395454,18
-extended,-21.358706600551052,27,0.0,-21.51050989142845,27,0.0,27
-safety_controls,0.0,9,0.0,0.0,9,0.0,9

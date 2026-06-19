@@ -27,11 +27,11 @@ release staging command instead of using `git add .`:
 python3 repro/verify_release.py --print-git-add
 ```
 
-If `results/` already contains tracked exploratory dumps, clean the result index
+If the repository already contains tracked exploratory files, clean the index
 first and then re-add only the release allowlist:
 
 ```bash
-git rm -r --cached results
+git rm -r --cached .
 python3 repro/verify_release.py --print-git-add | sh
 python3 repro/verify_release.py --require-index
 ```
@@ -65,7 +65,14 @@ Main code:
 
 Main outputs:
 
-- `results/schedule_response_robustness/`
+- `results/schedule_response_robustness/REPORT.md`
+- `results/schedule_response_robustness/LEAKAGE_AUDIT.md`
+- `results/schedule_response_robustness/lambda_sensitivity_summary.csv`
+- `results/schedule_response_robustness/kernel_ablation_summary.csv`
+- `results/schedule_response_robustness/cross_scale_summary.csv`
+- `results/schedule_response_robustness/projection_ablation_summary.csv`
+- `results/schedule_response_robustness/window_rule.csv`
+- `results/schedule_response_robustness/wsdcon_failure_slice.csv`
 - `results/tables/cosine_to_wsd_metrics.csv`
 - `results/tables/fitted_params.json`
 - `results/figures/avg_test_mae.png`
@@ -88,8 +95,11 @@ Data:
 
 ## Do Not Commit
 
-- `represent/data/`
-- `represent/MultiPowerLaw/`
+- `docs/`, `paper/`, `represent/`, `archive/`, `curated_curve_package/`
+- `scripts/`, `data/`, `.codex_render/`, `final.pdf`
+- `external/MultiPowerLaw/` files outside `loss_curve_repo/csv_*/*.csv`
+- exploratory `repro/*.py` scripts outside the main code list above
+- exploratory `results/` directories outside the main outputs list above
 - LaTeX intermediates: `*.aux`, `*.log`, `*.nav`, `*.snm`, `*.toc`, `*.out`
 - Python caches: `__pycache__/`, `*.pyc`
 - Machine-specific helper files under `tools/`
@@ -105,6 +115,7 @@ frozen MPL baseline
 -> source-only kappa transfers LR-drop response to WSD-family schedules
 ```
 
-Historical directories such as `current_law_*`, `step_time_*`, and
-`cosine_to_wsd_response_search/` may be retained for provenance, but they should
-not be committed under `results/` in the GitHub-facing release.
+Historical directories such as `current_law_*`, `step_time_*`,
+`cosine_to_wsd_response_search/`, `docs/`, `paper/`, and `represent/` may exist
+locally for provenance, but they should not be committed in the GitHub-facing
+release.

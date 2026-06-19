@@ -1,5 +1,0 @@
-model_family,run_id,scale,params,step,tokens_seen,loss,perplexity,schedule_type,eval_set
-pythia,pythia-70m,70m,70000000.0,1000,2097152000,4.244465,69.7185,cosine,NeelNanda/pile-10k
-pythia,pythia-70m,70m,70000000.0,8000,16777216000,3.508187,33.3877,cosine,NeelNanda/pile-10k
-pythia,pythia-70m,70m,70000000.0,32000,67108864000,3.413773,30.3797,cosine,NeelNanda/pile-10k
-pythia,pythia-70m,70m,70000000.0,143000,299892736000,3.427465,30.7985,cosine,NeelNanda/pile-10k

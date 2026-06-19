@@ -14,13 +14,60 @@ env/
 .idea/
 .vscode/
 
-# Keep external public data in version control. Keep results on a strict
-# allowlist so exploratory result dumps are not accidentally pushed.
+# Release package allowlists.  The GitHub-facing repository should contain only
+# the files needed to reproduce the slides' core experiments.
+archive/
+curated_curve_package/
+data/
+docs/
+external/README.md
+paper/
+represent/
+scripts/
+.codex_render/
+final.pdf
+
+external/MultiPowerLaw/**
+!external/MultiPowerLaw/
+!external/MultiPowerLaw/loss_curve_repo/
+!external/MultiPowerLaw/loss_curve_repo/csv_25/
+!external/MultiPowerLaw/loss_curve_repo/csv_100/
+!external/MultiPowerLaw/loss_curve_repo/csv_400/
+!external/MultiPowerLaw/loss_curve_repo/csv_25/*.csv
+!external/MultiPowerLaw/loss_curve_repo/csv_100/*.csv
+!external/MultiPowerLaw/loss_curve_repo/csv_400/*.csv
+
+repro/**
+!repro/
+!repro/README.md
+!repro/schedule_response_robustness_audit.py
+!repro/reproduce_cosine_to_wsd.py
+!repro/interpretable_error_model.py
+!repro/interpretable_nuisance_origin_audit.py
+!repro/interpretable_observation_bracket_audit.py
+!repro/verify_release.py
+
+slides/figs/**
+!slides/figs/
+!slides/figs/fig_mpl_residual_anomaly_100M.png
+!slides/figs/fig_projection_decomposition_cosine_100M.png
+!slides/figs/fig_projection_ablation_time_errors_100M.png
+!slides/figs/fig_schedule_response_mae_heatmap.png
+!slides/figs/fig_schedule_response_time_errors_100M.png
+!slides/figs/fig_kappa_clean_scatter.png
+
 results/**
 !results/
 !results/README.md
 !results/schedule_response_robustness/
-!results/schedule_response_robustness/**
+!results/schedule_response_robustness/REPORT.md
+!results/schedule_response_robustness/LEAKAGE_AUDIT.md
+!results/schedule_response_robustness/lambda_sensitivity_summary.csv
+!results/schedule_response_robustness/kernel_ablation_summary.csv
+!results/schedule_response_robustness/cross_scale_summary.csv
+!results/schedule_response_robustness/projection_ablation_summary.csv
+!results/schedule_response_robustness/window_rule.csv
+!results/schedule_response_robustness/wsdcon_failure_slice.csv
 !results/tables/
 !results/tables/cosine_to_wsd_metrics.csv
 !results/tables/fitted_params.json
@@ -33,7 +80,6 @@ results/**
 
 # local scratch workspaces that are not part of the public release
 mpl_error_curves/
-archive/legacy_docs/kdroprelax_formula.md
 
 # latex build artifacts (keep .tex and .pdf; drop intermediates)
 paper/*.aux

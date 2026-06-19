@@ -1,7 +1,0 @@
-mean_delta_pct,method,scale_rows,test_curve,test_label,train_curve,train_label,wins,worst_scale_delta_pct
--4.272656284804155,final_no_cap,3,wsd_20000_24000.csv,WSD sharp,cosine_72000.csv,Cosine,2,0.0
--15.977747413000229,final_no_cap,3,wsd_20000_24000.csv,WSD sharp,wsdcon_9.csv,WSD-con 9e-5,3,-12.889476946421963
--25.87721447165067,final_no_cap,3,wsd_20000_24000.csv,WSD sharp,wsdld_20000_24000.csv,WSD linear,3,-18.614743227369612
--20.52010819426767,nextgen_safe_rho0p5_Rtarget0p01,3,wsd_20000_24000.csv,WSD sharp,cosine_72000.csv,Cosine,3,-12.526656751606913
--8.696181868622018,nextgen_safe_rho0p5_Rtarget0p01,3,wsd_20000_24000.csv,WSD sharp,wsdcon_9.csv,WSD-con 9e-5,3,-6.39775946022767
--17.675275296920265,nextgen_safe_rho0p5_Rtarget0p01,3,wsd_20000_24000.csv,WSD sharp,wsdld_20000_24000.csv,WSD linear,3,-11.68451677105271

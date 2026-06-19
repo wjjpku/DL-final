@@ -1,7 +1,0 @@
-attenuation,geometry_tau,mode,nuisance,route,source_drop_norm,source_families,table_tau,target_curve,target_decay_span,target_drop_norm,target_family,target_label,train_curves
-1.0,8192.0,geometry_cross_family,dct4,smooth_from_full_step,0.8999999999999999,single_step,8192.0,cosine_72000.csv,69839.0,0.899999999544725,smooth_decay,Cosine,wsdcon_3
-1.0,4998.75,geometry_cross_family,dct4,finite_tail_from_steps,0.6666666666666666,single_step,3072.0,wsd_20000_24000.csv,3999.0,0.8999424188010638,finite_tail,WSD sharp,wsdcon_18+wsdcon_3+wsdcon_9
-1.0,4998.75,geometry_cross_family,dct4,finite_tail_from_steps,0.6666666666666666,single_step,3072.0,wsdld_20000_24000.csv,3999.0,0.899775,finite_tail,WSD linear,wsdcon_18+wsdcon_3+wsdcon_9
-1.0,1535.9999999999993,geometry_cross_family,dct2,full_step_from_finite_tail,0.8998587094005319,finite_tail,1536.0,wsdcon_3.csv,1.0,0.8999999999999999,single_step,WSD-con 3e-5,wsd_20000_24000+wsdld_20000_24000
-0.6051282543218014,733.1839999999999,geometry_cross_family,dct2,medium_step_from_finite_tail,0.8998587094005319,finite_tail,768.0,wsdcon_9.csv,1.0,0.7,single_step,WSD-con 9e-5,wsd_20000_24000+wsdld_20000_24000
-0.19759289937038402,512.0,geometry_cross_family,none,weak_step_from_finite_tail,0.8998587094005319,finite_tail,512.0,wsdcon_18.csv,1.0,0.3999999999999999,single_step,WSD-con 18e-5,wsd_20000_24000+wsdld_20000_24000

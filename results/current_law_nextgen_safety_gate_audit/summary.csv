@@ -1,7 +1,0 @@
-group,mean_delta_pct,mean_target_factor,mode,non_harm_cells,tests,wins,worst_delta_pct
-main_matrix,-11.951446181935287,1.0,raw_nextgen,90,90,90,-1.0263101049168721
-extra_holdout,2.4120243430068893,1.0,raw_nextgen,36,54,0,21.762086533250226
-all,-6.565144735081972,1.0,raw_nextgen,126,144,90,21.762086533250226
-main_matrix,-11.57531144628541,0.8333333333333334,target_localization_gate,90,90,75,0.0
-extra_holdout,0.0,0.0,target_localization_gate,54,54,0,0.0
-all,-7.234569653928383,0.5208333333333334,target_localization_gate,144,144,75,0.0

@@ -1,7 +1,8 @@
 # Reproduction Scripts
 
-This directory contains both current entry points and historical exploration
-scripts.  For the public-facing project, use the current entry points below.
+This directory contains only the scripts needed for the public-facing
+reproduction path.  Historical exploration scripts are intentionally excluded
+from the GitHub release.
 
 ## Current Entry Points
 
@@ -20,10 +21,14 @@ scripts.  For the public-facing project, use the current entry points below.
 python3 repro/schedule_response_robustness_audit.py
 ```
 
-Generated outputs:
+Committed summary outputs and regenerated slide figures:
 
 ```text
-results/schedule_response_robustness/
+results/schedule_response_robustness/REPORT.md
+results/schedule_response_robustness/LEAKAGE_AUDIT.md
+results/schedule_response_robustness/*_summary.csv
+results/schedule_response_robustness/window_rule.csv
+results/schedule_response_robustness/wsdcon_failure_slice.csv
 slides/figs/fig_mpl_residual_anomaly_100M.png
 slides/figs/fig_projection_decomposition_cosine_100M.png
 slides/figs/fig_projection_ablation_time_errors_100M.png
@@ -49,10 +54,7 @@ Expected 15-target WSD-family test aggregates:
 | Tissue/Momentum | `0.007493` | `0.010415` | `0.995223` |
 | MPL | `0.006292` | `0.009848` | `0.995760` |
 
-## Historical Scripts
+## Release Boundary
 
-Files with names such as `current_law_*`, `step_time_*`,
-`cosine_to_wsd_*`, and `mpl_ld_lag_*` are retained as development history.
-They are useful for provenance and ablation archaeology, but they should not be
-treated as the current deployable model unless referenced by
-`schedule_response_robustness_audit.py` or the current slides.
+Only the scripts listed above should be committed in `repro/`.  The release
+verifier fails if old exploration scripts remain tracked.

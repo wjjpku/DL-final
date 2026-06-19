@@ -2,9 +2,10 @@
 
 **From Cosine to WSD: Identifying Transferable LR-Drop Response in MPL Residuals**
 
-This repository contains the code, data, slides, paper sources, and committed
-audit artifacts for a deep-learning course project on loss-curve prediction
-under learning-rate schedule changes.
+This repository contains the minimal code, public CSV data, slides, and
+release-facing audit artifacts needed to reproduce the slides' core experiments
+for a deep-learning course project on loss-curve prediction under learning-rate
+schedule changes.
 
 ## Project Thesis
 
@@ -69,17 +70,13 @@ of the residual is transferable.
    calibration window audit, and WSD-con failure mode.
 3. `results/schedule_response_robustness/LEAKAGE_AUDIT.md`  
    Checklist of which quantities use target WSD loss.
-4. `paper/main.pdf`  
-   Technical report source/PDF.  The paper is close to the current formula line
-   but should be checked against the slides before using it as the final public
-   narrative.
-5. `REPRODUCIBILITY.md`  
+4. `REPRODUCIBILITY.md`  
    Exact commands, data boundary, generated outputs, and expected checks.
-6. `DATA_MANIFEST.md`  
-   Included public-curve data and ignored large local training bytes.
-7. `RELEASE_CHECKLIST.md`  
-   Final commit / push gate for required files and large-file risks.
-8. `FINAL_DELIVERABLES.md`  
+5. `DATA_MANIFEST.md`  
+   Included public-curve data and generated-result boundary.
+6. `RELEASE_CHECKLIST.md`  
+   Final commit / push gate for the minimal release package.
+7. `FINAL_DELIVERABLES.md`  
    Current package checklist and verification commands.
 
 ## Quick Reproduction
@@ -112,13 +109,6 @@ pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 ```
 
-Optional paper compilation:
-
-```bash
-cd paper
-pdflatex -interaction=nonstopmode main.tex
-```
-
 These commands do not rerun expensive transformer training.  They reproduce the
 main public-curve analysis from committed data and regenerate the presentation
 figures used by the current slides.
@@ -143,25 +133,21 @@ main audit:
 - `wsdcon_9.csv`
 - `wsdcon_18.csv`
 
-The optional independent transformer reproduction in `represent/` has local
-training data under `represent/data/`; those raw bytes are intentionally not
-part of the lightweight GitHub reproduction path.  The committed reports,
-scripts, and result curves in `represent/results/` document that branch.
+Only the public CSV curves needed for the slides' core experiments are part of
+the release package.  Raw transformer-training bytes and historical search
+outputs are intentionally not committed.
 
 ## Repository Layout
 
 | Path | Purpose |
 |---|---|
 | `slides/` | Chinese and English Beamer slide decks; `main_zh.pdf` is the current presentation. |
-| `paper/` | Paper source/PDF and figures. |
-| `repro/` | Reproduction and audit scripts.  The current main entry is `schedule_response_robustness_audit.py`. |
-| `results/schedule_response_robustness/` | Current main audit outputs and figures. |
-| `external/MultiPowerLaw/` | Vendored public loss-curve data and MPL reference code. |
-| `DATA_MANIFEST.md` | Data boundary for GitHub reproduction and ignored local raw bytes. |
+| `repro/` | Minimal scripts needed to reproduce the baseline and projected-kappa audit. |
+| `results/schedule_response_robustness/` | Current main audit report, leakage audit, and summary CSVs. |
+| `results/tables/`, `results/figures/` | Baseline reproduction metrics and small summary plots. |
+| `external/MultiPowerLaw/loss_curve_repo/` | Vendored public CSV loss curves used by the scripts. |
+| `DATA_MANIFEST.md` | Data boundary for GitHub reproduction. |
 | `RELEASE_CHECKLIST.md` | Final push checklist and required file set. |
-| `docs/` | Documentation index and historical derivations. |
-| `represent/` | Independent reproduction branch with committed reports and scripts. |
-| `archive/` | Historical proposals and early documents retained for provenance. |
 
 ## Main Generated Figures
 

@@ -18,12 +18,11 @@ cosine source residual
 |---|---|---|
 | Chinese slides | `slides/main_zh.pdf`, `slides/main_zh.tex` | Current main presentation, 36 pages. |
 | English slides | `slides/main.pdf`, `slides/main.tex` | English version of the residual-identification story, with an explicit Tissue/Momentum baseline reproduction section, 38 pages. |
-| Paper draft | `paper/main.pdf`, `paper/main.tex` | Technical report source/PDF; use slides as the most current public narrative. |
 | Main audit report | `results/schedule_response_robustness/REPORT.md` | Main tables for robustness, ablations, cross-scale transfer, and limitations. |
 | Leakage audit | `results/schedule_response_robustness/LEAKAGE_AUDIT.md` | Explicit statement of which stages read target loss. |
 | Reproduction guide | `REPRODUCIBILITY.md` | Commands, data boundary, generated outputs, and expected verification. |
-| Code index | `repro/README.md` | Main scripts and historical exploration scripts. |
-| Results index | `results/README.md` | Current result directory and archived exploration outputs. |
+| Code index | `repro/README.md` | Minimal scripts needed to reproduce the slides' core experiments. |
+| Results index | `results/README.md` | Release-facing result files only. |
 | Top-level README | `README.md` | GitHub entry point and project summary. |
 
 ## 2. Core Claim
@@ -92,13 +91,6 @@ cd slides
 xelatex -interaction=nonstopmode -halt-on-error main_zh.tex
 xelatex -interaction=nonstopmode -halt-on-error main_zh.tex
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
-pdflatex -interaction=nonstopmode -halt-on-error main.tex
-```
-
-Optional paper compilation:
-
-```bash
-cd paper
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 

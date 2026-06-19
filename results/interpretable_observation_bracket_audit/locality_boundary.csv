@@ -1,9 +1,0 @@
-group,max_locality_factor,median_locality_factor,min_locality_factor,post_warmup_span,source,support_span,test_curve,test_label,uses_target_loss
-core_wsd,0.8168498168498168,0.8168498168498168,0.8168498168498168,21840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,4000,wsd_20000_24000.csv,WSD sharp,0
-core_wsd,0.8168498168498168,0.8168498168498168,0.8168498168498168,21840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,4000,wsdld_20000_24000.csv,WSD linear,0
-core_wsd,0.9998554913294798,0.9998554913294798,0.9998554913294798,13840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,2,wsdcon_3.csv,WSD-con 3e-5,0
-core_wsd,0.9998554913294798,0.9998554913294798,0.9998554913294798,13840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,2,wsdcon_9.csv,WSD-con 9e-5,0
-core_wsd,0.9998554913294798,0.9998554913294798,0.9998554913294798,13840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,2,wsdcon_18.csv,WSD-con 18e-5,0
-extra_control,0.0,0.0,0.0,21840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,21840,cosine_24000.csv,Cosine 24k,0
-extra_control,0.0,0.0,0.0,21840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,0,constant_24000.csv,Constant 24k,0
-extra_control,0.0,0.0,0.0,69840,0 if no LR drop else 1 - LR-drop-support-span / post-warmup-span,0,constant_72000.csv,Constant 72k,0
