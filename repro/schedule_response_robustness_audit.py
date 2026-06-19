@@ -627,9 +627,10 @@ def plot_heatmap(main_rows: list[dict[str, object]]) -> None:
     ax.set_title("MAE change vs MPL, same-scale WSD-family")
     fig.colorbar(im, ax=ax, label="MAE change (%)")
     FIG_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(FIG_DIR / "mae_change_heatmap.png", dpi=180)
+    save_kwargs = {"dpi": 180, "bbox_inches": "tight", "pad_inches": 0.04}
+    fig.savefig(FIG_DIR / "mae_change_heatmap.png", **save_kwargs)
     SLIDE_FIG_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(SLIDE_FIG_DIR / "fig_schedule_response_mae_heatmap.png", dpi=180)
+    fig.savefig(SLIDE_FIG_DIR / "fig_schedule_response_mae_heatmap.png", **save_kwargs)
     plt.close(fig)
 
 
