@@ -2,79 +2,48 @@
 
 **From Cosine to WSD: Identifying Transferable LR-Drop Response in MPL Residuals**
 
-This repository is a compact reproduction package for the slides' core
-experiments.  It contains the public CSV loss curves, the minimal reproduction
-scripts, the slide decks, and the small set of reports / figures needed to
-verify the result.
+这个项目研究一个很具体的问题：如果我们已经观察到 `cosine` 学习率计划下的公开训练损失曲线，能不能在不读取目标 `WSD-family` 损失曲线的情况下，预测目标 WSD 曲线的形状？
 
-## What This Project Studies
+项目的核心不是再拟合一个更复杂的 loss law，而是把 MPL baseline 的残差拆开看：哪些残差来自学习率下降带来的可迁移响应，哪些只是 MPL-LD 参数漂移造成的不可迁移干扰。最后使用的预测器刻意保持低容量，只在源 cosine 曲线上估计一个标量响应强度，再把它迁移到目标学习率计划。
 
-Learning-rate schedules change the shape of a training loss curve.  The
-question here is deliberately concrete:
+![Projection decomposition of cosine residual](slides/figs/fig_projection_decomposition_cosine_100M.png)
 
-> Given a source cosine loss curve and a target WSD-family learning-rate
-> schedule, can we predict the target WSD loss curve without using target WSD
-> loss for calibration?
+## 研究问题
 
-The baseline is MPL.  MPL is already strong, but it leaves systematic residuals
-near WSD transition and tail regions.  The key difficulty is that the cosine
-residual is not a pure schedule-response signal.  It mixes:
+学习率计划会改变训练曲线在 transition 和 tail 区域的形状。MPL 已经是一个很强的 baseline，但在 WSD 过渡区附近仍然留下有结构的误差。直接把 cosine residual 搬到 WSD 上会失败，因为 raw residual 混合了两类信号：
 
 ```text
 transferable LR-drop response
 + non-transferable MPL-LD parameter drift
 ```
 
-The project treats cosine-to-WSD transfer as an **identification problem**:
-remove the MPL-LD nuisance component first, then transfer only the identified
-LR-drop response.
-
-**MPL residuals are structured, not random.**  
-The residual concentrates around the LR transition and tail region, which makes
-schedule transfer plausible but also dangerous.
+因此，这个项目把 cosine-to-WSD transfer 视为一个识别问题：先投影掉 MPL-LD nuisance tangent，再只迁移与学习率下降响应相关的分量。
 
 ![MPL residual anomaly near WSD transition and tail](slides/figs/fig_mpl_residual_anomaly_100M.png)
 
-**Projection separates signal from nuisance.**  
-The raw cosine residual contains both transferable response and MPL-LD parameter
-drift.  The projection removes the local MPL-LD tangent directions before
-estimating the response amplitude.
+## 方法摘要
 
-![Projection decomposition of cosine residual](slides/figs/fig_projection_decomposition_cosine_100M.png)
-
-The prediction rule is intentionally low capacity:
+部署时使用的预测形式是：
 
 ```text
 L_hat_s(t) = L_MPL,s(t) + kappa_hat_s * phi_{lambda_s,s}(t)
 ```
 
-- `L_MPL,s(t)` is the frozen MPL baseline.
-- `phi_{lambda_s,s}(t)` is a causal LR-drop response feature computed from the
-  target LR schedule.
-- `kappa_hat_s` is the only residual-fitted scalar, estimated from the source
-  cosine residual after MPL-LD projection.
-- Target WSD loss is used only for evaluation and oracle diagnostics.
+- `L_MPL,s(t)`：冻结的 MPL baseline。
+- `phi_{lambda_s,s}(t)`：只由目标学习率计划计算出的因果 LR-drop response feature。
+- `kappa_hat_s`：唯一从残差中拟合的标量，在源 cosine residual 上估计。
+- 目标 WSD loss 只用于最后评估和 oracle 诊断，不参与校准或预测。
 
-## Main Evidence
+这使得实验边界非常清楚：预测阶段只使用源 cosine 曲线、目标 LR schedule 和冻结 MPL baseline。
 
-The main deployable setting is same-scale cosine source to WSD-family targets
-across `25M`, `100M`, and `400M`.
+## 主要证据
 
-**Main result across WSD-family targets.**  
-The projected source-only correction improves all 15 same-scale WSD-family
-curves relative to MPL.
+同尺度 `25M / 100M / 400M` 的 cosine source 到 WSD-family targets 上，投影后的 source-only correction 相比 MPL 取得稳定改善：
 
 ![MAE improvement heatmap](slides/figs/fig_schedule_response_mae_heatmap.png)
 
-**Source-only amplitude tracks target oracle amplitude.**  
-The oracle `kappa_star` reads target loss and is used only as a diagnostic.  The
-alignment shows that the projected source estimate captures transferable
-amplitude information.
-
-![Source kappa versus target oracle kappa](slides/figs/fig_kappa_clean_scatter.png)
-
 | Evidence | Result |
-|---|---:|
+| --- | ---: |
 | Same-scale WSD-family mean MAE change vs MPL | `-30.88%` |
 | Worst WSD-family row | `-4.67%` |
 | WSD-family wins | `15/15` |
@@ -82,41 +51,42 @@ amplitude information.
 | No-projection negative control | `+625.92%`, `0/15` wins |
 | Leave-one-scale-out mean-kappa transfer | `-25.62%`, `15/15` wins |
 
-The negative control is important: directly fitting the raw cosine residual
-without MPL-LD projection over-transfers low-frequency MPL drift.  The result is
-not just "add one correction term"; the useful part is identifying which
-residual component can transfer.
+![Source kappa versus target oracle kappa](slides/figs/fig_kappa_clean_scatter.png)
 
-## How To Use This Repository
+负对照很关键：如果不做 MPL-LD 投影，直接从 raw cosine residual 估计响应强度，会把低频漂移也迁移过去，导致 `+625.92%` 的 MAE 恶化。这说明结果不是“随便加一个修正项”，而是需要识别可迁移残差分量。
 
-Start with the slides:
+## 仓库内容
 
-1. `slides/main_zh.pdf` is the Chinese standalone presentation.
-2. `slides/main.pdf` is the English version with the explicit Tissue/Momentum
-   baseline reproduction section.
-3. `results/schedule_response_robustness/REPORT.md` contains the main tables.
-4. `results/schedule_response_robustness/LEAKAGE_AUDIT.md` states what does and
-   does not read target WSD loss.
+| Path | Purpose |
+| --- | --- |
+| `slides/` | 中文和英文展示稿，以及项目主图。 |
+| `repro/` | 复现 baseline 和 projected-kappa audit 的最小脚本。 |
+| `results/schedule_response_robustness/` | 主结果报告、target-leakage audit 和汇总 CSV。 |
+| `external/MultiPowerLaw/loss_curve_repo/` | 项目使用的公开 loss curve CSV。 |
+| `REPRODUCIBILITY.md` | 命令级复现说明。 |
+| `DATA_MANIFEST.md` | 数据边界和文件来源说明。 |
 
-Install dependencies:
+## 快速复现
+
+安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Regenerate the main projected-kappa audit:
+复现主 audit：
 
 ```bash
 python3 repro/schedule_response_robustness_audit.py
 ```
 
-Reproduce the MPL and Tissue et al. / Momentum Law baseline comparison:
+复现 MPL 与 Tissue/Momentum baseline 对比：
 
 ```bash
 python3 repro/reproduce_cosine_to_wsd.py --scales 25 100 400
 ```
 
-Compile the slides:
+编译展示稿：
 
 ```bash
 cd slides
@@ -126,15 +96,9 @@ pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 ```
 
-Verify that the repository is still the minimal release package:
+## 数据边界
 
-```bash
-python3 repro/verify_release.py --require-index
-```
-
-## Data Included
-
-The public-curve CSV data used by the slides is vendored under:
+公开曲线位于：
 
 ```text
 external/MultiPowerLaw/loss_curve_repo/csv_25/
@@ -142,48 +106,18 @@ external/MultiPowerLaw/loss_curve_repo/csv_100/
 external/MultiPowerLaw/loss_curve_repo/csv_400/
 ```
 
-Each scale contains:
+每个 scale 包含 `cosine_72000.csv` 作为 source curve，以及 `wsd_20000_24000.csv`、`wsdld_20000_24000.csv`、`wsdcon_3.csv`、`wsdcon_9.csv`、`wsdcon_18.csv` 等目标曲线。仓库不声称做了新的 transformer 训练；公开复现路径只依赖已提交的 CSV 曲线和 CPU 友好的分析脚本。
 
-- `cosine_72000.csv`: source curve for projected residual calibration;
-- `wsd_20000_24000.csv`: WSD sharp cooldown target;
-- `wsdld_20000_24000.csv`: WSD linear decay target;
-- `wsdcon_3.csv`, `wsdcon_9.csv`, `wsdcon_18.csv`: WSD-con targets;
-- `cosine_24000.csv`, `constant_24000.csv`, `constant_72000.csv`: auxiliary
-  public curves used by baseline scripts.
+## 结论边界
 
-No expensive transformer training is required for the public reproduction path.
+这个项目支持的结论是：
 
-## Minimal Release Layout
+- 在提交的 WSD-family 公开曲线上，source-only projected cosine calibration 能识别 MPL baseline 上方的可迁移 LR-drop response。
+- MPL-LD projection 是必要步骤；raw residual transfer 会失败。
+- 当前方法是低容量规则，每个 source scale / response shape 只拟合一个残差标量。
 
-| Path | Purpose |
-|---|---|
-| `slides/` | Chinese and English Beamer slide decks plus the figures used in them. |
-| `repro/` | Minimal scripts needed to reproduce the baseline and projected-kappa audit. |
-| `results/schedule_response_robustness/` | Main report, leakage audit, and summary CSVs. |
-| `results/tables/`, `results/figures/` | Baseline reproduction metrics and small summary plots. |
-| `external/MultiPowerLaw/loss_curve_repo/` | Public CSV loss curves used by the scripts. |
-| `REPRODUCIBILITY.md` | Command-level reproduction guide. |
-| `DATA_MANIFEST.md` | Exact data boundary. |
-| `RELEASE_CHECKLIST.md` | Minimal push checklist and release allowlist. |
+不声称：
 
-This repository intentionally excludes exploratory result dumps, paper drafts,
-independent training branches, and old search scripts.  The release verifier
-fails if those files are still tracked.
-
-## Scope
-
-Supported claim:
-
-- On the committed WSD-family public curves, source-only projected cosine
-  calibration identifies a transferable LR-drop response component on top of a
-  frozen MPL baseline.
-- MPL-LD projection is necessary; raw cosine residual transfer fails.
-- The deployable rule is low capacity: one residual-fitted scalar `kappa_hat`
-  per source scale / response shape.
-
-Not claimed:
-
-- A universal training-loss law.
-- A universal constant calibration window.
-- Fully solved WSD-con final-LR ranking.
-- Prospective validation on newly trained held-out WSD schedules.
+- 得到通用训练损失定律。
+- 解决所有 WSD-con final-LR 排序问题。
+- 完成新训练出来的 held-out WSD schedule 的前瞻验证。
